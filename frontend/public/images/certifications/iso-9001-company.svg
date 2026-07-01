@@ -1,20 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="ISO 9001:2015 Certified Organisation">
   <defs>
-    <linearGradient id="iso9001bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a3a5c"/>
-      <stop offset="100%" stop-color="#0d2338"/>
+    <linearGradient id="c90bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1b3f63"/>
+      <stop offset="100%" stop-color="#0b1f33"/>
     </linearGradient>
-    <linearGradient id="iso9001ring" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="c90ring" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#37dc82"/>
       <stop offset="100%" stop-color="#27dab4"/>
     </linearGradient>
+    <path id="c90top" d="M23,100 A77,77 0 0 1 177,100" fill="none"/>
+    <path id="c90bot" d="M25,100 A75,75 0 0 0 175,100" fill="none"/>
   </defs>
-  <circle cx="100" cy="100" r="94" fill="url(#iso9001bg)"/>
-  <circle cx="100" cy="100" r="94" fill="none" stroke="url(#iso9001ring)" stroke-width="3"/>
-  <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
-  <text x="100" y="55" text-anchor="middle" font-family="Geist, Arial, sans-serif" font-weight="700" font-size="14" fill="#9fe7bf" letter-spacing="4">CERTIFIED</text>
-  <text x="100" y="105" text-anchor="middle" font-family="Geist, Arial, sans-serif" font-weight="800" font-size="36" fill="#fff" letter-spacing="-1">ISO</text>
-  <text x="100" y="140" text-anchor="middle" font-family="Geist Mono, ui-monospace, monospace" font-weight="700" font-size="22" fill="#37dc82" letter-spacing="1">9001</text>
-  <text x="100" y="162" text-anchor="middle" font-family="Geist, Arial, sans-serif" font-weight="600" font-size="9" fill="rgba(255,255,255,0.7)" letter-spacing="2">QUALITY MANAGEMENT</text>
-  <path d="M60 175 Q100 185 140 175" stroke="rgba(55,220,130,0.4)" stroke-width="1" fill="none"/>
+
+  <!-- medallion body + rings -->
+  <circle cx="100" cy="100" r="96" fill="url(#c90bg)"/>
+  <circle cx="100" cy="100" r="96" fill="none" stroke="url(#c90ring)" stroke-width="3"/>
+  <circle cx="100" cy="100" r="91" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-dasharray="0.5 5" stroke-linecap="round"/>
+  <circle cx="100" cy="100" r="85" fill="none" stroke="url(#c90ring)" stroke-width="1" stroke-opacity="0.45"/>
+  <circle cx="100" cy="100" r="63" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>
+
+  <!-- curved standard text -->
+  <text font-family="Geist, Arial, sans-serif" font-weight="700" font-size="11.5" letter-spacing="2.4" fill="#cfeede">
+    <textPath xlink:href="#c90top" startOffset="50%" text-anchor="middle">CERTIFIED ORGANISATION</textPath>
+  </text>
+  <text font-family="Geist, Arial, sans-serif" font-weight="600" font-size="9" letter-spacing="2.4" fill="rgba(255,255,255,0.72)">
+    <textPath xlink:href="#c90bot" startOffset="50%" text-anchor="middle">QUALITY MANAGEMENT</textPath>
+  </text>
+
+  <!-- side star separators -->
+  <path d="M24 95 Q24 100 29 100 Q24 100 24 105 Q24 100 19 100 Q24 100 24 95 Z" fill="#37dc82"/>
+  <path d="M176 95 Q176 100 181 100 Q176 100 176 105 Q176 100 171 100 Q176 100 176 95 Z" fill="#37dc82"/>
+
+  <!-- certified check crest -->
+  <circle cx="100" cy="52" r="12" fill="rgba(55,220,130,0.12)" stroke="url(#c90ring)" stroke-width="1.6"/>
+  <path d="M94 52 l4 4 l8 -8.5" fill="none" stroke="#37dc82" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- center identity -->
+  <text x="100" y="90" text-anchor="middle" font-family="Geist, Arial, sans-serif" font-weight="700" font-size="15" letter-spacing="5" fill="#ffffff">ISO</text>
+  <text x="100" y="126" text-anchor="middle" font-family="Geist, Arial, sans-serif" font-weight="800" font-size="40" letter-spacing="-1" fill="url(#c90ring)">9001</text>
+  <text x="100" y="144" text-anchor="middle" font-family="Geist Mono, ui-monospace, monospace" font-weight="600" font-size="11" letter-spacing="3" fill="rgba(255,255,255,0.62)">: 2015</text>
 </svg>
