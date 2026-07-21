@@ -2307,7 +2307,7 @@ async function crmReload() {
   const cfg = CRM_TABS[crmState.tab];
   const from = crmState.page*CRM_PAGE_SIZE, to = from+CRM_PAGE_SIZE-1;
   let q = supabase.from('crm_deals')
-    .select('*, crm_companies(name,domain), crm_contacts(name,email,phone,whatsapp_ok)', { count:'exact' })
+    .select('*, crm_companies!company_id(name,domain), crm_contacts(name,email,phone,whatsapp_ok)', { count:'exact' })
     .eq('motion', cfg.motion)
     .order('updated_at', { ascending:false })
     .range(from, to);
@@ -2515,7 +2515,7 @@ async function crmExport() {
   if (tab === 'prospects') {
     ({ data } = await supabase.from('crm_prospects').select('*').limit(5000));
   } else {
-    ({ data } = await supabase.from('crm_deals').select('*, crm_companies(name), crm_contacts(email)').eq('motion', CRM_TABS[tab].motion).limit(5000));
+    ({ data } = await supabase.from('crm_deals').select('*, crm_companies!company_id(name), crm_contacts(email)').eq('motion', CRM_TABS[tab].motion).limit(5000));
   }
   if (!data || !data.length) { alert('Nothing to export'); return; }
   cols = Object.keys(data[0]).filter((c)=>typeof data[0][c] !== 'object');
