@@ -2327,3 +2327,58 @@ function crmRenderRows(cfg) {
   document.getElementById('crm-page-info').textContent = `${crmState.total} deals`;
 }
 function crmCurrentQuery(){ return { table:'crm_deals', motion:CRM_TABS[crmState.tab]?.motion }; }  // used by A11
+
+async function crmOpenDrawer(idx) {
+  const d = crmState.rows[idx]; if (!d) return;
+  crmState._openId = d.id;
+  const stages = CRM_STAGES[d.motion];
+  const [{ data: acts }, { data: sig }] = await Promise.all([
+    supabase.from('crm_activities').select('*').eq('deal_id', d.id).order('occurred_at',{ascending:false}),
+    d.contact_id ? supabase.from('v_crm_contact_signals').select('*').eq('contact_id', d.contact_id).maybeSingle() : Promise.resolve({data:null}),
+  ]);
+  const badge = sig ? `${sig.is_subscriber?'<span class="crm-stage-pill">newsletter</span>':''}${sig.on_waitlist?' <span class="crm-stage-pill">waitlist</span>':''}` : '';
+  const waPhone = (d.crm_contacts?.phone||'').replace(/[^0-9]/g,'');
+  const wa = waPhone ? ` · <a href="https://wa.me/${waPhone}" target="_blank" rel="noopener">WhatsApp</a>` : '';
+  document.getElementById('crm-drawer-body').innerHTML = `
+    <h2>${esc(d.title)}</h2>
+    <div class="lead-meta">${esc(d.crm_companies?.name||'—')} · ${esc(d.crm_contacts?.email||'')}${wa} ${badge}</div>
+    <label>Stage <select id="crm-d-stage">${stages.map((s)=>`<option ${s===d.stage?'selected':''}>${s}</option>`).join('')}</select></label>
+    <label>Value AED <input id="crm-d-value" type="number" value="${d.value_aed??''}"></label>
+    <label>Next action <input id="crm-d-next" value="${esc(d.next_action||'')}"></label>
+    <label>Next action date <input id="crm-d-nextdate" type="date" value="${d.next_action_date||''}"></label>
+    <label>Lost reason <input id="crm-d-lost" value="${esc(d.lost_reason||'')}"></label>
+    <button id="crm-d-save" class="btn btn-primary">Save</button>
+    <hr>
+    <h3>Activity</h3>
+    <div class="crm-activity-add">
+      <select id="crm-a-type"><option>note</option><option>call</option><option>email</option><option>whatsapp</option><option>meeting</option></select>
+      <textarea id="crm-a-body" placeholder="Log a note…"></textarea>
+      <button id="crm-a-add" class="btn">Add</button>
+    </div>
+    <ul id="crm-activity-list">${(acts||[]).map((a)=>`<li><b>${esc(a.type)}</b> · ${formatDate(a.occurred_at)}<br>${esc(a.body||'')}</li>`).join('')}</ul>`;
+  document.getElementById('crm-d-save').addEventListener('click', crmSaveDeal);
+  document.getElementById('crm-a-add').addEventListener('click', crmAddActivity);
+  document.getElementById('crm-drawer').classList.add('open');
+}
+function crmCloseDrawer(){ document.getElementById('crm-drawer').classList.remove('open'); }
+
+async function crmSaveDeal() {
+  const id = crmState._openId;
+  const patch = {
+    stage: document.getElementById('crm-d-stage').value,
+    value_aed: document.getElementById('crm-d-value').value || null,
+    next_action: document.getElementById('crm-d-next').value || null,
+    next_action_date: document.getElementById('crm-d-nextdate').value || null,
+    lost_reason: document.getElementById('crm-d-lost').value || null,
+  };
+  const { error } = await supabase.from('crm_deals').update(patch).eq('id', id);
+  if (error) { alert('Save failed: '+error.message); return; }
+  crmCloseDrawer(); crmReload();   // stage-change activity is auto-logged by the DB trigger
+}
+async function crmAddActivity() {
+  const body = document.getElementById('crm-a-body').value.trim(); if(!body) return;
+  const type = document.getElementById('crm-a-type').value;
+  const { error } = await supabase.from('crm_activities').insert({ deal_id: crmState._openId, type, body });
+  if (error) { alert('Add failed: '+error.message); return; }
+  crmOpenDrawer(crmState.rows.findIndex((r)=>r.id===crmState._openId));  // refresh drawer
+}
