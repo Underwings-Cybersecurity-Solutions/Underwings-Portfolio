@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Underwings · Sales Operations Console</title>
+  <link rel="icon" type="image/png" href="/images/logo.png">
+  <link rel="preload" href="/fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/geist-mono-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/crm.css">
+  <script>window.SUPABASE_URL="__SUPABASE_URL__";window.SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY__";</script>
+</head>
+<body>
+
+  <!-- ============================ LOGIN ============================ -->
+  <div id="login-screen" class="auth">
+    <!-- Left: brand / console atmosphere -->
+    <aside class="auth-brand" aria-hidden="true">
+      <div class="auth-brand-top">
+        <img src="/images/logo.png" alt="" class="auth-mark">
+        <div class="auth-wordmark">
+          <span class="auth-name">UNDERWINGS</span>
+          <span class="auth-sub">Sales Operations Console</span>
+        </div>
+      </div>
+      <div class="auth-chain">
+        <span class="auth-chain-seg is-lit"></span>
+        <span class="auth-chain-seg is-lit"></span>
+        <span class="auth-chain-seg is-lit"></span>
+        <span class="auth-chain-seg"></span>
+        <span class="auth-chain-seg"></span>
+      </div>
+      <ul class="auth-readout" role="presentation">
+        <li><span class="dot ok"></span> Pipeline&nbsp;feed <b>online</b></li>
+        <li><span class="dot ok"></span> Intel&nbsp;signals <b>syncing</b></li>
+        <li><span class="dot"></span> Session <b>awaiting&nbsp;operator</b></li>
+      </ul>
+      <p class="auth-tag">Track the pipeline like a threat board. Every deal, a live signal.</p>
+    </aside>
+
+    <!-- Right: sign-in -->
+    <main class="auth-panel">
+      <div class="auth-card">
+        <header class="auth-card-head">
+          <span class="eyebrow">Secure sign-in</span>
+          <h1>Operator access</h1>
+          <p class="muted">Enter your credentials to open the console.</p>
+        </header>
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autocomplete="username" placeholder="you@underwings.org">
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••••">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+          <p id="login-error" class="form-error" role="alert"></p>
+        </form>
+        <p class="auth-foot muted">Access is restricted to Underwings personnel.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================ MFA ============================ -->
+  <div id="mfa-screen" class="auth auth--solo" style="display:none;">
+    <main class="auth-panel">
+      <div class="auth-card">
+        <header class="auth-card-head">
+          <img src="/images/logo.png" alt="Underwings" class="auth-card-mark">
+          <span class="eyebrow">Second factor</span>
+          <h1>Verify it's you</h1>
+          <p id="mfa-instructions" class="muted">Enter the 6-digit code from your authenticator app.</p>
+        </header>
+
+        <!-- Enroll (setup only) -->
+        <div id="mfa-enroll" class="mfa-enroll" style="display:none;">
+          <p class="muted">Scan this with Google Authenticator, Authy, or 1Password:</p>
+          <img id="mfa-qr" alt="Authenticator setup QR code" class="mfa-qr">
+        </div>
+
+        <form id="mfa-form">
+          <div class="field">
+            <label for="mfa-code">Verification code</label>
+            <input type="text" id="mfa-code" name="mfa-code" class="mono otp" required placeholder="000000"
+                   maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Verify</button>
+          <p id="mfa-error" class="form-error" role="alert"></p>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================ APP SHELL ============================ -->
+  <div id="app" class="app" style="display:none;">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <img src="/images/logo.png" alt="Underwings" class="topbar-mark">
+        <span class="topbar-word">Sales&nbsp;Ops</span>
+      </div>
+
+      <nav class="viewnav" aria-label="Views">
+        <button class="viewnav-btn is-active" data-crm-view="pipeline" aria-current="page">
+          <span class="viewnav-ico">▚</span> Pipeline
+        </button>
+        <button class="viewnav-btn" data-crm-view="prospects">
+          <span class="viewnav-ico">◇</span> Signals
+        </button>
+        <button class="viewnav-btn" data-crm-view="reports">
+          <span class="viewnav-ico">▟</span> Reports
+        </button>
+      </nav>
+
+      <div class="topbar-tools">
+        <div class="search" role="search">
+          <span class="search-ico" aria-hidden="true">⌕</span>
+          <input id="crm-search" type="search" placeholder="Search deals, company, contact…" aria-label="Search deals">
+        </div>
+        <button id="crm-new-deal-btn" class="btn btn-primary btn-sm">
+          <span class="btn-plus" aria-hidden="true">+</span> New deal
+        </button>
+        <div class="usermenu">
+          <button class="userchip" id="crm-user" aria-haspopup="true">
+            <span class="userchip-avatar" aria-hidden="true">MP</span>
+            <span class="userchip-name">operator</span>
+          </button>
+          <button id="crm-logout" class="btn btn-ghost btn-icon" title="Sign out" aria-label="Sign out">⏻</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-body">
+
+      <!-- ======================= PIPELINE VIEW ======================= -->
+      <section class="view is-active" data-crm-view-panel="pipeline" aria-label="Pipeline">
+
+        <!-- SIGNATURE #1 — Signal Chain -->
+        <div id="crm-pipeline-strip" class="signal-chain" role="tablist" aria-label="Pipeline stages">
+          <button class="chain-seg is-active" data-stage="intake" role="tab" aria-selected="true">
+            <span class="chain-name">Intake</span>
+            <span class="chain-fig"><span class="chain-count mono">7</span><span class="chain-val mono">AED&nbsp;312K</span></span>
+            <span class="chain-bar"><i style="width:38%"></i></span>
+          </button>
+          <button class="chain-seg" data-stage="qualified" role="tab" aria-selected="false">
+            <span class="chain-name">Qualified</span>
+            <span class="chain-fig"><span class="chain-count mono">5</span><span class="chain-val mono">AED&nbsp;486K</span></span>
+            <span class="chain-bar"><i style="width:58%"></i></span>
+          </button>
+          <button class="chain-seg" data-stage="scoping" role="tab" aria-selected="false">
+            <span class="chain-name">Scoping</span>
+            <span class="chain-fig"><span class="chain-count mono">4</span><span class="chain-val mono">AED&nbsp;540K</span></span>
+            <span class="chain-bar"><i style="width:66%"></i></span>
+          </button>
+          <button class="chain-seg" data-stage="proposal" role="tab" aria-selected="false">
+            <span class="chain-name">Proposal</span>
+            <span class="chain-fig"><span class="chain-count mono">3</span><span class="chain-val mono">AED&nbsp;820K</span></span>
+            <span class="chain-bar"><i style="width:100%"></i></span>
+          </button>
+          <button class="chain-seg chain-seg--won" data-stage="won" role="tab" aria-selected="false">
+            <span class="chain-name">Won</span>
+            <span class="chain-fig"><span class="chain-count mono">2</span><span class="chain-val mono">AED&nbsp;410K</span></span>
+            <span class="chain-bar"><i style="width:50%"></i></span>
+          </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div id="crm-view-toggle" class="seg" role="tablist" aria-label="Board layout">
+            <button class="seg-btn is-active" data-layout="kanban" aria-selected="true">Board</button>
+            <button class="seg-btn" data-layout="list" aria-selected="false">List</button>
+          </div>
+          <div class="toolbar-spacer"></div>
+          <span class="toolbar-hint muted">Drag cards to move a deal along the chain.</span>
+          <button id="crm-export-btn" class="btn btn-ghost btn-sm">
+            <span aria-hidden="true">↧</span> Export CSV
+          </button>
+        </div>
+
+        <!-- SIGNATURE #2 — Kanban board -->
+        <div id="crm-board" class="kanban" aria-label="Deals board">
+          <!-- Column: Intake -->
+          <section class="kcol" data-stage="intake">
+            <header class="kcol-head">
+              <span class="kcol-name">Intake</span>
+              <span class="kcol-meta"><span class="mono">7</span> · <span class="mono">AED&nbsp;312K</span></span>
+            </header>
+            <div class="kcol-body">
+              <article class="dcard dcard--services" tabindex="0">
+                <span class="dcard-edge"></span>
+                <div class="dcard-head">
+                  <span class="pill pill--services">Services</span>
+                  <span class="dcard-val mono">AED&nbsp;68,000</span>
+                </div>
+                <h3 class="dcard-title">Web-app VAPT + retest</h3>
+                <p class="dcard-co muted">Emirates Steel</p>
+                <div class="dcard-foot">
+                  <span class="ava" title="Manoj P.">MP</span>
+                  <span class="chip chip--next">Send SoW</span>
+                </div>
+              </article>
+              <article class="dcard dcard--software" tabindex="0">
+                <span class="dcard-edge"></span>
+                <div class="dcard-head">
+                  <span class="pill pill--software">Software</span>
+                  <span class="dcard-val mono">AED&nbsp;54,000</span>
+                </div>
+                <h3 class="dcard-title">Attack-surface monitor — trial</h3>
+                <p class="dcard-co muted">Noor Bank</p>
+                <div class="dcard-foot">
+                  <span class="ava" title="Aisha S.">AS</span>
+                  <span class="chip chip--next">Qualify budget</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <!-- Column: Qualified -->
+          <section class="kcol" data-stage="qualified">
+            <header class="kcol-head">
+              <span class="kcol-name">Qualified</span>
+              <span class="kcol-meta"><span class="mono">5</span> · <span class="mono">AED&nbsp;486K</span></span>
+            </header>
+            <div class="kcol-body">
+              <article class="dcard dcard--services dcard--stale" tabindex="0">
+                <span class="dcard-edge"></span>
+                <div class="dcard-head">
+                  <span class="pill pill--services">Services</span>
+                  <span class="dcard-val mono">AED&nbsp;145,000</span>
+                </div>
+                <h3 class="dcard-title">ISO 27001 gap assessment</h3>
+                <p class="dcard-co muted">Gulf Data Centre</p>
+                <div class="dcard-foot">
+                  <span class="ava" title="Manoj P.">MP</span>
+                  <span class="chip chip--stale mono" title="No activity for 34 days">⏳ 34d</span>
+                </div>
+              </article>
+              <article class="dcard dcard--services" tabindex="0">
+                <span class="dcard-edge"></span>
+                <div class="dcard-head">
+                  <span class="pill pill--services">Services</span>
+                  <span class="dcard-val mono">AED&nbsp;96,000</span>
+                </div>
+                <h3 class="dcard-title">Phishing simulation programme</h3>
+                <p class="dcard-co muted">Al Masaood</p>
+                <div class="dcard-foot">
+                  <span class="ava" title="Reem K.">RK</span>
+                  <span class="chip chip--next">Book scoping call</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <!-- Column: Scoping -->
+          <section class="kcol" data-stage="scoping">
+            <header class="kcol-head">
+              <span class="kcol-name">Scoping</span>
+              <span class="kcol-meta"><span class="mono">4</span> · <span class="mono">AED&nbsp;540K</span></span>
+            </header>
+            <div class="kcol-body">
+              <article class="dcard dcard--software crm-card--dragging" tabindex="0">
+                <span class="dcard-edge"></span>
+                <div class="dcard-head">
+                  <span class="pill pill--software">Software</span>
+                  <span class="dcard-val mono">AED&nbsp;220,000</span>
+                </div>
+                <h3 class="dcard-title">Continuous ASM — annual</h3>
+                <p class="dcard-co muted">Sharjah Islamic Bank</p>
+                <div class="dcard-foot">
+                  <span class="ava" title="Aisha S.">AS</span>
+                  <span class="chip chip--next">Demo booked</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <!-- Column: Proposal (drop target demo) -->
+          <section class="kcol crm-col--dropzone" data-stage="proposal">
+            <header class="kcol-head">
+              <span class="kcol-name">Proposal</span>
+              <span class="kcol-meta"><span class="mono">3</span> · <span class="mono">AED&nbsp;820K</span></span>
+            </header>
+            <div class="kcol-body">
+              <article class="dcard dcard--services" tabindex="0">
+                <span class="dcard-edge"></span>
+                <div class="dcard-head">
+                  <span class="pill pill--services">Services</span>
+                  <span class="dcard-val mono">AED&nbsp;480,000</span>
+                </div>
+                <h3 class="dcard-title">Red-team engagement — Q3</h3>
+                <p class="dcard-co muted">Etihad Rail</p>
+                <div class="dcard-foot">
+                  <span class="ava" title="Manoj P.">MP</span>
+                  <span class="chip chip--next">Await sign-off</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <!-- Column: Won -->
+          <section class="kcol kcol--won" data-stage="won">
+            <header class="kcol-head">
+              <span class="kcol-name">Won</span>
+              <span class="kcol-meta"><span class="mono">2</span> · <span class="mono">AED&nbsp;410K</span></span>
+            </header>
+            <div class="kcol-body">
+              <article class="dcard dcard--won" tabindex="0">
+                <span class="dcard-edge"></span>
+                <div class="dcard-head">
+                  <span class="pill pill--won">Won</span>
+                  <span class="dcard-val mono">AED&nbsp;210,000</span>
+                </div>
+                <h3 class="dcard-title">ISO 27001 certification support</h3>
+                <p class="dcard-co muted">Mubadala Health</p>
+                <div class="dcard-foot">
+                  <span class="ava" title="Reem K.">RK</span>
+                  <span class="chip chip--won">Closed</span>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <!-- List fallback (hidden until R4 toggles) -->
+        <div class="board-list" hidden aria-hidden="true">
+          <table class="dtable">
+            <thead>
+              <tr><th>Deal</th><th>Company</th><th>Stage</th><th class="ta-r">Value</th><th>Owner</th><th>Next action</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ======================= SIGNALS / INTEL VIEW ======================= -->
+      <section class="view" data-crm-view-panel="prospects" aria-label="Signals" hidden>
+        <div class="view-head">
+          <div>
+            <span class="eyebrow">Intel feed</span>
+            <h2>Signals worth a first move</h2>
+          </div>
+          <p class="muted view-head-sub">Ranked by fit and security gap. Promote the ones you'll pursue.</p>
+        </div>
+
+        <div id="crm-prospects" class="intel">
+          <article class="icard">
+            <header class="icard-head">
+              <div>
+                <h3 class="icard-co">Dubai Holding</h3>
+                <span class="icard-domain mono">dubaiholding.com</span>
+              </div>
+              <span class="pill pill--services">Services fit</span>
+            </header>
+            <div class="meters">
+              <div class="meter">
+                <span class="meter-label">Fit</span>
+                <span class="meter-track"><i class="meter-fill" style="--v:82%"></i></span>
+                <span class="meter-num mono">82</span>
+              </div>
+              <div class="meter">
+                <span class="meter-label">Gap</span>
+                <span class="meter-track"><i class="meter-fill" style="--v:74%"></i></span>
+                <span class="meter-num mono">74</span>
+              </div>
+            </div>
+            <ul class="talk">
+              <li>No published security.txt or VDP — likely no disclosure process.</li>
+              <li>Hiring 3 cloud engineers; new attack surface forming.</li>
+              <li>Group entities span finance + real estate — ISO 27001 relevant.</li>
+            </ul>
+            <div class="icard-foot">
+              <span class="icard-src mono">source · builtwith</span>
+              <button class="btn btn-primary btn-sm">Promote to deal</button>
+            </div>
+          </article>
+
+          <article class="icard">
+            <header class="icard-head">
+              <div>
+                <h3 class="icard-co">Aldar Properties</h3>
+                <span class="icard-domain mono">aldar.com</span>
+              </div>
+              <span class="pill pill--software">Software fit</span>
+            </header>
+            <div class="meters">
+              <div class="meter">
+                <span class="meter-label">Fit</span>
+                <span class="meter-track"><i class="meter-fill" style="--v:68%"></i></span>
+                <span class="meter-num mono">68</span>
+              </div>
+              <div class="meter">
+                <span class="meter-label">Gap</span>
+                <span class="meter-track"><i class="meter-fill" style="--v:91%"></i></span>
+                <span class="meter-num mono">91</span>
+              </div>
+            </div>
+            <ul class="talk">
+              <li>Two subdomains resolve to expired TLS certificates.</li>
+              <li>Public S3-style bucket indexed by search — quick win to flag.</li>
+            </ul>
+            <div class="icard-foot">
+              <span class="icard-src mono">source · shodan</span>
+              <button class="btn btn-primary btn-sm">Promote to deal</button>
+            </div>
+          </article>
+
+          <article class="icard icard--promoted">
+            <header class="icard-head">
+              <div>
+                <h3 class="icard-co">Majid Al Futtaim</h3>
+                <span class="icard-domain mono">maf.com</span>
+              </div>
+              <span class="pill pill--muted"><span aria-hidden="true">✓</span> Promoted</span>
+            </header>
+            <div class="meters">
+              <div class="meter">
+                <span class="meter-label">Fit</span>
+                <span class="meter-track"><i class="meter-fill" style="--v:88%"></i></span>
+                <span class="meter-num mono">88</span>
+              </div>
+              <div class="meter">
+                <span class="meter-label">Gap</span>
+                <span class="meter-track"><i class="meter-fill" style="--v:63%"></i></span>
+                <span class="meter-num mono">63</span>
+              </div>
+            </div>
+            <ul class="talk">
+              <li>Now tracked as an Intake deal — owner Manoj P.</li>
+            </ul>
+            <div class="icard-foot">
+              <span class="icard-src mono">promoted · 2d ago</span>
+              <button class="btn btn-ghost btn-sm" disabled>In pipeline</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ======================= REPORTS VIEW ======================= -->
+      <section class="view" id="crm-reports" data-crm-view-panel="reports" aria-label="Reports" hidden>
+        <div class="view-head">
+          <div>
+            <span class="eyebrow">Ops readout</span>
+            <h2>Where the quarter stands</h2>
+          </div>
+          <p class="muted view-head-sub">Target progress across the pipeline, this quarter.</p>
+        </div>
+
+        <div id="crm-scoreboard" class="scoreboard">
+          <div class="tile">
+            <span class="tile-label">Open pipeline</span>
+            <span class="tile-num mono">AED&nbsp;2.16M</span>
+            <div class="tile-target">
+              <span class="tile-bar"><i style="width:72%"></i></span>
+              <span class="tile-meta mono">72% of 3.0M target</span>
+            </div>
+          </div>
+          <div class="tile">
+            <span class="tile-label">Won this quarter</span>
+            <span class="tile-num mono tile-num--brand">AED&nbsp;410K</span>
+            <div class="tile-target">
+              <span class="tile-bar"><i style="width:82%"></i></span>
+              <span class="tile-meta mono">82% of 500K target</span>
+            </div>
+          </div>
+          <div class="tile">
+            <span class="tile-label">Win rate</span>
+            <span class="tile-num mono">32%</span>
+            <span class="tile-delta tile-delta--up mono">▲ 6 pts vs last qtr</span>
+          </div>
+          <div class="tile">
+            <span class="tile-label">Avg. cycle time</span>
+            <span class="tile-num mono">41d</span>
+            <span class="tile-delta tile-delta--down mono">▼ 4d faster</span>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <header class="chart-card-head">
+            <h3>Value by stage</h3>
+            <div class="legend">
+              <span class="legend-item"><i class="legend-swatch legend-swatch--services"></i> Services</span>
+              <span class="legend-item"><i class="legend-swatch legend-swatch--software"></i> Software</span>
+            </div>
+          </header>
+          <div class="chart-wrap">
+            <canvas id="crm-chart-pipeline" height="220"></canvas>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ======================= DRAWER ======================= -->
+    <div id="crm-drawer" class="drawer" aria-hidden="true">
+      <div class="drawer-backdrop" data-crm-close></div>
+      <aside class="drawer-panel" role="dialog" aria-modal="true" aria-label="Deal detail">
+        <button class="drawer-x" data-crm-close aria-label="Close">×</button>
+        <div id="crm-drawer-body">
+          <!-- Design reference content (R4 replaces at runtime) -->
+          <header class="drawer-head">
+            <span class="pill pill--services">Services</span>
+            <h2 class="drawer-title">Web-app VAPT + retest</h2>
+            <p class="drawer-sub muted">
+              Emirates Steel · <span class="mono">Khalid A.</span> ·
+              <a href="https://wa.me/971500000000" class="link" target="_blank" rel="noopener">wa.me</a>
+            </p>
+            <div class="drawer-badges">
+              <span class="badge">Fit <b class="mono">82</b></span>
+              <span class="badge">Gap <b class="mono">74</b></span>
+              <span class="badge badge--warn mono">⏳ 12d idle</span>
+            </div>
+          </header>
+
+          <!-- Stage stepper -->
+          <nav class="stepper" aria-label="Stage">
+            <button class="step is-done"><span class="step-dot"></span>Intake</button>
+            <button class="step is-current" aria-current="step"><span class="step-dot"></span>Qualified</button>
+            <button class="step"><span class="step-dot"></span>Scoping</button>
+            <button class="step"><span class="step-dot"></span>Proposal</button>
+            <button class="step step--won"><span class="step-dot"></span>Won</button>
+          </nav>
+
+          <div class="drawer-grid">
+            <label class="field"><span>Value (AED)</span><input class="mono" value="68000"></label>
+            <label class="field"><span>Owner</span><input value="Manoj Prabhakaran"></label>
+            <label class="field"><span>Next action</span><input value="Send scope of work"></label>
+            <label class="field"><span>Close date</span><input class="mono" value="2026-08-15"></label>
+          </div>
+
+          <!-- Activity feed -->
+          <section class="activity">
+            <div class="activity-head">
+              <h3>Activity</h3>
+            </div>
+            <div class="quick-add">
+              <input placeholder="Log a call, note, or next step…" aria-label="Add activity">
+              <button class="btn btn-primary btn-sm">Add</button>
+            </div>
+            <ol class="feed">
+              <li class="feed-item feed-item--call">
+                <span class="feed-ico" aria-hidden="true">☎</span>
+                <div class="feed-body"><p>Intro call — mapped scope to 2 web apps + 1 API.</p><time class="mono">2d ago · Manoj</time></div>
+              </li>
+              <li class="feed-item feed-item--mail">
+                <span class="feed-ico" aria-hidden="true">✉</span>
+                <div class="feed-body"><p>Sent capability deck and sample report.</p><time class="mono">5d ago · Aisha</time></div>
+              </li>
+              <li class="feed-item feed-item--stage">
+                <span class="feed-ico" aria-hidden="true">▚</span>
+                <div class="feed-body"><p>Moved from Intake to Qualified.</p><time class="mono">6d ago · system</time></div>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ======================= NEW DEAL MODAL ======================= -->
+    <div id="crm-newdeal-modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop" data-crm-close></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="nd-heading">
+        <header class="modal-head">
+          <h2 id="nd-heading">New deal</h2>
+          <button type="button" class="modal-x" data-crm-close aria-label="Close">×</button>
+        </header>
+        <div class="modal-body">
+          <div class="field">
+            <label for="nd-motion">Motion</label>
+            <select id="nd-motion">
+              <option value="services">Services</option>
+              <option value="software">Software</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="nd-title">Title</label>
+            <input type="text" id="nd-title" placeholder="e.g. Web-app VAPT + retest">
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="nd-company">Company</label>
+              <input type="text" id="nd-company" placeholder="Emirates Steel">
+            </div>
+            <div class="field">
+              <label for="nd-domain">Company domain</label>
+              <input type="text" id="nd-domain" class="mono" placeholder="acme.ae">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="nd-email">Contact email</label>
+              <input type="text" id="nd-email" class="mono" placeholder="name@acme.ae">
+            </div>
+            <div class="field">
+              <label for="nd-name">Contact name</label>
+              <input type="text" id="nd-name" placeholder="Full name">
+            </div>
+          </div>
+          <div class="field">
+            <label for="nd-value">Value (AED)</label>
+            <input type="number" id="nd-value" class="mono" placeholder="0">
+          </div>
+        </div>
+        <footer class="modal-foot">
+          <button type="button" id="nd-cancel" class="btn btn-ghost" data-crm-close>Cancel</button>
+          <button type="button" id="nd-save" class="btn btn-primary">Create deal</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Toast host -->
+    <div id="crm-toasts" class="toasts" role="status" aria-live="polite"></div>
+  </div>
+
+  <script type="module" src="/js/crm.js"></script>
+</body>
+</html>
