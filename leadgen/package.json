@@ -1,0 +1,12 @@
+{
+  "name": "underwings-leadgen",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Continuous multi-source AI lead generator → Google Sheets (zero deps).",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js",
+    "loop": "node run.js --loop"
+  },
+  "engines": { "node": ">=20" }
+}

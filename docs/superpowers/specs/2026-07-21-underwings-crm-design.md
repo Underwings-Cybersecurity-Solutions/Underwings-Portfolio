@@ -1,0 +1,177 @@
+# Underwings CRM — Design Spec
+
+**Date:** 2026-07-21
+**Author:** Manoj Prabhakaran (with Claude)
+**Status:** Approved design — ready for implementation planning
+
+## 1. Purpose & Context
+
+Underwings is a 5–6 person, bootstrapped (300K AED) UAE cybersecurity **services** company (Abu Dhabi), Year-1 revenue target 400K AED (~22 engagements, ~35K AED avg, ~1.8/month). Zero paying clients at design time.
+
+Two prior CRMs (Krayin → Frappe) and a 14-workflow n8n automation stack were built and **removed** (see [[project-crm-status]]). This spec defines a **minimal, purpose-built CRM on the existing self-hosted Supabase stack** — tuned exactly to Underwings' two sales motions, with **no speculative features**.
+
+Founder directive: *"no extra features — tune for what Underwings needs."*
+
+### What the CRM must fit (operating reality)
+- Volumes are tiny: qualified-lead ramp target 15→30/month; ~15 active opportunities. **Hundreds of records, not thousands.** No queues, no workflow engine, no warehouse — plain Postgres tables + the existing admin SPA + SQL views.
+- Single market (UAE, AED), single team, single office. WhatsApp is a first-class channel.
+- Weekly Monday sales review walks every open opportunity with a committed next step — **making that meeting fast is the CRM's core job.**
+
+## 2. Platform & Conventions (reuse as-is)
+
+- **Backend:** existing Supabase stack (`db`, `kong`, `auth/gotrue`, `rest/postgrest`, `realtime`, `storage`, `studio`) already in `docker-compose.yml`.
+- **Schema:** one migration `supabase/migrations/006_crm.sql`, applied via `docker exec underwings-db psql` (house pattern, per migration 005). Conventions to follow exactly:
+  - UUID PK `gen_random_uuid()`; `TEXT + CHECK` enums; `created_at`/`updated_at TIMESTAMPTZ DEFAULT NOW()`.
+  - `update_updated_at_column()` trigger on every table.
+  - Indexes on status / email / created_at / FKs.
+  - RLS on every table: `FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin())` (from migration 002).
+- **UI:** extend the existing `/admin/` vanilla-JS Vite SPA (auth + TOTP MFA, table/drawer/modal, CSV export, Chart.js already present). The **leads-module `TAB_CONFIG` pattern is the template.** No new subdomain (avoids Kong CORS + GoTrue allow-list changes).
+- **`crm.underwings.org`:** keep the DNS + cert; nginx redirects it to `/admin/crm` (team-notification emails hardcode this URL).
+- **Users:** provisioned via `scripts/provision-admin.sh` (public signup disabled). Add **Guna** (BD, primary pipeline operator) and **Prathima** (marketing). Fix the `verifyAdmin()` gap (JWT-valid ≠ admin) on `/api/admin/*` before exposing CRM write endpoints beyond the private-IP allowlist.
+
+## 3. Business-Needs Analysis
+
+### 3.1 Lead flow
+**Inbound (low volume, high intent):** website contact form → Supabase; newsletter/waitlist (nurture, not deals); WhatsApp/phone/email (manual); referrals (12% partner commission); Founding-Client warm list (~45 names, 15–30% sliding discount for first 10 clients).
+
+**Outbound (high volume, low intent):** the `leadgen/` OSINT service — up to **50 UAE companies/24h**, Claude-scored against ICP, enriched, landing in the CRM's **prospects** area (kept out of the forecast pipeline until a human promotes them).
+
+### 3.2 Two motions
+- **Services (scoped engagements):** capture → 30-min free scoping call → written proposal within 48h (30-day validity) → max one 10% discount round (Manoj approves all pricing) → sign → deposit → kickoff. Cycles 2–12 weeks. Deal sizes 9K–120K AED.
+- **Software resale (Sophos, Sprinto, Hexnode, Trillium):** requirements → **24h AED quote** → PO → order → deploy (implementation + support bundled). **Annual license = renewal = the recurring-revenue book** (15% Y1 → 50% Y3 target). Deal sizes 10K–250K AED.
+- **Subscriptions (PTaaS 6K/mo, Continuous Compliance 4K/mo):** **fold into Services** with `billing='monthly'` + `mrr_aed` (decision: the old standalone Subscriptions pipeline never held a deal).
+
+### 3.3 Team roles in the CRM
+- **Guna (BD)** — primary operator: outbound, partnerships, invoicing, first-line qualification.
+- **Manoj** — admin; approves all pricing/discounts; owns GRC deals; default owner.
+- **Nelson / Vinoth** — practitioner-owners (offensive / network+cloud+software).
+- **Prathima** — marketing (newsletter/subscribers, not deals). **Gowtham** — platform.
+
+### 3.4 What they measure (build only these)
+Signed engagements/quarter (target 3) + won AED; avg deal size (35K); proposal win rate (≥40%); pipeline coverage (3× remaining quarterly target) per motion; lead-source mix trend (outbound 50%→25%, inbound 10%→35%); stale deals (30d services / 21d software); founding-client tracker (first 10); software renewal book.
+
+## 4. Data Model — 7 tables
+
+All tables: UUID PK, `created_at`/`updated_at` + trigger, RLS admin-only, indexes per house style.
+
+### 4.1 `companies`
+`name` (req), `domain` (unique nullable, lowercased), `website`, `industry` (free text), `emirate`, `size_band` CHECK(`sub30|sme|midmarket|enterprise`), `is_partner` bool, `notes`.
+Dedupe: `lower(domain)`, fallback normalized name (mirrors leadgen's key).
+
+### 4.2 `contacts`
+`company_id` FK, `name`, `email` (unique, lowercased — **primary dedupe key**), `phone`, `whatsapp_ok` bool, `job_title`.
+Newsletter/waitlist membership surfaced by an email-match **view**, not stored twice.
+
+### 4.3 `deals`
+Unified table, two motions:
+- `company_id` FK, `contact_id` FK, `title`, `description`
+- `motion` CHECK(`services|software`)
+- `stage` — CHECK-constrained **per motion** (see §5)
+- `value_aed` numeric; `billing` CHECK(`one_off|monthly`) + `mrr_aed` numeric (subscriptions)
+- `offering` — services: the site's service-dropdown values + `mobile-app-pentest`; software: the 9 quote-intent categories
+- `vendor` CHECK(`sophos|sprinto|hexnode|trillium|other`) — software only
+- `source` — picklist (web_form, quote_intent, referral, referral_partner, whatsapp, phone, email, linkedin, cold_email, apollo, founding_outreach, leadgen, newsletter, other)
+- `owner_id` FK (admin user)
+- `icp_segment` CHECK(`healthcare|iso|pdpl|other`)
+- `ai_score` int nullable (1–10, carried from leadgen if promoted)
+- `founding_client` bool + `founding_discount_tier` CHECK(`15|20|30`)
+- `status` CHECK(`open|won|lost`), `lost_reason`
+- `expected_close_date`, `closed_at`, `quote_sent_at` (drives 30-day validity + follow-up)
+- `proposal_url` (Supabase Storage link)
+- `renewal_date` (won software — feeds renewal KPI)
+- `referred_by_company_id` FK (partner attribution for 12% commission — computed manually)
+- **`next_action` + `next_action_date`** (the Monday-review fields)
+- `external_ref` (idempotent upserts/imports)
+
+### 4.4 `activities`
+`deal_id` FK, `type` CHECK(`note|call|email|whatsapp|meeting|stage_change|system`), `body`, `actor_id`, `occurred_at`.
+A trigger **auto-logs stage changes** → free stage-history/velocity without a warehouse.
+
+### 4.5 `suppression`
+`email` unique, `reason`, `created_at`. Required for PDPL/DSAR and "never" replies. **leadgen and any future outbound must check it.** Seeded in v1.
+
+### 4.6 `prospects` (cold OSINT — company level, separate from pipeline)
+`company_name`, `domain` (dedupe), `website`, `industry`, `emirate`, `size_band`, `ai_score` (1–10, Claude ICP), `gap_score` (int, from security-signal enrichment), `talking_points` (text — auto-generated, see §6), `source`, `dedupe_key` (unique), `enrichment_status` CHECK(`new|enriching|enriched|failed`), `status` CHECK(`new|enriched|contacted|promoted|suppressed`), `promoted_deal_id` FK nullable, `notes`.
+
+### 4.7 `prospect_contacts` (the harvested "info table" — multiple people per prospect)
+`prospect_id` FK, `name`, `job_title`, `email`, `email_status` CHECK(`verified|probable|role|low|risky|invalid`), `phone`, `linkedin_url`, `source` CHECK(`scrape|hunter|pattern|search`), `confidence` int.
+
+## 5. Pipelines — one `deals` table, two stage-sets
+
+Enforced by CHECK: `((motion='services' AND stage IN (...)) OR (motion='software' AND stage IN (...)))`.
+
+- **Services** (stale at **30 days** no activity):
+  `new → contacted → scoping → proposal_sent → negotiation → won | lost`
+  (Trims proven 9-stage Krayin set: MQL dropped — it was an AI-score gate; Discovery Booked merged into `scoping` — meeting date = `next_action_date`.)
+- **Software** (stale at **21 days**):
+  `new → requirements → quote_sent → po_pending → won | lost`
+  (Vendor Shortlist collapses into `requirements` — outcome recorded in `vendor`; Ordered/Deployed collapse into `won` — deployment is delivery, not sales.)
+- **Subscriptions:** ride Services with `billing='monthly'` + `mrr_aed`.
+
+Staleness = SQL **view** comparing last-activity date to 30/21 days. **No cron.**
+
+## 6. OSINT Enrichment Framework (leadgen rework — the flagship of this build)
+
+**Decision: retire the Google Sheet.** `leadgen` writes directly into `prospects` + `prospect_contacts` in Supabase. `leadgen/lib/sheets.js` is replaced by `leadgen/lib/crm.js` (service-role writes via PostgREST/pg). Cadence: **50 companies / 24h** (`config.js` interval → 24h, cap 50).
+
+### 6.1 Per-company pipeline
+1. **Discover** — existing sources (OSM / Wikidata / News, + Places / Firecrawl if keyed).
+2. **Claude ICP score** (existing rubric) → `ai_score` 1–10.
+3. **Deep enrich (NEW)** — write prospect + N prospect_contacts:
+   - **Website scrape (multi-page):** home / about / **team** / contact / **careers** → emails, phones, staff names+titles, tech hints. (People-data source = **free scrape only**, per decision — no paid people API in v1.)
+   - **Email harvest:** Hunter.io domain-search + verify + pattern-guess (`first.last@domain`), tagged by `email_status`.
+   - **Firmographics:** employee-count band, industry, UAE licenses.
+4. **Suppression check** — drop/flag anyone on the `suppression` list before surfacing.
+5. **Persist** — upsert by `dedupe_key`; tolerant of re-runs (idempotent).
+
+### 6.2 Security-signal enrichment → auto `talking_points` + `gap_score` (free OSINT)
+This is what makes enrichment worth more to a *cybersecurity* seller than generic contact-finding. All free, all feeding a per-company sales hook:
+- **crt.sh (Certificate Transparency):** enumerate subdomains = visible attack surface → pentest hook.
+- **DNS / MX / SPF / DMARC:** email provider (M365/Google = upsell angle); **missing DMARC = concrete finding** to open cold outreach.
+- **Tech fingerprint** (HTTP headers / HTML): outdated stack → VA/pentest hook.
+- **Careers page signals:** hiring + whether they have security staff (no CISO/security roles = ICP fit).
+- **HaveIBeenPwned domain breach check:** "N breached accounts on your domain" = strongest security cold-open.
+- **UAE-specific:** Abu Dhabi DoH health-license presence → mandatory **ADHICS v2** trigger (best cold segment).
+
+Each signal contributes to `gap_score` and appends a line to `talking_points`. Outreach (manual in v1) uses these directly.
+
+### 6.3 Budget guard
+Free sources **always**; Hunter (and any future paid API) only when free fails, under a **daily credit cap** (extends the guard already in `leadgen/lib/budget.js`). Sensible defaults, founder-tunable in `config.js`.
+
+### 6.4 Prospect → pipeline promotion
+Prospects are **not** deals. In `/admin/crm`, a prospect list (searchable, suppression-aware) has a **"Promote to deal"** action → creates `company` + `contact` + `deal` (stage `new`, `source='leadgen'`, carries `ai_score`), sets `prospects.status='promoted'` + `promoted_deal_id`. When a real person replies/contacts, the same record moves `new → contacted` on promotion. This keeps 350 cold rows/week out of the forecast while making them one click from becoming pipeline.
+
+## 7. Integrations
+
+1. **Contact form (must-fix):** repair `frontend/src/pages/api/contact.ts` field mapping (user message currently dropped; `service_interest` always null) and parse `?intent=quote-*` on the form JS. Then `contact.ts` writes CRM rows directly with its existing service-role client: upsert contact (by email) + company (by domain/name) → create deal (`intent=quote-*` or service dropdown `security-software` ⇒ `motion='software'`, else `services`) → activity note. Keep the `form_submissions` insert as raw archive. Retire the dead `notifyN8nInbound` / `NEWSLETTER_WEBHOOK_URL` paths.
+2. **Newsletter / waitlist:** no deals. Keep `subscribers` / `waitlist_signups`; surface as a badge on the contact drawer via an email-match view.
+3. **Email (Stalwart):** in-network SMTP (`stalwart:587`) for a new-deal notification to the owner — reuse existing send code. No inbox sync/BCC. Calls/emails logged manually as activities.
+4. **Cal.com — DROPPED:** remove `book.underwings.org` links from the site; meetings tracked via `next_action_date` + a `meeting` activity.
+5. **WhatsApp:** `wa.me` click-to-chat link on the contact; manual activity logging. No API.
+
+## 8. Reporting — SQL views + existing Chart.js cards (no warehouse)
+
+`v_pipeline` (count+AED by motion/stage), `v_quarter_scoreboard` (won count/value vs 3-per-quarter + 35K avg + win rate), `v_source_mix`, `v_stale_deals`, `v_renewals_next_90d`, `v_founding_tracker` (first-10 slots by discount tier).
+
+## 9. Explicitly EXCLUDED (YAGNI)
+
+AI scoring *inside* the CRM (leadgen already scores; inbound ~1–2/day, humans triage faster) · proposal generator / e-sign / pre-call AI briefs (proposals are PDFs in Storage + a link field) · warehouse / ETL / Metabase / velocity marts (SQL views suffice) · outbound sequencer / approval queue / send caps / reply-sentiment (outbound manual until well past first clients) · Slack notification fabric (one owner email; 5 people sit together) · stage probabilities / weighted forecasting (meaningless at n<20) · EAV / custom-field engine (fixed columns; new field = 5-line migration) · CPQ / line-items / discount-approval workflow (floor prices + Manoj approval = a process, not software) · lead-vs-deal entity split · duplicate-merge UI · multi-currency · territories · email-marketing module · mobile app · chat-widget lead capture · Plane/delivery auto-creation on Won · automated PDPL retention cron (keep policy; run documented purge SQL manually each quarter). Paid people-data API (LinkedIn) deferred — free scrape only in v1.
+
+## 10. Data & Migration Defaults
+
+- **Start empty.** Hand-enter the ~45 warm founding-outreach targets + any active conversations. **Seed only the suppression list** (from the old `uw_outbound_suppression` table if recoverable). No Krayin/Frappe bulk import.
+- PDPL retention policy retained (inbound anonymised at 24 months inactive, pure outbound at 12, Won clients kept 7 years) — enforced by **manual quarterly purge SQL**, not a cron, at this volume.
+
+## 11. Open Items / Risks
+
+- **leadgen write path:** decide pg-direct vs PostgREST-with-service-role from inside the `leadgen` container (both on `underwings-network`). PostgREST + service-role keeps one access pattern; pg-direct is simpler for batch upserts. Resolve in the implementation plan.
+- **HaveIBeenPwned domain search** requires a (cheap) API key for domain-wide breach lookup — treat as optional-if-keyed like Hunter, under the same budget guard. Falls back to skip if unkeyed.
+- **verifyAdmin() gap** must be fixed before any CRM write endpoint is reachable outside the private-IP allowlist.
+
+## 12. Build Order (for the implementation plan)
+
+1. `006_crm.sql` — 7 tables + views + triggers + RLS; provision Guna/Prathima; seed suppression.
+2. `/admin/crm` module — deals board (two stage-sets), company/contact drawers, activity timeline, prospects list + Promote-to-deal, reporting cards. `crm.underwings.org` redirect.
+3. Contact-form fix + direct CRM writes from `api/contact.ts`; newsletter email-match view; retire dead webhook paths.
+4. leadgen rework — `crm.js` sink replacing `sheets.js`; deep-enrich module (website/email/firmographics + security signals → talking_points/gap_score); 24h/50 cadence; budget guard; suppression check.
+5. Owner-email notification via Stalwart; remove Cal.com/book.underwings.org links; WhatsApp click-to-chat.
