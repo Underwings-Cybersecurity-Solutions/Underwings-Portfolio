@@ -2228,5 +2228,102 @@ function loadCrm() {
   loadCrm._wired = true;
   crmInit();
 }
-function crmInit() { /* A6 fills this */ crmReload(); }
-function crmReload() { /* A6 fills this */ }
+
+const CRM_PAGE_SIZE = 25;
+let crmState = { tab: 'services', stage: '', search: '', page: 0, rows: [], total: 0 };
+
+const CRM_STAGES = {
+  services: ['new','contacted','scoping','proposal_sent','negotiation','won','lost'],
+  software: ['new','requirements','quote_sent','po_pending','won','lost'],
+  prospects: [], // handled by A9
+};
+
+const CRM_TABS = {
+  services: {
+    motion: 'services',
+    columns: [
+      { key:'title',   label:'Deal',    render:(r)=>`<div class="lead-email">${esc(r.title||'')}</div><div class="lead-meta">${esc(r.crm_companies?.name||'—')}</div>` },
+      { key:'stage',   label:'Stage',   render:(r)=>`<span class="crm-stage-pill">${esc(r.stage)}</span>` },
+      { key:'value_aed',label:'Value',  render:(r)=>r.value_aed?`AED ${Number(r.value_aed).toLocaleString()}`:'—' },
+      { key:'owner',   label:'Owner',   render:(r)=>esc(r._owner||'—') },
+      { key:'next',    label:'Next action', render:(r)=>r.next_action?`${esc(r.next_action)}${r.next_action_date?` · ${r.next_action_date}`:''}`:'—' },
+    ],
+  },
+  software: {
+    motion: 'software',
+    columns: [
+      { key:'title',   label:'Deal',    render:(r)=>`<div class="lead-email">${esc(r.title||'')}</div><div class="lead-meta">${esc(r.crm_companies?.name||'—')}${r.vendor?` · ${esc(r.vendor)}`:''}</div>` },
+      { key:'stage',   label:'Stage',   render:(r)=>`<span class="crm-stage-pill">${esc(r.stage)}</span>` },
+      { key:'value_aed',label:'Value',  render:(r)=>r.value_aed?`AED ${Number(r.value_aed).toLocaleString()}`:'—' },
+      { key:'renewal_date',label:'Renewal', render:(r)=>r.renewal_date||'—' },
+      { key:'next',    label:'Next action', render:(r)=>r.next_action?`${esc(r.next_action)}${r.next_action_date?` · ${r.next_action_date}`:''}`:'—' },
+    ],
+  },
+};
+
+function crmInit() {
+  const tabsEl = document.getElementById('crm-tabs');
+  tabsEl.innerHTML = ['services','software','prospects'].map((t)=>
+    `<button class="leads-tab" data-crm-tab="${t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
+  tabsEl.addEventListener('click', (e)=>{
+    const b = e.target.closest('[data-crm-tab]'); if(!b) return;
+    crmState = { ...crmState, tab: b.dataset.crmTab, stage:'', search:'', page:0 };
+    crmSyncStageFilter(); crmReload();
+  });
+  document.getElementById('crm-search').addEventListener('input', (e)=>{ crmState.search=e.target.value; crmState.page=0; crmDebouncedReload(); });
+  document.getElementById('crm-stage-filter').addEventListener('change', (e)=>{ crmState.stage=e.target.value; crmState.page=0; crmReload(); });
+  document.getElementById('crm-prev').addEventListener('click', ()=>{ if(crmState.page>0){crmState.page--; crmReload();} });
+  document.getElementById('crm-next').addEventListener('click', ()=>{ if((crmState.page+1)*CRM_PAGE_SIZE<crmState.total){crmState.page++; crmReload();} });
+  // A7 defines crmCloseDrawer (drawer close handler); guard so CRM works standalone before A7 lands.
+  document.querySelectorAll('[data-crm-close]').forEach((el)=>el.addEventListener('click', ()=>{
+    if (typeof crmCloseDrawer === 'function') crmCloseDrawer();
+  }));
+  crmSyncStageFilter();
+  crmReload();
+}
+let _crmT; function crmDebouncedReload(){ clearTimeout(_crmT); _crmT=setTimeout(crmReload,250); }
+function crmSyncStageFilter(){
+  const sel=document.getElementById('crm-stage-filter');
+  const stages=CRM_STAGES[crmState.tab]||[];
+  sel.innerHTML = `<option value="">All stages</option>`+stages.map((s)=>`<option value="${s}">${s}</option>`).join('');
+  sel.style.display = crmState.tab==='prospects' ? 'none' : '';
+}
+
+async function crmReload() {
+  if (crmState.tab === 'prospects') {
+    // A9 defines crmLoadProspects; guard so CRM works standalone before A9 lands.
+    if (typeof crmLoadProspects === 'function') { crmLoadProspects(); return; }
+    return;
+  }
+  const cfg = CRM_TABS[crmState.tab];
+  const from = crmState.page*CRM_PAGE_SIZE, to = from+CRM_PAGE_SIZE-1;
+  let q = supabase.from('crm_deals')
+    .select('*, crm_companies(name,domain), crm_contacts(name,email,phone,whatsapp_ok)', { count:'exact' })
+    .eq('motion', cfg.motion)
+    .order('updated_at', { ascending:false })
+    .range(from, to);
+  if (crmState.stage) q = q.eq('stage', crmState.stage);
+  if (crmState.search) {
+    const s = crmState.search.replace(/[%,]/g,'');
+    q = q.or(`title.ilike.%${s}%,description.ilike.%${s}%`);
+  }
+  const { data, count, error } = await q;
+  if (error) { console.error('[crm] load', error); return; }
+  crmState.rows = data||[]; crmState.total = count||0;
+  crmRenderRows(cfg);
+  // A10 defines crmLoadScoreboard; guard so CRM works standalone before A10 lands.
+  if (typeof crmLoadScoreboard === 'function') crmLoadScoreboard();
+}
+
+function crmRenderRows(cfg) {
+  const thead = document.querySelector('#crm-table thead');
+  const tbody = document.querySelector('#crm-table tbody');
+  thead.innerHTML = `<tr>${cfg.columns.map((c)=>`<th>${c.label}</th>`).join('')}</tr>`;
+  tbody.innerHTML = crmState.rows.map((r,i)=>`<tr data-crm-idx="${i}" style="cursor:pointer">${cfg.columns.map((c)=>`<td>${c.render(r)}</td>`).join('')}</tr>`).join('');
+  tbody.querySelectorAll('[data-crm-idx]').forEach((tr)=>tr.addEventListener('click',()=>{
+    // A7 defines crmOpenDrawer; guard so CRM works standalone before A7 lands.
+    if (typeof crmOpenDrawer === 'function') crmOpenDrawer(+tr.dataset.crmIdx);
+  }));
+  document.getElementById('crm-page-info').textContent = `${crmState.total} deals`;
+}
+function crmCurrentQuery(){ return { table:'crm_deals', motion:CRM_TABS[crmState.tab]?.motion }; }  // used by A11
