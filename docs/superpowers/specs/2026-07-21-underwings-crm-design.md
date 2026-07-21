@@ -114,29 +114,59 @@ Staleness = SQL **view** comparing last-activity date to 30/21 days. **No cron.*
 
 **Decision: retire the Google Sheet.** `leadgen` writes directly into `prospects` + `prospect_contacts` in Supabase. `leadgen/lib/sheets.js` is replaced by `leadgen/lib/crm.js` (service-role writes via PostgREST/pg). Cadence: **50 companies / 24h** (`config.js` interval → 24h, cap 50).
 
+**Tooling principle (validated by OSS-OSINT research + adversarial verification, 2026-07-21):** the entire security-signal + attack-surface layer runs at **$0** on maintained, headless, no-hidden-paid-key OSS. The one thing free tooling cannot reproduce is a *named decision-maker + verified work email at scale* (Hunter/Apollo's moat) — so plan for **~20–35% named-contact coverage** of a curated list. **À-la-carte CLIs, not a framework** (SpiderFoot is unmaintained since ~2023, does aggressive active recon, and returns no firmographics). **Passive OSINT only** — see §6.5 guardrails.
+
 ### 6.1 Per-company pipeline
 1. **Discover** — existing sources (OSM / Wikidata / News, + Places / Firecrawl if keyed).
 2. **Claude ICP score** (existing rubric) → `ai_score` 1–10.
 3. **Deep enrich (NEW)** — write prospect + N prospect_contacts:
-   - **Website scrape (multi-page):** home / about / **team** / contact / **careers** → emails, phones, staff names+titles, tech hints. (People-data source = **free scrape only**, per decision — no paid people API in v1.)
-   - **Email harvest:** Hunter.io domain-search + verify + pattern-guess (`first.last@domain`), tagged by `email_status`.
-   - **Firmographics:** employee-count band, industry, UAE licenses.
+   - **Website scrape (multi-page):** extend existing `lib/contacts.js` paths to home / about / **team** / **leadership** / **management** / contact / **careers** → role emails, phones, staff **names + titles** (extract via Claude Haiku in `enrich.js`). This is the highest-quality *free* named-contact source. People-data = **free scrape only** (no paid people API in v1).
+   - **Email harvest (tiered):** (1) role emails from scrape; (2) **native Node `dns.resolveMx`** provider classification (M365/Google/local); (3) **in-house permutation generator** (~50 lines, owned — *not* the abandoned `email-permutator` npm) for `first.last@` candidates; (4) **Hunter free-tier** (existing `lib/hunter.js`, 50 searches/100 verifies/mo) as fallback + higher-confidence verifier. Pattern guesses are tagged `probable`/`low` — **never `verified`** (SMTP RCPT is port-25-blocked/unreliable in 2026; treat as a hint, never blind-send).
+   - **Firmographics:** employee-count band + industry from Wikidata/OSM; **DIFC / ADGM public registers** as optional per-lead named-director lookup (only free UAE source exposing officers — bullseye for the finance/regulated ICP).
 4. **Suppression check** — drop/flag anyone on the `suppression` list before surfacing.
 5. **Persist** — upsert by `dedupe_key`; tolerant of re-runs (idempotent).
 
 ### 6.2 Security-signal enrichment → auto `talking_points` + `gap_score` (free OSINT)
-This is what makes enrichment worth more to a *cybersecurity* seller than generic contact-finding. All free, all feeding a per-company sales hook:
-- **crt.sh (Certificate Transparency):** enumerate subdomains = visible attack surface → pentest hook.
-- **DNS / MX / SPF / DMARC:** email provider (M365/Google = upsell angle); **missing DMARC = concrete finding** to open cold outreach.
-- **Tech fingerprint** (HTTP headers / HTML): outdated stack → VA/pentest hook.
+This is what makes enrichment worth more to a *cybersecurity* seller than generic contact-finding. All free, all feeding a per-company sales hook. Named tools are MIT Go binaries baked into the leadgen image (see §6.4) or native Node:
+- **Attack surface:** **subfinder** (passive; consumes crt.sh *internally* — no direct hammering of crt.sh's 5-req/min endpoint) → **dnsx** (resolve) → **httpx** (live hosts). Subdomain count = visible attack surface → pentest hook.
+- **Tech fingerprint:** **`httpx -tech-detect`** (embedded `wappalyzergo`, free — no WhatWeb/Ruby needed) → outdated stack = VA/pentest hook.
+- **TLS/cert posture:** **`httpx -tls-grab`** baseline; optional deep **`testssl.sh --fast`** (Docker sidecar) → expired/legacy-TLS/no-HSTS talking points.
+- **DNS / MX / SPF / DMARC:** **native Node `dns`** (`resolveMx` + `_dmarc` TXT lookup). Email provider = upsell angle; **missing DMARC = concrete finding** to open cold outreach.
 - **Careers page signals:** hiring + whether they have security staff (no CISO/security roles = ICP fit).
-- **HaveIBeenPwned domain breach check:** "N breached accounts on your domain" = strongest security cold-open.
-- **UAE-specific:** Abu Dhabi DoH health-license presence → mandatory **ADHICS v2** trigger (best cold segment).
+- **Breach signal:** **XposedOrNot** keyless **email-level** lookup ($0 primary); **HIBP Core 1** ($4.39/mo) optional-if-keyed via `HIBP_API_KEY`. NOTE: HIBP/XposedOrNot *domain* search is owner-gated (only works on your own domain) — use **email-level** lookups for prospects, and cite only the **aggregate** ("appears in N public breaches"), never a raw credential.
+- **Typosquat/lookalike (premium, high-value leads only):** **dnstwist** (Docker sidecar) → "N registered lookalikes of yourbank.ae with live MX" — strong for banks/gov.
+- **UAE-specific:** Abu Dhabi DoH health-license → mandatory **ADHICS v2** trigger (best cold segment). Per-facility manual/form lookup, **no bulk API** — treat as a curated seed list, not an automated source.
 
 Each signal contributes to `gap_score` and appends a line to `talking_points`. Outreach (manual in v1) uses these directly.
 
 ### 6.3 Budget guard
-Free sources **always**; Hunter (and any future paid API) only when free fails, under a **daily credit cap** (extends the guard already in `leadgen/lib/budget.js`). Sensible defaults, founder-tunable in `config.js`.
+Free sources **always**. Paid-if-keyed (Hunter beyond free tier, HIBP) only when free fails, under a cap. NOTE: `lib/budget.js` is **monthly**-keyed today — add a **daily** `dayKey` (`YYYY-MM-DD`) variant/second counter for the §6.3 daily cap. New `config.js` keys:
+- `security: { subfinder: true, dnsx: true, httpx: true, testssl: false, dnstwist: false, binPath: '/usr/local/bin', timeoutMs: 60000 }`
+- `breach: { provider: 'xposedornot', hibpDailyCap: 40 }` (optional `HIBP_API_KEY`)
+- `emailVerify: { smtpProbe: false, patternGuess: true, patterns: ['first.last','flast','first','f.last','firstl'] }`
+- `people: { teamPageScrape: true, difcAdgm: false, linkedinDork: false }`
+- Optional env: `HIBP_API_KEY`, `SEARXNG_URL` (only if LinkedIn dorking ever enabled).
+
+### 6.4 Docker / runtime
+Preserve the zero-runtime-dependency ethos: add only three static MIT Go binaries via multi-stage build (~+40–60 MB, **no Python**):
+```dockerfile
+FROM golang:1.23 AS osint
+RUN GOBIN=/out go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest \
+ && GOBIN=/out go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest \
+ && GOBIN=/out go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+FROM node:20-slim
+COPY --from=osint /out/* /usr/local/bin/
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+```
+Invoke via `child_process` with `-json`/JSONL + timeouts. `checkdmarc` / `testssl.sh` / `dnstwist` stay **optional sidecar containers** (official images, `docker run`), never baked in. crt.sh (inside subfinder), XposedOrNot, HIBP and the permutator reuse `lib/http.js` — zero new bytes.
+
+### 6.5 Legal / ethical guardrails (hard constraints)
+- **Passive OSINT only.** **NO active port scanning** (naabu/nmap) or active DNS brute-force against cold prospects — UAE **Federal Decree-Law 34/2021** criminalizes unauthorized/attempted access (AED 100k–500k + up to 5 yrs). Gate any active recon behind a signed engagement.
+- **NO M365 tenant enumeration** (o365enum/o365spray) — stale, datacenter-throttled, PDPL-grey.
+- **Breach data:** cite only aggregate metadata; **never possess/parse/quote raw credential dumps** (no h8mail-on-dumps, Dehashed plaintext) — no PDPL lawful basis.
+- **LinkedIn-via-search:** default **OFF** (LinkedIn UA breach + Google SERP ToS + PDPL). If ever enabled: public profile URL + name/title only, throttled, suppression-honored, never behind auth.
+- **PDPL (Decree-Law 45/2021):** no B2B carve-out — legitimate-interest basis is defensible at 50/day; enforce the `suppression` table before surfacing any contact, provide easy opt-out, prefer passive DNS/MX signals over mailbox probing.
+- **Tools explicitly rejected** (research-backed): theHarvester (low named-yield, adds Python), holehe/Infoga/mosint (abandoned/paid-key wrappers), naabu (free mode wraps Shodan InternetDB = not commercial-licensed; active scan = legal exposure), o365enum, SpiderFoot-as-core, assetfinder/Sublist3r/findomain (unmaintained; subfinder is strictly better), h8mail/breach-parse/Dehashed.
 
 ### 6.4 Prospect → pipeline promotion
 Prospects are **not** deals. In `/admin/crm`, a prospect list (searchable, suppression-aware) has a **"Promote to deal"** action → creates `company` + `contact` + `deal` (stage `new`, `source='leadgen'`, carries `ai_score`), sets `prospects.status='promoted'` + `promoted_deal_id`. When a real person replies/contacts, the same record moves `new → contacted` on promotion. This keeps 350 cold rows/week out of the forecast while making them one click from becoming pipeline.
@@ -155,7 +185,7 @@ Prospects are **not** deals. In `/admin/crm`, a prospect list (searchable, suppr
 
 ## 9. Explicitly EXCLUDED (YAGNI)
 
-AI scoring *inside* the CRM (leadgen already scores; inbound ~1–2/day, humans triage faster) · proposal generator / e-sign / pre-call AI briefs (proposals are PDFs in Storage + a link field) · warehouse / ETL / Metabase / velocity marts (SQL views suffice) · outbound sequencer / approval queue / send caps / reply-sentiment (outbound manual until well past first clients) · Slack notification fabric (one owner email; 5 people sit together) · stage probabilities / weighted forecasting (meaningless at n<20) · EAV / custom-field engine (fixed columns; new field = 5-line migration) · CPQ / line-items / discount-approval workflow (floor prices + Manoj approval = a process, not software) · lead-vs-deal entity split · duplicate-merge UI · multi-currency · territories · email-marketing module · mobile app · chat-widget lead capture · Plane/delivery auto-creation on Won · automated PDPL retention cron (keep policy; run documented purge SQL manually each quarter). Paid people-data API (LinkedIn) deferred — free scrape only in v1.
+AI scoring *inside* the CRM (leadgen already scores; inbound ~1–2/day, humans triage faster) · proposal generator / e-sign / pre-call AI briefs (proposals are PDFs in Storage + a link field) · warehouse / ETL / Metabase / velocity marts (SQL views suffice) · outbound sequencer / approval queue / send caps / reply-sentiment (outbound manual until well past first clients) · Slack notification fabric (one owner email; 5 people sit together) · stage probabilities / weighted forecasting (meaningless at n<20) · EAV / custom-field engine (fixed columns; new field = 5-line migration) · CPQ / line-items / discount-approval workflow (floor prices + Manoj approval = a process, not software) · lead-vs-deal entity split · duplicate-merge UI · multi-currency · territories · email-marketing module · mobile app · chat-widget lead capture · Plane/delivery auto-creation on Won · automated PDPL retention cron (keep policy; run documented purge SQL manually each quarter) · paid people-data API (Apollo/Proxycurl) and LinkedIn scraping — free scrape only in v1 (accept ~20–35% named-contact coverage) · OSINT framework (SpiderFoot/recon-ng/Maltego) — à-la-carte CLIs instead · active port scanning (naabu/nmap) and M365 tenant enumeration (o365enum) — legally/ToS out of bounds for cold prospects.
 
 ## 10. Data & Migration Defaults
 
@@ -165,7 +195,7 @@ AI scoring *inside* the CRM (leadgen already scores; inbound ~1–2/day, humans 
 ## 11. Open Items / Risks
 
 - **leadgen write path:** decide pg-direct vs PostgREST-with-service-role from inside the `leadgen` container (both on `underwings-network`). PostgREST + service-role keeps one access pattern; pg-direct is simpler for batch upserts. Resolve in the implementation plan.
-- **HaveIBeenPwned domain search** requires a (cheap) API key for domain-wide breach lookup — treat as optional-if-keyed like Hunter, under the same budget guard. Falls back to skip if unkeyed.
+- **Breach lookup (resolved 2026-07-21):** use **XposedOrNot keyless email-level** lookup as the $0 default; **HIBP Core 1 ($4.39/mo)** optional-if-keyed for cleaner data. Domain-wide search is owner-gated (own domain only) — prospects use email-level lookups, citing aggregate only.
 - **verifyAdmin() gap** must be fixed before any CRM write endpoint is reachable outside the private-IP allowlist.
 
 ## 12. Build Order (for the implementation plan)
@@ -173,5 +203,5 @@ AI scoring *inside* the CRM (leadgen already scores; inbound ~1–2/day, humans 
 1. `006_crm.sql` — 7 tables + views + triggers + RLS; provision Guna/Prathima; seed suppression.
 2. `/admin/crm` module — deals board (two stage-sets), company/contact drawers, activity timeline, prospects list + Promote-to-deal, reporting cards. `crm.underwings.org` redirect.
 3. Contact-form fix + direct CRM writes from `api/contact.ts`; newsletter email-match view; retire dead webhook paths.
-4. leadgen rework — `crm.js` sink replacing `sheets.js`; deep-enrich module (website/email/firmographics + security signals → talking_points/gap_score); 24h/50 cadence; budget guard; suppression check.
+4. leadgen rework — `crm.js` sink replacing `sheets.js`; multi-stage Dockerfile adds subfinder/dnsx/httpx (§6.4); deep-enrich module (team-page scrape + Haiku name/title, in-house email permutator, native-Node DNS/MX/DMARC, subfinder→dnsx→httpx attack-surface + tech + TLS, XposedOrNot breach → talking_points/gap_score); daily budget guard; suppression check; 24h/50 cadence.
 5. Owner-email notification via Stalwart; remove Cal.com/book.underwings.org links; WhatsApp click-to-chat.
