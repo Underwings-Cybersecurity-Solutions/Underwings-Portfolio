@@ -444,6 +444,9 @@ function navigateTo(page) {
     case 'leads':
       loadLeads();
       break;
+    case 'crm':
+      loadCrm();
+      break;
   }
 }
 
@@ -2216,3 +2219,14 @@ function csvCell(v) {
   if (/[",\n\r]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
   return s;
 }
+
+// ===========================================
+// CRM MODULE
+// ===========================================
+function loadCrm() {
+  if (loadCrm._wired) { crmReload(); return; }
+  loadCrm._wired = true;
+  crmInit();
+}
+function crmInit() { /* A6 fills this */ crmReload(); }
+function crmReload() { /* A6 fills this */ }
