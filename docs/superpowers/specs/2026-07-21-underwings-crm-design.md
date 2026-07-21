@@ -19,15 +19,14 @@ Founder directive: *"no extra features — tune for what Underwings needs."*
 
 ## 2. Platform & Conventions (reuse as-is)
 
+> **ARCHITECTURE REVISED 2026-07-21 (post Phase A):** The CRM is a **standalone app served AT `crm.underwings.org`** with its **own accounts/roles**, separate from the `/admin` CMS. Phase A shipped the CRM as a tab inside `/admin`; **Phase A2 (rework)** relocates it to a dedicated app and swaps the auth model. The data layer (migration 006 — tables/views/triggers) is unchanged and reused. See §12a for the rework task list.
+
 - **Backend:** existing Supabase stack (`db`, `kong`, `auth/gotrue`, `rest/postgrest`, `realtime`, `storage`, `studio`) already in `docker-compose.yml`.
-- **Schema:** one migration `supabase/migrations/006_crm.sql`, applied via `docker exec underwings-db psql` (house pattern, per migration 005). Conventions to follow exactly:
-  - UUID PK `gen_random_uuid()`; `TEXT + CHECK` enums; `created_at`/`updated_at TIMESTAMPTZ DEFAULT NOW()`.
-  - `update_updated_at_column()` trigger on every table.
-  - Indexes on status / email / created_at / FKs.
-  - RLS on every table: `FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin())` (from migration 002).
-- **UI:** extend the existing `/admin/` vanilla-JS Vite SPA (auth + TOTP MFA, table/drawer/modal, CSV export, Chart.js already present). The **leads-module `TAB_CONFIG` pattern is the template.** No new subdomain (avoids Kong CORS + GoTrue allow-list changes).
-- **`crm.underwings.org`:** keep the DNS + cert; nginx redirects it to `/admin/crm` (team-notification emails hardcode this URL).
-- **Users:** provisioned via `scripts/provision-admin.sh` (public signup disabled). Add **Guna** (BD, primary pipeline operator) and **Prathima** (marketing). Fix the `verifyAdmin()` gap (JWT-valid ≠ admin) on `/api/admin/*` before exposing CRM write endpoints beyond the private-IP allowlist.
+- **Schema:** migration `006_crm.sql` (data model — done) + `007_crm_roles.sql` (rework: `crm_users` table + `is_crm_user()`/`is_crm_admin()`; swap all `crm_*` RLS off `is_admin()`). Applied via `docker exec underwings-db psql`; **reload PostgREST after** (`NOTIFY pgrst, 'reload schema'`). Conventions: UUID PK `gen_random_uuid()`; `TEXT + CHECK` enums; `created_at`/`updated_at TIMESTAMPTZ DEFAULT NOW()`; `update_updated_at_column()` trigger; indexes on status/email/created_at/FKs.
+- **Auth/roles (REVISED):** a **separate `crm_users` table** (`id → auth.users`, `role CHECK(admin|member)`), distinct from `admin_users`. `is_crm_user()` = membership; `is_crm_admin()` = role `admin`. RLS on every `crm_*` table: **member** = SELECT/INSERT/UPDATE `USING (is_crm_user())`; **admin** = also DELETE `USING (is_crm_admin())`. Views stay `security_invoker=true` (inherit table RLS). Service-role writes (contact form, leadgen) bypass RLS unchanged.
+- **UI (REVISED):** a **new standalone `crm/` Vite SPA** (own login + **enforced TOTP MFA** shell, Chart.js, table/drawer/modal, CSV export) — the CRM module from Phase A (`admin.js` A5–A11) is ported into `crm/src/js/crm.js` nearly verbatim, gated on `is_crm_user()` after login. **Remove the CRM from `/admin`** (revert A5–A11's CMS-admin additions). CMS returns to CMS-only.
+- **`crm.underwings.org` (REVISED):** nginx serves the CRM app at `/` and proxies `/{auth,rest,realtime,storage}/v1/*` → Kong, so **Supabase is same-origin** (no CORS / GoTrue-allow-list changes). The CRM app's Supabase URL = `https://crm.underwings.org`. **Public/internet-reachable** (unlike private-network `/admin`) — the gate is login + **mandatory MFA** + RLS. Existing Let's Encrypt cert reused.
+- **Users (REVISED):** a new `scripts/provision-crm-user.sh` (GoTrue user + `crm_users` row). Provision **Manoj** (`admin`), **Guna / Nelson / Vinoth** (`member`). Prathima stays CMS-only (not a CRM user). Public signup disabled.
 
 ## 3. Business-Needs Analysis
 
