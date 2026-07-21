@@ -21,6 +21,13 @@ function esc(str) {
   return d.innerHTML;
 }
 
+// esc() does not escape double-quotes, so it is unsafe inside `value="..."` (or any
+// double-quoted) HTML attribute. Use this instead when interpolating free-text
+// strings into a double-quoted attribute.
+function escAttr(str) {
+  return esc(str).replace(/"/g, '&quot;');
+}
+
 function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
@@ -2344,9 +2351,9 @@ async function crmOpenDrawer(idx) {
     <div class="lead-meta">${esc(d.crm_companies?.name||'—')} · ${esc(d.crm_contacts?.email||'')}${wa} ${badge}</div>
     <label>Stage <select id="crm-d-stage">${stages.map((s)=>`<option ${s===d.stage?'selected':''}>${s}</option>`).join('')}</select></label>
     <label>Value AED <input id="crm-d-value" type="number" value="${d.value_aed??''}"></label>
-    <label>Next action <input id="crm-d-next" value="${esc(d.next_action||'')}"></label>
+    <label>Next action <input id="crm-d-next" value="${escAttr(d.next_action||'')}"></label>
     <label>Next action date <input id="crm-d-nextdate" type="date" value="${d.next_action_date||''}"></label>
-    <label>Lost reason <input id="crm-d-lost" value="${esc(d.lost_reason||'')}"></label>
+    <label>Lost reason <input id="crm-d-lost" value="${escAttr(d.lost_reason||'')}"></label>
     <button id="crm-d-save" class="btn btn-primary">Save</button>
     <hr>
     <h3>Activity</h3>
