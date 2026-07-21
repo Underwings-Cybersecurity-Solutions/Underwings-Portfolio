@@ -2287,6 +2287,7 @@ function crmInit() {
   }));
   crmSyncStageFilter();
   crmReload();
+  crmWireNewDeal();
 }
 let _crmT; function crmDebouncedReload(){ clearTimeout(_crmT); _crmT=setTimeout(crmReload,250); }
 function crmSyncStageFilter(){
@@ -2389,3 +2390,41 @@ async function crmAddActivity() {
   if (error) { alert('Add failed: '+error.message); return; }
   crmOpenDrawer(crmState.rows.findIndex((r)=>r.id===crmState._openId));  // refresh drawer
 }
+
+// ---------- Company/contact upsert helpers (reused by A9 promote-prospect) ----------
+async function crmUpsertCompany({ name, domain }) {
+  if (domain) {
+    const { data } = await supabase.from('crm_companies').select('id').eq('domain', domain.toLowerCase()).maybeSingle();
+    if (data) return data.id;
+  }
+  const { data, error } = await supabase.from('crm_companies').insert({ name: name||domain||'Unknown', domain: domain? domain.toLowerCase():null }).select('id').single();
+  if (error) throw error; return data.id;
+}
+async function crmUpsertContact({ email, name, company_id, phone, job_title }) {
+  if (email) {
+    const { data } = await supabase.from('crm_contacts').select('id').eq('email', email.toLowerCase()).maybeSingle();
+    if (data) return data.id;
+  }
+  const { data, error } = await supabase.from('crm_contacts').insert({ email: email? email.toLowerCase():null, name, company_id, phone, job_title }).select('id').single();
+  if (error) throw error; return data.id;
+}
+
+// ---------- New Deal modal ----------
+function crmWireNewDeal() {
+  document.getElementById('crm-new-deal-btn').addEventListener('click', ()=>document.getElementById('crm-newdeal-modal').classList.add('active'));
+  document.getElementById('nd-cancel').addEventListener('click', ()=>document.getElementById('crm-newdeal-modal').classList.remove('active'));
+  document.getElementById('nd-save').addEventListener('click', crmNewDeal);
+}
+async function crmNewDeal() {
+  try {
+    const companyId = await crmUpsertCompany({ name: val('nd-company'), domain: val('nd-domain') });
+    const contactId = val('nd-email') ? await crmUpsertContact({ email: val('nd-email'), name: val('nd-name'), company_id: companyId }) : null;
+    const { error } = await supabase.from('crm_deals').insert({
+      title: val('nd-title')||'Untitled', motion: val('nd-motion'), stage:'new',
+      value_aed: val('nd-value')||null, company_id: companyId, contact_id: contactId, source:'other',
+    });
+    if (error) throw error;
+    document.getElementById('crm-newdeal-modal').classList.remove('active'); crmReload();
+  } catch (e) { alert('Create failed: '+e.message); }
+}
+function val(id){ return document.getElementById(id).value.trim(); }
