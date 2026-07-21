@@ -2470,3 +2470,39 @@ async function crmNewDeal() {
   } catch (e) { alert('Create failed: '+e.message); }
 }
 function val(id){ return document.getElementById(id).value.trim(); }
+
+// ---------- Scoreboard + pipeline chart (A10) ----------
+let crmPipelineChart = null;
+async function crmLoadScoreboard() {
+  const [{ data: sb }, { data: pipe }, { count: staleCount }, { count: renewCount }] = await Promise.all([
+    supabase.from('v_crm_quarter_scoreboard').select('*').maybeSingle(),
+    supabase.from('v_crm_pipeline').select('*'),
+    supabase.from('v_crm_stale_deals').select('*', { count:'exact', head:true }),
+    supabase.from('v_crm_renewals_next_90d').select('*', { count:'exact', head:true }),
+  ]);
+  const s = sb || {};
+  const stat = (n,l)=>`<div class="crm-stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+  document.getElementById('crm-scoreboard').innerHTML =
+    stat(s.won_count??0,'Won this qtr (target 3)') +
+    stat(`AED ${Number(s.won_value_aed??0).toLocaleString()}`,'Won value') +
+    stat(`${s.win_rate_pct??0}%`,'Win rate (target 40%)') +
+    stat(`AED ${Number(s.avg_won_aed??0).toLocaleString()}`,'Avg deal (target 35k)') +
+    stat(staleCount??0,'Stale deals') +
+    stat(renewCount??0,'Renewals due (90d)');
+  crmRenderPipelineChart(pipe||[]);
+}
+function crmRenderPipelineChart(rows) {
+  const ctx = document.getElementById('crm-chart-pipeline')?.getContext('2d'); if(!ctx) return;
+  if (crmPipelineChart) crmPipelineChart.destroy();
+  const services = rows.filter((r)=>r.motion==='services');
+  const software = rows.filter((r)=>r.motion==='software');
+  const stages = [...new Set(rows.map((r)=>r.stage))];
+  crmPipelineChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:stages, datasets:[
+      { label:'Services (AED)', data:stages.map((st)=>services.find((r)=>r.stage===st)?.value_aed||0) },
+      { label:'Software (AED)', data:stages.map((st)=>software.find((r)=>r.stage===st)?.value_aed||0) },
+    ]},
+    options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}} },
+  });
+}
