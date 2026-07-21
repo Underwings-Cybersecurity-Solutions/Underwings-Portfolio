@@ -2409,6 +2409,48 @@ async function crmUpsertContact({ email, name, company_id, phone, job_title }) {
   if (error) throw error; return data.id;
 }
 
+// ---------- A9: Prospects tab + Promote-to-deal ----------
+async function crmLoadProspects() {
+  const from = crmState.page*CRM_PAGE_SIZE, to = from+CRM_PAGE_SIZE-1;
+  let q = supabase.from('crm_prospects')
+    .select('*', { count:'exact' })
+    .neq('status','suppressed')
+    .order('ai_score', { ascending:false, nullsFirst:false })
+    .range(from, to);
+  if (crmState.search) { const s=crmState.search.replace(/[%,]/g,''); q=q.or(`company_name.ilike.%${s}%,domain.ilike.%${s}%`); }
+  const { data, count, error } = await q;
+  if (error) { console.error('[crm] prospects', error); return; }
+  crmState.rows = data||[]; crmState.total = count||0;
+  const thead=document.querySelector('#crm-table thead'), tbody=document.querySelector('#crm-table tbody');
+  thead.innerHTML = `<tr><th>Company</th><th>AI</th><th>Gap</th><th>Status</th><th>Talking points</th><th></th></tr>`;
+  tbody.innerHTML = crmState.rows.map((r,i)=>`<tr>
+    <td><div class="lead-email">${esc(r.company_name)}</div><div class="lead-meta">${esc(r.domain||'')}</div></td>
+    <td>${r.ai_score??'—'}</td><td>${r.gap_score??'—'}</td>
+    <td><span class="crm-stage-pill">${esc(r.status)}</span></td>
+    <td>${esc((r.talking_points||'').slice(0,120))}</td>
+    <td>${r.status==='promoted'?'✓':`<button class="btn" data-promote="${r.id}">Promote</button>`}</td></tr>`).join('');
+  tbody.querySelectorAll('[data-promote]').forEach((b)=>b.addEventListener('click',()=>crmPromoteProspect(b.dataset.promote)));
+  document.getElementById('crm-page-info').textContent = `${crmState.total} prospects`;
+}
+
+async function crmPromoteProspect(id) {
+  const { data: p } = await supabase.from('crm_prospects').select('*').eq('id', id).single();
+  const { data: pcs } = await supabase.from('crm_prospect_contacts').select('*').eq('prospect_id', id).order('confidence',{ascending:false});
+  const top = (pcs||[])[0] || {};
+  try {
+    const companyId = await crmUpsertCompany({ name: p.company_name, domain: p.domain });
+    const contactId = top.email ? await crmUpsertContact({ email: top.email, name: top.name, company_id: companyId, phone: top.phone, job_title: top.job_title }) : null;
+    const { data: deal, error } = await supabase.from('crm_deals').insert({
+      title: `${p.company_name} — outbound`, motion:'services', stage:'new',
+      company_id: companyId, contact_id: contactId, source:'leadgen',
+      ai_score: p.ai_score, description: p.talking_points, icp_segment: 'other',
+    }).select('id').single();
+    if (error) throw error;
+    await supabase.from('crm_prospects').update({ status:'promoted', promoted_deal_id: deal.id }).eq('id', id);
+    crmReload();
+  } catch (e) { alert('Promote failed: '+e.message); }
+}
+
 // ---------- New Deal modal ----------
 function crmWireNewDeal() {
   document.getElementById('crm-new-deal-btn').addEventListener('click', ()=>document.getElementById('crm-newdeal-modal').classList.add('active'));
