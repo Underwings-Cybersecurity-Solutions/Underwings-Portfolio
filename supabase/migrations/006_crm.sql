@@ -230,3 +230,86 @@ DROP TRIGGER IF EXISTS crm_deals_log_stage ON public.crm_deals;
 CREATE TRIGGER crm_deals_log_stage AFTER UPDATE ON public.crm_deals
     FOR EACH ROW WHEN (OLD.stage IS DISTINCT FROM NEW.stage)
     EXECUTE FUNCTION public.crm_log_stage_change();
+
+-- ---------- reporting views (security_invoker => caller RLS applies) ----------
+CREATE OR REPLACE VIEW public.v_crm_pipeline
+    WITH (security_invoker=true) AS
+SELECT motion, stage,
+       count(*)                         AS deal_count,
+       COALESCE(sum(value_aed), 0)      AS value_aed
+FROM public.crm_deals
+WHERE status = 'open'
+GROUP BY motion, stage;
+
+CREATE OR REPLACE VIEW public.v_crm_quarter_scoreboard
+    WITH (security_invoker=true) AS
+WITH q AS (SELECT date_trunc('quarter', NOW()) AS qstart)
+SELECT
+    count(*) FILTER (WHERE status = 'won')                              AS won_count,
+    COALESCE(sum(value_aed) FILTER (WHERE status = 'won'), 0)           AS won_value_aed,
+    count(*) FILTER (WHERE status = 'lost')                             AS lost_count,
+    ROUND(count(*) FILTER (WHERE status = 'won')::numeric
+          / NULLIF(count(*) FILTER (WHERE status IN ('won','lost')), 0) * 100, 1) AS win_rate_pct,
+    ROUND(AVG(value_aed) FILTER (WHERE status = 'won'), 0)              AS avg_won_aed
+FROM public.crm_deals, q
+WHERE closed_at >= q.qstart;
+
+CREATE OR REPLACE VIEW public.v_crm_source_mix
+    WITH (security_invoker=true) AS
+SELECT source,
+       count(*)                                  AS deal_count,
+       count(*) FILTER (WHERE status = 'won')     AS won_count
+FROM public.crm_deals
+GROUP BY source;
+
+CREATE OR REPLACE VIEW public.v_crm_stale_deals
+    WITH (security_invoker=true) AS
+SELECT d.*,
+       COALESCE(la.last_activity, d.updated_at) AS last_activity,
+       CASE WHEN d.motion = 'services' THEN 30 ELSE 21 END AS stale_after_days
+FROM public.crm_deals d
+LEFT JOIN (
+    SELECT deal_id, max(occurred_at) AS last_activity
+    FROM public.crm_activities GROUP BY deal_id
+) la ON la.deal_id = d.id
+WHERE d.status = 'open'
+  AND COALESCE(la.last_activity, d.updated_at) <
+      NOW() - (CASE WHEN d.motion = 'services' THEN INTERVAL '30 days' ELSE INTERVAL '21 days' END);
+
+CREATE OR REPLACE VIEW public.v_crm_renewals_next_90d
+    WITH (security_invoker=true) AS
+SELECT id, title, company_id, value_aed, renewal_date, owner_id
+FROM public.crm_deals
+WHERE status = 'won' AND motion = 'software'
+  AND renewal_date IS NOT NULL
+  AND renewal_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '90 days';
+
+CREATE OR REPLACE VIEW public.v_crm_founding_tracker
+    WITH (security_invoker=true) AS
+SELECT id, title, company_id, founding_discount_tier, status, value_aed, closed_at
+FROM public.crm_deals
+WHERE founding_client = true
+ORDER BY closed_at NULLS LAST;
+
+CREATE OR REPLACE VIEW public.v_crm_contact_signals
+    WITH (security_invoker=true) AS
+SELECT c.id AS contact_id, c.email,
+       EXISTS (SELECT 1 FROM public.subscribers s
+               WHERE lower(s.email) = lower(c.email) AND s.subscribed) AS is_subscriber,
+       EXISTS (SELECT 1 FROM public.waitlist_signups w
+               WHERE lower(w.email) = lower(c.email))                  AS on_waitlist
+FROM public.crm_contacts c
+WHERE c.email IS NOT NULL;
+
+-- ---------- seed suppression from legacy table if it still exists ----------
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables
+               WHERE table_schema = 'public' AND table_name = 'uw_outbound_suppression') THEN
+        INSERT INTO public.crm_suppression (email, reason)
+        SELECT lower(email), 'migrated from uw_outbound_suppression'
+        FROM public.uw_outbound_suppression
+        WHERE email IS NOT NULL
+        ON CONFLICT (lower(email)) DO NOTHING;
+    END IF;
+END $$;
