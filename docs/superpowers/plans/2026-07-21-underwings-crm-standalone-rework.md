@@ -170,62 +170,86 @@ exec "$@"
 
 ---
 
-### Task R3: CRM app markup + styles (`crm/src/index.html`, `crm/src/css/crm.css`)
+### Task R3: Design system + app shell + component styles ("Sales Operations Console")
 
-**Files:** Create `crm/src/index.html`, `crm/src/css/crm.css`, and copy `admin/src/images/logo.png` → `crm/src/images/logo.png`.
+**REQUIRED SUB-SKILL:** the implementer MUST invoke `frontend-design:frontend-design` and follow it. This is a design-led task, not a style-copy. Build a distinctive, brand-true dark **security-ops console**, not a ported admin table.
 
-**Interfaces:** Produces the login screen, MFA screen, and the CRM page/drawer/modal markup that R4's JS drives. IDs must match what the ported CRM module expects: `#page-crm`, `#crm-scoreboard`, `#crm-chart-pipeline`, `#crm-tabs`, `#crm-search`, `#crm-stage-filter`, `#crm-table`, `#crm-page-info`, `#crm-prev`/`#crm-next`, `#crm-drawer`+`#crm-drawer-body`+`[data-crm-close]`, `#crm-new-deal-btn`, `#crm-export-btn`, `#crm-newdeal-modal` (+ its `nd-*` inputs), plus login (`#login-*`) and MFA (`#mfa-*`) elements mirroring `admin/src/index.html`.
+**Files:** Create `crm/src/index.html`, `crm/src/css/crm.css`, copy `admin/src/images/logo.png` → `crm/src/images/logo.png`, and self-host the two webfonts under `crm/src/fonts/` (do NOT hotlink Google Fonts — the site self-hosts; reuse the woff2 files already in `frontend/public/fonts/` if present, else `admin`'s).
 
-- [ ] **Step 1: Build `crm/src/index.html`** by adapting `admin/src/index.html`:
-  - Keep the `<script>window.SUPABASE_URL="__SUPABASE_URL__";window.SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY__";</script>` head injection and `<script type="module" src="/js/crm.js">` at the end (note `/js/crm.js`, base `/`).
-  - Keep the **login** form + **MFA** screen markup (copy from admin index.html lines ~15–58), same element ids the auth code uses.
-  - Replace the entire CMS dashboard shell (sidebar with posts/partners/careers/media/analytics, and all those `#page-*` blocks + editor modals) with **only** the CRM surface: a simple header (logo + "Underwings CRM" + logout button) and the `#page-crm` block + `#crm-drawer` + `#crm-newdeal-modal` (copy these three exactly from `admin/src/index.html` — they were added in Phase A A5/A8).
-  - No CMS nav, no posts/media/careers markup.
+**Design tokens (define once at the top of `crm.css` as CSS custom properties; every color/space value derives from these — no ad-hoc hexes):**
+```
+--ink:#0B0F14  --surface:#131A22  --surface-2:#1B242E  --line:#26313D
+--text:#E6EDF3  --muted:#8A97A6
+--brand:#24D758 (Underwings green — PRIMARY ACTIONS + WON only, used with restraint)
+--services:#24D758  --software:#38BDF8 (the two motions read apart at a glance)
+--warn:#F5A623 (stale/attention)  --danger:#F2555A (lost)
+--radius:10px  --radius-sm:6px
+Type: UI/body = Inter (self-hosted); DATA VOICE = "Geist Mono" — every number, AED value,
+score, stage tag, date, metric uses mono with `font-variant-numeric: tabular-nums`.
+Compact scale (13px base). Motion: 120–200ms ease; respect `prefers-reduced-motion`.
+```
 
-- [ ] **Step 2: Build `crm/src/css/crm.css`** by copying from `admin/src/css/admin.css` ONLY the rules the CRM surface uses: base/reset, login screen, MFA, buttons (`.btn*`), modal (`.modal`, `.modal.active`, `.modal-content`, `.modal-close`), the leads table/drawer/pill rules the CRM reuses (`.leads-*`, `.lead-drawer*`, `.lead-status*`), and the `.crm-*` rules added in Phase A. Add a `.lead-drawer-close`/`.lead-drawer-x` rule so the drawer × is styled (closes the A5 cosmetic gap). Drop CMS-only styles.
+**Interfaces:** Produces the branded login + MFA screens, the app shell, and ALL component styles + the markup IDs R4 drives: app shell (`#app`, header with `#crm-user`/`#crm-logout`, view nav `[data-crm-view="pipeline|prospects|reports"]`), pipeline strip (`#crm-pipeline-strip`), deals board (`#crm-board` — kanban columns container; `#crm-view-toggle` kanban/list), `#crm-search`, `#crm-new-deal-btn`, `#crm-export-btn`, drawer (`#crm-drawer`,`#crm-drawer-body`,`[data-crm-close]`), prospects feed (`#crm-prospects`), reports (`#crm-scoreboard`,`#crm-chart-pipeline`), new-deal modal (`#crm-newdeal-modal` + `nd-*` inputs), a toast host (`#crm-toasts`), plus login (`#login-*`)/MFA (`#mfa-*`) ids matching `admin/src/js/admin.js`'s auth code.
 
-- [ ] **Step 3: Commit** — `git add crm/src/index.html crm/src/css/crm.css crm/src/images/ && git commit -m "feat(crm): standalone app markup + styles (login/MFA + CRM surface)"`
+- [ ] **Step 1: Invoke `frontend-design` and design against these tokens.** Produce the token block, then the component specs below. Keep boldness in the two signatures; everything else quiet.
+
+- [ ] **Step 2: Build `crm/src/index.html`** — the `window.SUPABASE_*` head injection + `<script type="module" src="/js/crm.js">`; a **branded login screen** (Underwings mark, "Sales Operations Console" wordmark, email/password, error slot `#login-error`) and MFA enroll/verify screens (ids matching the auth code); then the app shell: a slim top bar (mark + `Pipeline / Prospects / Reports` view switch + user menu/logout) and three view containers — `#crm-board` (+ `#crm-pipeline-strip` above it), `#crm-prospects`, `#crm-reports` (`#crm-scoreboard` + `#crm-chart-pipeline`) — plus `#crm-drawer`, `#crm-newdeal-modal`, and `#crm-toasts`. No CMS anything.
+
+- [ ] **Step 3: Component styles in `crm.css`** (all from tokens):
+  - **Pipeline strip:** connected horizontal segments (one per stage), each showing stage name + count + AED (mono); a thin value bar; active/hover state; services vs software tint. This is signature #1 — make it read like a signal chain, not a generic stat row.
+  - **Kanban:** horizontally-scrollable columns (one per stage) with a count/value header; **deal cards** = title, company (muted), AED value (mono, prominent), owner initials chip, a `next-action` chip; **stale** cards get a `--warn` left edge + a "⏳ 34d" mono chip; won/lost muted. `.crm-card--dragging`/`.crm-col--dropzone` states for drag-drop. A **list/table fallback** style for narrow screens.
+  - **Drawer:** right-slide panel; header (deal title, company · contact · wa.me, signal badges); **stage stepper** (clickable horizontal steps for the motion's stages, current highlighted); editable fields; **activity timeline** as a feed with per-type icon + timestamp; quick-add row. Style the close affordance (fixes the A5 `.lead-drawer-x` gap).
+  - **Intel feed (prospects):** signal cards — company + domain (mono), an `ai_score` and `gap_score` **meter** (small bar, `--warn`→`--brand`), `talking_points` as the body, a **Promote** primary button; promoted → muted with a ✓.
+  - **Reports:** stat tiles (big mono number, target-vs-actual, small delta), chart wrapper.
+  - **Toasts** (`#crm-toasts`): stacked, auto-dismiss, `--brand` success / `--danger` error. **Skeletons** (shimmer rows/cards for loading). **Empty states** (icon + one line of direction + a primary action).
+  - Buttons (`.btn`,`.btn-primary`=brand,`.btn-ghost`), inputs, chips, pills (stage pills tinted by stage group). Visible `:focus-visible` ring. Fully responsive to ~360px (top bar collapses, kanban → single-column list, drawer → full-screen sheet).
+
+- [ ] **Step 4: Commit** — `git add crm/src/index.html crm/src/css/crm.css crm/src/fonts crm/src/images && git commit -m "feat(crm): sales-ops-console design system, shell, login + component styles"`
 
 ---
 
-### Task R4: CRM app logic (`crm/src/js/crm.js`) — auth gate + ported CRM module
+### Task R4: CRM app logic (`crm/src/js/crm.js`) — auth gate + data layer + console UX
 
 **Files:** Create `crm/src/js/crm.js`
 
-**Interfaces:** Consumes `window.SUPABASE_URL`/`ANON_KEY`, the R3 markup, `crm_users` (R1). Produces the running app.
+**Approach:** REUSE the Phase A **data/query layer verbatim** (the Supabase queries in `admin/src/js/admin.js`'s CRM section — deals board query with `crm_companies!company_id(...)`, stage/search filters, prospects query, promote logic, scoreboard view reads, upserts, CSV export, the `escAttr` XSS discipline). BUILD A NEW **presentation layer** per R3's design system: kanban render, pipeline strip, intel feed, drawer with stepper, toasts, empty/loading states. Same data in, better UX out.
 
-- [ ] **Step 1: Supabase client + utils** — same init as admin.js top:
-```js
-import { createClient } from '@supabase/supabase-js';
-import Chart from 'chart.js/auto';
-const supabase = createClient(window.SUPABASE_URL || location.origin, window.SUPABASE_ANON_KEY || '');
-```
-Port the `esc`, `escAttr`, `formatDate` helpers from admin.js.
+**Interfaces:** Consumes `window.SUPABASE_*`, R3 markup, `crm_users` (R1). Produces the running console.
 
-- [ ] **Step 2: Auth shell (port from admin.js ~167–394) with a CRM gate + mandatory MFA.** After a successful `signInWithPassword` and MFA `aal2`, verify CRM membership before showing data:
+- [ ] **Step 1: Client + utils** — `createClient(window.SUPABASE_URL || location.origin, window.SUPABASE_ANON_KEY)`; port `esc`/`escAttr`/`formatDate`; add `toast(msg, kind)` (renders into `#crm-toasts`, auto-dismiss) and `money(n)` (`AED ` + `Number(n).toLocaleString()` or `—`).
+
+- [ ] **Step 2: Auth gate + mandatory MFA** (port admin.js ~167–394 login/MFA-enroll/verify), then:
 ```js
 async function afterAuthed() {
-  // must be a provisioned CRM user
   const { data: me } = await supabase.from('crm_users').select('role').maybeSingle();
-  if (!me) { await supabase.auth.signOut(); showLoginError('This account has no CRM access.'); return; }
-  window.__crmRole = me.role;                 // 'admin' | 'member'
-  // mandatory MFA: if the account has no TOTP factor, force enrollment before proceeding
+  if (!me) { await supabase.auth.signOut(); showLoginError("This account doesn't have CRM access. Ask an admin to add you."); return; }
+  window.__crmRole = me.role;
   const { data: f } = await supabase.auth.mfa.listFactors();
-  if (!f?.totp?.length) { showMfaEnroll(); return; }
+  if (!f?.totp?.length) { showMfaEnroll(); return; }          // enrollment mandatory
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== 'aal2') { showMfaVerify(); return; }
-  showApp(); crmInit();
+  showApp(); crmBoot();
 }
 ```
-(Reuse admin's login/MFA-enroll/MFA-verify functions; call `afterAuthed()` at the points admin.js currently shows the dashboard. `checkAuth()` on load routes to login vs `afterAuthed()`.)
+`checkAuth()` on load routes to login vs `afterAuthed()`. Errors/empties speak in the interface's voice (active, specific), never `alert()`.
 
-- [ ] **Step 3: Port the CRM module verbatim** from `admin/src/js/admin.js` — the entire section from `CRM_PAGE_SIZE`/`crmState`/`CRM_STAGES`/`CRM_TABS` through `crmExport` (i.e. everything A5–A11 added, including the `crm_companies!company_id` embeds and `escAttr` usages). Remove the A6 `typeof` guards' now-unnecessary defensiveness only if trivial — leaving them is harmless. Delete the `loadCrm._wired`/`navigateTo` CMS-router glue; call `crmInit()` directly from `afterAuthed()`.
+- [ ] **Step 3: View router + data loads (reuse Phase A queries).** `crmBoot()` wires the top-bar view switch (`[data-crm-view]` → Pipeline / Prospects / Reports), search, new-deal, export, and drawer close. Keep `crmState` (motion, search, `_openId`) and `CRM_STAGES`. Load functions reuse the exact Phase A Supabase queries but render the new components:
+  - `crmLoadBoard()` — the Phase A deals query (`.select('*, crm_companies!company_id(name,domain), crm_contacts(name,email,phone,whatsapp_ok)')`, motion + search filters; drop pagination for kanban, `.limit(500)` which covers the volume), then `crmRenderStrip(deals)` + `crmRenderKanban(deals)`. Show a **skeleton** while loading and an **empty state** when zero.
+  - `crmLoadProspects()` — the Phase A prospects query → `crmRenderIntel(...)`.
+  - `crmLoadReports()` — the Phase A scoreboard/pipeline/stale/renewal reads (with the `count`-based reads) → tiles + `crmRenderPipelineChart` (Chart.js, dark-themed to the tokens).
 
-- [ ] **Step 4: Role-aware UI (minimal):** if `window.__crmRole !== 'admin'`, that's fine for v1 (members already can't DELETE via RLS; there is no delete UI). No extra gating needed now — note in the report that destructive ops are RLS-gated server-side.
+- [ ] **Step 4: Presentation (new).**
+  - `crmRenderStrip(deals)` — group by stage in `CRM_STAGES[motion]` order; each segment shows stage label + count + summed AED (mono); click a segment → filter the board to that stage (toggle). Signature #1.
+  - `crmRenderKanban(deals)` — one column per stage (canonical `CRM_STAGES` order, NOT first-seen), column header = count + AED; deal cards (title, company muted, `money(value_aed)`, owner initials, next-action chip); **stale** flag (services >30d / software >21d since `updated_at`) → amber edge + `⏳ Nd` chip. **Drag-drop:** HTML5 DnD; on drop into another column, `supabase.from('crm_deals').update({stage:newStage}).eq('id',id)` then `toast('Moved to '+newStage)` + reload (the DB trigger logs the stage change). Card click → `crmOpenDrawer(id)`. Provide a compact **list fallback** toggle (`#crm-view-toggle`) and auto-list on ≤600px.
+  - `crmOpenDrawer(id)` — reuse the Phase A drawer data (deal + activities + `v_crm_contact_signals`); render the **stage stepper** (click a step → update stage, toast, reload), editable fields (value/next-action/next-action-date/lost-reason via `escAttr`), and the **activity timeline** feed + quick-add. `crmSaveDeal`/`crmAddActivity` logic reused from Phase A (no manual stage_change insert).
+  - `crmRenderIntel(prospects)` — signal cards with ai/gap meters + talking points + **Promote** (reuse Phase A `crmPromoteProspect` → `toast('Promoted to pipeline')`).
+  - `crmNewDeal`/`crmUpsertCompany`/`crmUpsertContact`/`crmExport` — reuse Phase A logic; swap `alert()` → `toast()`.
 
-- [ ] **Step 5: Build the image to verify it compiles** — `docker compose build crm` (after R5 adds the service) OR a standalone `docker build -t crm-test ./crm`. Confirm Vite build is clean and the bundle contains `crmInit`/`CRM_TABS`/`afterAuthed`.
+- [ ] **Step 5: Role-aware + a11y.** Members: hide any destructive affordance (delete) — none exist in v1, but the drawer/promote all work; note RLS enforces delete=admin server-side. Ensure keyboard operability (drawer Esc-closes, focus-visible), and honor `prefers-reduced-motion` (disable card stagger/drawer slide).
 
-- [ ] **Step 6: Commit** — `git add crm/src/js/crm.js && git commit -m "feat(crm): standalone app logic — CRM-user auth gate + ported CRM module"`
+- [ ] **Step 6: Build to verify it compiles** — `docker build -t crm-test ./crm` (or `docker compose build crm` after R5). Confirm Vite build clean; bundle contains `crmBoot`/`crmRenderKanban`/`afterAuthed`.
+
+- [ ] **Step 7: Commit** — `git add crm/src/js/crm.js && git commit -m "feat(crm): console UX — auth gate, kanban pipeline, intel feed, drawer, toasts"`
 
 ---
 
