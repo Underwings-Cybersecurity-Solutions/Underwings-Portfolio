@@ -2288,6 +2288,7 @@ function crmInit() {
   crmSyncStageFilter();
   crmReload();
   crmWireNewDeal();
+  document.getElementById('crm-export-btn').addEventListener('click', crmExport);
 }
 let _crmT; function crmDebouncedReload(){ clearTimeout(_crmT); _crmT=setTimeout(crmReload,250); }
 function crmSyncStageFilter(){
@@ -2505,4 +2506,24 @@ function crmRenderPipelineChart(rows) {
     ]},
     options:{ responsive:true, plugins:{legend:{position:'bottom'}}, scales:{y:{beginAtZero:true}} },
   });
+}
+
+// ---------- CSV export (A11) ----------
+async function crmExport() {
+  const tab = crmState.tab;
+  let data, cols;
+  if (tab === 'prospects') {
+    ({ data } = await supabase.from('crm_prospects').select('*').limit(5000));
+  } else {
+    ({ data } = await supabase.from('crm_deals').select('*, crm_companies(name), crm_contacts(email)').eq('motion', CRM_TABS[tab].motion).limit(5000));
+  }
+  if (!data || !data.length) { alert('Nothing to export'); return; }
+  cols = Object.keys(data[0]).filter((c)=>typeof data[0][c] !== 'object');
+  const rows = [cols.join(',')];
+  for (const r of data) rows.push(cols.map((c)=>csvCell(r[c])).join(','));
+  const blob = new Blob([rows.join('\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `underwings-crm-${tab}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
 }
