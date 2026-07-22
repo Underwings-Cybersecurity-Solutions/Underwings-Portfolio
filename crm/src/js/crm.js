@@ -118,8 +118,64 @@ let crmState = {
   stageFilter: '',        // '' = all stages (signal-chain toggle)
   layout: 'kanban',       // 'kanban' | 'list'
   deals: [],
+  prospects: [],          // cached on load — the ⌘K palette searches these
   _openId: null,
 };
+
+// ===========================================
+// CRM MEMBERS / DEAL OWNERSHIP
+// Roster comes from the crm_members() RPC (id, email, role). We resolve owners
+// client-side from this map — no owner join needed in the board/drawer queries.
+// ===========================================
+let crmMembers = [];              // [{id, email, role}]
+let crmOwnerById = new Map();     // id -> {email, role, name, initials}
+let crmMe = null;                 // current user's auth id (default owner for new deals)
+
+function memberName(email) { return (email || '').split('@')[0] || 'user'; }
+function memberInitials(email) {
+  const local = (email || '').split('@')[0] || '';
+  const parts = local.split(/[.\-_]+/).filter(Boolean);
+  const s = parts.length >= 2 ? parts[0][0] + parts[1][0] : local.slice(0, 2);
+  return (s || '?').toUpperCase();
+}
+// Deterministic 0–5 palette slot from the user id, so an owner keeps one colour.
+function avaSlot(id) {
+  const s = String(id || '');
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) >>> 0;
+  return h % 6;
+}
+async function crmLoadMembers() {
+  const { data, error } = await supabase.rpc('crm_members');
+  if (error) { console.warn('[crm] members', error.message); crmMembers = []; }
+  else crmMembers = data || [];
+  crmOwnerById = new Map(crmMembers.map((m) => [m.id, {
+    email: m.email, role: m.role, name: memberName(m.email), initials: memberInitials(m.email),
+  }]));
+}
+function ownerAvatarHtml(ownerId) {
+  const o = ownerId && crmOwnerById.get(ownerId);
+  if (!o) return `<span class="ava ava--empty" title="Unassigned" aria-label="Unassigned">–</span>`;
+  return `<span class="ava ava--o${avaSlot(ownerId)}" title="${escAttr(o.email)}" aria-label="Owner ${escAttr(o.name)}">${esc(o.initials)}</span>`;
+}
+function ownerCellHtml(ownerId) {
+  const o = ownerId && crmOwnerById.get(ownerId);
+  if (!o) return `<span class="muted">—</span>`;
+  return `<span class="owner-cell">${ownerAvatarHtml(ownerId)}<span>${esc(o.name)}</span></span>`;
+}
+function ownerName(ownerId) {
+  const o = ownerId && crmOwnerById.get(ownerId);
+  return o ? o.name : 'Unassigned';
+}
+// <option> list for an owner <select>, with `selectedId` pre-selected.
+function ownerOptionsHtml(selectedId) {
+  const opts = [`<option value=""${selectedId ? '' : ' selected'}>Unassigned</option>`];
+  for (const m of crmMembers) {
+    const sel = m.id === selectedId ? ' selected' : '';
+    opts.push(`<option value="${escAttr(m.id)}"${sel}>${esc(memberName(m.email))}${m.role === 'admin' ? ' · admin' : ''}</option>`);
+  }
+  return opts.join('');
+}
 
 // ===========================================
 // DOM ELEMENTS (auth screens)
@@ -270,7 +326,9 @@ async function crmBoot() {
   crmBoot._wired = true;
 
   const { data: { user } } = await supabase.auth.getUser();
+  crmMe = user?.id || null;
   updateUserChip(user, window.__crmRole);
+  await crmLoadMembers();
 
   document.querySelector('.viewnav').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-crm-view]'); if (!btn) return;
@@ -307,6 +365,7 @@ async function crmBoot() {
   crmWireBoardDnD();
   crmWireNewDeal();
   crmInjectMotionToggle();
+  crmWireCmdk();
 
   document.querySelector('.board-list').addEventListener('click', (e) => {
     const tr = e.target.closest('tr[data-id]'); if (!tr) return;
@@ -501,7 +560,7 @@ function dealCardHtml(d) {
     <h3 class="dcard-title">${esc(d.title || 'Untitled deal')}</h3>
     <p class="dcard-co muted">${co}</p>
     <div class="dcard-foot">
-      <span class="ava" title="Owner not tracked in this view">—</span>
+      ${ownerAvatarHtml(d.owner_id)}
       ${dealChipHtml(d, stale)}
     </div>
   </article>`;
@@ -531,7 +590,7 @@ function crmRenderList(deals) {
     <td>${esc(d.crm_companies?.name || '—')}</td>
     <td>${esc(stageLabel(d.stage))}</td>
     <td class="ta-r mono">${money(d.value_aed)}</td>
-    <td>—</td>
+    <td>${ownerCellHtml(d.owner_id)}</td>
     <td>${d.next_action ? esc(d.next_action) : '—'}</td>
   </tr>`).join('');
 }
@@ -641,7 +700,10 @@ function crmRenderDrawer(d, acts, sig) {
 
   document.getElementById('crm-drawer-body').innerHTML = `
     <header class="drawer-head">
-      <span class="pill pill--${motionClass}">${motionClass === 'software' ? 'Software' : 'Services'}</span>
+      <div class="drawer-eyebrow">
+        <span class="pill pill--${motionClass}">${motionClass === 'software' ? 'Software' : 'Services'}</span>
+        <span class="drawer-owner">${ownerAvatarHtml(d.owner_id)}<span class="mono">${esc(ownerName(d.owner_id))}</span></span>
+      </div>
       <h2 class="drawer-title">${esc(d.title || 'Untitled deal')}</h2>
       <p class="drawer-sub muted">${esc(d.crm_companies?.name || '—')} · <span class="mono">${esc(d.crm_contacts?.name || d.crm_contacts?.email || '—')}</span>${waLink}${signalTxt}</p>
       ${badges.length ? `<div class="drawer-badges">${badges.join('')}</div>` : ''}
@@ -649,6 +711,7 @@ function crmRenderDrawer(d, acts, sig) {
     <nav class="stepper" aria-label="Stage">${stepperHtml}</nav>
     <div class="drawer-grid">
       <label class="field"><span>Value (AED)</span><input class="mono" id="dw-value" type="number" value="${escAttr(numOrEmpty(d.value_aed))}"></label>
+      <label class="field"><span>Owner</span><select id="dw-owner">${ownerOptionsHtml(d.owner_id)}</select></label>
       <label class="field"><span>Next action</span><input id="dw-next" value="${escAttr(d.next_action || '')}"></label>
       <label class="field"><span>Next action date</span><input class="mono" id="dw-nextdate" type="date" value="${escAttr(d.next_action_date || '')}"></label>
       <label class="field"><span>Lost reason</span><input id="dw-lost" value="${escAttr(d.lost_reason || '')}"></label>
@@ -665,6 +728,7 @@ function crmRenderDrawer(d, acts, sig) {
   `;
 
   document.getElementById('dw-save').addEventListener('click', () => crmSaveDeal(d.id));
+  document.getElementById('dw-owner').addEventListener('change', (e) => crmSetOwner(d.id, e.target.value || null));
   document.getElementById('dw-activity-add').addEventListener('click', () => crmAddActivity(d.id));
   const activityInput = document.getElementById('dw-activity-input');
   activityInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); crmAddActivity(d.id); } });
@@ -700,6 +764,14 @@ async function crmChangeStage(id, newStage) {
   const { error } = await supabase.from('crm_deals').update({ stage: newStage }).eq('id', id);
   if (error) { toast('Stage change failed: ' + error.message, 'error'); return; }
   toast('Moved to ' + stageLabel(newStage), 'success');   // DB trigger logs the stage-change activity
+  await crmOpenDrawer(id);
+  if (crmState.view === 'pipeline') crmLoadBoard();
+}
+
+async function crmSetOwner(id, ownerId) {
+  const { error } = await supabase.from('crm_deals').update({ owner_id: ownerId }).eq('id', id);
+  if (error) { toast('Could not set owner: ' + error.message, 'error'); return; }
+  toast(ownerId ? `Owner set to ${ownerName(ownerId)}.` : 'Owner cleared.', 'success');
   await crmOpenDrawer(id);
   if (crmState.view === 'pipeline') crmLoadBoard();
 }
@@ -749,7 +821,8 @@ async function crmLoadProspects() {
     crmRenderIntelEmpty();
     return;
   }
-  crmRenderIntel(data || []);
+  crmState.prospects = data || [];
+  crmRenderIntel(crmState.prospects);
 }
 
 function crmRenderIntelSkeleton() {
@@ -787,7 +860,7 @@ function crmRenderIntel(prospects) {
       ? `<button type="button" class="btn btn-ghost btn-sm" disabled>In pipeline</button>`
       : `<button type="button" class="btn btn-primary btn-sm" data-promote="${escAttr(p.id)}">Promote to deal</button>`;
     const srcTxt = promoted ? `promoted · ${esc(formatDate(p.updated_at))}` : `source · ${esc(p.source || '—')}`;
-    return `<article class="icard${promoted ? ' icard--promoted' : ''}">
+    return `<article class="icard${promoted ? ' icard--promoted' : ''}" data-id="${escAttr(p.id)}">
       <header class="icard-head">
         <div>
           <h3 class="icard-co">${esc(p.company_name)}</h3>
@@ -838,6 +911,7 @@ async function crmPromoteProspect(id) {
       title: `${p.company_name} — outbound`, motion: 'services', stage: 'new',
       company_id: companyId, contact_id: contactId, source: 'leadgen',
       ai_score: p.ai_score, description: p.talking_points, icp_segment: 'other',
+      owner_id: crmMe,
     }).select('id').single();
     if (error) throw error;
     await supabase.from('crm_prospects').update({ status: 'promoted', promoted_deal_id: deal.id }).eq('id', id);
@@ -862,6 +936,7 @@ function crmWireNewDeal() {
 function openNewDealModal() {
   ['nd-title', 'nd-company', 'nd-domain', 'nd-email', 'nd-name', 'nd-value'].forEach((id) => { document.getElementById(id).value = ''; });
   document.getElementById('nd-motion').value = crmState.motion;
+  document.getElementById('nd-owner').innerHTML = ownerOptionsHtml(crmMe);   // default: me
   openModal('crm-newdeal-modal');
 }
 
@@ -872,6 +947,7 @@ async function crmNewDeal() {
     const { error } = await supabase.from('crm_deals').insert({
       title: val('nd-title') || 'Untitled', motion: val('nd-motion'), stage: 'new',
       value_aed: val('nd-value') || null, company_id: companyId, contact_id: contactId, source: 'other',
+      owner_id: document.getElementById('nd-owner').value || null,
     });
     if (error) throw error;
     closeModal('crm-newdeal-modal');
@@ -968,4 +1044,149 @@ async function crmExport() {
   } catch (e) {
     toast('Export failed: ' + (e.message || 'Unknown error'), 'error');
   }
+}
+
+// ===========================================
+// COMMAND PALETTE (⌘K) — keyboard launcher over loaded deals/prospects + actions.
+// Client-side only: searches crmState.deals (current motion) + crmState.prospects.
+// ===========================================
+let cmdkItems = [];
+let cmdkSel = 0;
+let cmdkPrevFocus = null;
+
+function crmWireCmdk() {
+  const overlay = document.getElementById('crm-cmdk');
+  const input = document.getElementById('cmdk-input');
+  const list = document.getElementById('cmdk-list');
+  if (!overlay || !input || !list) return;
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); crmOpenCmdk(); }
+  });
+  const opener = document.getElementById('crm-cmdk-open');
+  if (opener) opener.addEventListener('click', crmOpenCmdk);
+  overlay.querySelector('.cmdk-backdrop').addEventListener('click', crmCloseCmdk);
+  input.addEventListener('input', () => crmRenderCmdk(input.value));
+  input.addEventListener('keydown', crmCmdkKeydown);
+  list.addEventListener('click', (e) => {
+    const li = e.target.closest('[data-cmdk-i]'); if (!li) return;
+    crmCmdkActivate(Number(li.dataset.cmdkI));
+  });
+  list.addEventListener('mousemove', (e) => {
+    const li = e.target.closest('[data-cmdk-i]'); if (!li) return;
+    const i = Number(li.dataset.cmdkI);
+    if (i !== cmdkSel) { cmdkSel = i; crmCmdkPaintSel(); }
+  });
+}
+
+function crmOpenCmdk() {
+  const overlay = document.getElementById('crm-cmdk');
+  if (overlay.classList.contains('is-open')) return;
+  cmdkPrevFocus = document.activeElement;
+  setOverlayOpen(overlay, true);
+  const input = document.getElementById('cmdk-input');
+  input.value = '';
+  crmRenderCmdk('');
+  input.focus();
+}
+
+function crmCloseCmdk() {
+  const overlay = document.getElementById('crm-cmdk');
+  if (!overlay.classList.contains('is-open')) return;
+  setOverlayOpen(overlay, false);
+  if (cmdkPrevFocus && document.contains(cmdkPrevFocus)) { try { cmdkPrevFocus.focus(); } catch (_) { /* gone */ } }
+  cmdkPrevFocus = null;
+}
+
+function crmCmdkBuild(query) {
+  const q = query.trim().toLowerCase();
+  const items = [];
+  const actions = [
+    { icon: '+', label: 'New deal', kind: 'Action', run: () => { crmCloseCmdk(); openNewDealModal(); } },
+    { icon: '▚', label: 'Go to Pipeline', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('pipeline'); } },
+    { icon: '◇', label: 'Go to Prospects', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('prospects'); } },
+    { icon: '▤', label: 'Go to Reports', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('reports'); } },
+    { icon: '↧', label: 'Export current view (CSV)', kind: 'Action', run: () => { crmCloseCmdk(); crmExport(); } },
+  ];
+  if (crmState._openId) {
+    actions.push({ icon: '✎', label: 'Log activity on open deal', kind: 'Action', run: () => { crmCloseCmdk(); const i = document.getElementById('dw-activity-input'); if (i) i.focus(); } });
+  }
+  for (const a of actions) if (!q || a.label.toLowerCase().includes(q)) items.push(a);
+
+  for (const d of crmState.deals) {
+    const co = d.crm_companies?.name || '';
+    if (q && !(`${d.title || ''} ${co}`.toLowerCase().includes(q))) continue;
+    items.push({ icon: '◆', label: d.title || 'Untitled deal', sub: `${co ? co + ' · ' : ''}${stageLabel(d.stage)}`, kind: 'Deal', run: () => { crmCloseCmdk(); crmOpenDrawer(d.id); } });
+    if (items.length >= 50) return items;
+  }
+  for (const p of crmState.prospects) {
+    if (p.status === 'suppressed') continue;
+    if (q && !(`${p.company_name || ''} ${p.domain || ''}`.toLowerCase().includes(q))) continue;
+    items.push({ icon: '◇', label: p.company_name || 'Prospect', sub: p.domain || 'prospect', kind: 'Prospect', run: () => { crmCloseCmdk(); crmFocusProspect(p.id); } });
+    if (items.length >= 70) return items;
+  }
+  return items;
+}
+
+function crmRenderCmdk(query) {
+  cmdkItems = crmCmdkBuild(query);
+  cmdkSel = 0;
+  const list = document.getElementById('cmdk-list');
+  const input = document.getElementById('cmdk-input');
+  if (!cmdkItems.length) {
+    list.innerHTML = `<li class="cmdk-empty">No matches${query.trim() ? ` for “${esc(query.trim())}”` : ''}.</li>`;
+    input.removeAttribute('aria-activedescendant');
+    return;
+  }
+  list.innerHTML = cmdkItems.map((it, i) => `
+    <li class="cmdk-row${i === 0 ? ' is-sel' : ''}" data-cmdk-i="${i}" id="cmdk-opt-${i}" role="option" aria-selected="${i === 0}">
+      <span class="cmdk-ri" aria-hidden="true">${esc(it.icon || '›')}</span>
+      <span class="cmdk-rt"><span class="cmdk-rl">${esc(it.label)}</span>${it.sub ? `<span class="cmdk-rs">${esc(it.sub)}</span>` : ''}</span>
+      <span class="cmdk-rk">${esc(it.kind || '')}</span>
+    </li>`).join('');
+  input.setAttribute('aria-activedescendant', 'cmdk-opt-0');
+}
+
+function crmCmdkPaintSel() {
+  const rows = document.querySelectorAll('#cmdk-list .cmdk-row');
+  const input = document.getElementById('cmdk-input');
+  rows.forEach((r, i) => {
+    const on = i === cmdkSel;
+    r.classList.toggle('is-sel', on);
+    r.setAttribute('aria-selected', String(on));
+    if (on) { r.scrollIntoView({ block: 'nearest' }); input.setAttribute('aria-activedescendant', r.id); }
+  });
+}
+
+function crmCmdkKeydown(e) {
+  if (e.key === 'Escape') { e.preventDefault(); crmCloseCmdk(); return; }
+  if (e.key === 'Tab') { e.preventDefault(); return; }              // trap focus — input is the only stop
+  if (!cmdkItems.length) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); cmdkSel = (cmdkSel + 1) % cmdkItems.length; crmCmdkPaintSel(); return; }
+  if (e.key === 'ArrowUp') { e.preventDefault(); cmdkSel = (cmdkSel - 1 + cmdkItems.length) % cmdkItems.length; crmCmdkPaintSel(); return; }
+  if (e.key === 'Enter') { e.preventDefault(); crmCmdkActivate(cmdkSel); return; }
+}
+
+function crmCmdkActivate(i) {
+  const it = cmdkItems[i];
+  if (it && typeof it.run === 'function') it.run();
+}
+
+// Jump to a prospect: switch to the Signals view, then scroll + flash its card
+// once the feed has rendered (the load is async, so poll briefly for the card).
+function crmFocusProspect(id) {
+  crmSwitchView('prospects');
+  const sel = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
+  let tries = 0;
+  const tick = () => {
+    const card = document.querySelector(`#crm-prospects .icard[data-id="${sel}"]`);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('icard--flash');
+      setTimeout(() => card.classList.remove('icard--flash'), 1600);
+    } else if (tries++ < 12) {
+      setTimeout(tick, 120);
+    }
+  };
+  setTimeout(tick, 120);
 }

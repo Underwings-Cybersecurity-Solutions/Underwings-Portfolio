@@ -118,6 +118,7 @@
         <div class="search" role="search">
           <span class="search-ico" aria-hidden="true">⌕</span>
           <input id="crm-search" type="search" placeholder="Search deals, company, contact…" aria-label="Search deals">
+          <button type="button" id="crm-cmdk-open" class="search-kbd" title="Command palette" aria-label="Open command palette"><kbd>⌘K</kbd></button>
         </div>
         <button id="crm-new-deal-btn" class="btn btn-primary btn-sm">
           <span class="btn-plus" aria-hidden="true">+</span> New deal
@@ -596,15 +597,36 @@
               <input type="text" id="nd-name" placeholder="Full name">
             </div>
           </div>
-          <div class="field">
-            <label for="nd-value">Value (AED)</label>
-            <input type="number" id="nd-value" class="mono" placeholder="0">
+          <div class="grid-2">
+            <div class="field">
+              <label for="nd-value">Value (AED)</label>
+              <input type="number" id="nd-value" class="mono" placeholder="0">
+            </div>
+            <div class="field">
+              <label for="nd-owner">Owner</label>
+              <select id="nd-owner"><option value="">Unassigned</option></select>
+            </div>
           </div>
         </div>
         <footer class="modal-foot">
           <button type="button" id="nd-cancel" class="btn btn-ghost" data-crm-close>Cancel</button>
           <button type="button" id="nd-save" class="btn btn-primary">Create deal</button>
         </footer>
+      </div>
+    </div>
+
+    <!-- ======================= COMMAND PALETTE (⌘K) ======================= -->
+    <div id="crm-cmdk" class="cmdk" aria-hidden="true">
+      <div class="cmdk-backdrop" data-cmdk-close></div>
+      <div class="cmdk-panel" role="dialog" aria-modal="true" aria-label="Command palette">
+        <div class="cmdk-input-wrap">
+          <span class="cmdk-ico" aria-hidden="true">⌕</span>
+          <input id="cmdk-input" class="cmdk-input" type="text" role="combobox"
+                 aria-expanded="true" aria-controls="cmdk-list" aria-autocomplete="list"
+                 placeholder="Search deals, prospects, or jump to a view…" autocomplete="off" spellcheck="false">
+          <kbd class="cmdk-esc">esc</kbd>
+        </div>
+        <ul id="cmdk-list" class="cmdk-list" role="listbox" aria-label="Results"></ul>
       </div>
     </div>
 

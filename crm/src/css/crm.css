@@ -27,6 +27,9 @@
   --warn:#E8A33C; --warn-tint:#2A2013;
   --danger:#F1626B; --danger-tint:#2C1417;
 
+  /* Owner-avatar identity palette (data-driven accents, picked by a hash of the user id) */
+  --ava-0:#2FCB63; --ava-1:#4B9DFF; --ava-2:#E8A33C; --ava-3:#B98AF7; --ava-4:#F1626B; --ava-5:#34D3C1;
+
   /* Chart series alias read by crm.js cssVar() — literal so it resolves to hex */
   --services:#2FCB63;
 
@@ -172,13 +175,26 @@ select { appearance:none; cursor:pointer;
 .badge b { color:var(--text); font-weight:700; }
 .badge--warn { color:var(--warn); background:var(--warn-tint); }
 
-/* Card owner-avatar slot (initials; owner join lands in a later task) */
+/* Owner-avatar: initials on a per-owner identity colour (deterministic hash slot) */
 .ava {
-  display:inline-flex; align-items:center; justify-content:center;
+  display:inline-flex; align-items:center; justify-content:center; flex:none;
   width:1.35rem; height:1.35rem; border-radius:var(--r-pill);
   font-family:var(--font-mono); font-size:.6rem; font-weight:600; letter-spacing:.02em;
   color:var(--faint); background:var(--surface-2);
 }
+.ava--empty { color:var(--faint); background:transparent; border:1px dashed var(--line); }
+.ava--o0,.ava--o1,.ava--o2,.ava--o3,.ava--o4,.ava--o5 { color:#0B0F14; }
+.ava--o0 { background:var(--ava-0); }
+.ava--o1 { background:var(--ava-1); }
+.ava--o2 { background:var(--ava-2); }
+.ava--o3 { background:var(--ava-3); }
+.ava--o4 { background:var(--ava-4); }
+.ava--o5 { background:var(--ava-5); }
+/* List owner cell + drawer owner line */
+.owner-cell { display:inline-flex; align-items:center; gap:.4rem; }
+.owner-cell > span:last-child { color:var(--text); }
+.drawer-eyebrow { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.drawer-owner { display:inline-flex; align-items:center; gap:.4rem; font-size:.72rem; color:var(--muted); }
 
 /* ======================================================================
    AUTH — branded login + MFA (re-skinned light)
@@ -264,11 +280,16 @@ select { appearance:none; cursor:pointer;
 .search:focus-within { border-color:var(--brand); box-shadow:var(--ring); }
 .search-ico { position:absolute; left:.55rem; top:50%; transform:translateY(-50%); color:var(--faint); font-size:.95rem; pointer-events:none; }
 .search input {
-  width:14rem; padding:.4rem .6rem .4rem 1.85rem; font-size:.82rem;
+  width:14rem; padding:.4rem 2.9rem .4rem 1.85rem; font-size:.82rem;
   background:transparent; border:none; box-shadow:none; color:var(--text);
 }
 .search input:focus { box-shadow:none; }
 .search input::placeholder { color:var(--faint); }
+.search-kbd { position:absolute; right:.35rem; top:50%; transform:translateY(-50%); background:transparent; border:none; padding:0; cursor:pointer; line-height:1; }
+.search-kbd kbd { font-family:var(--font-mono); font-size:.6rem; font-weight:600; color:var(--faint); background:var(--surface-3); border:1px solid var(--line); border-radius:4px; padding:.1rem .32rem; }
+.search-kbd:hover kbd { color:var(--text); border-color:var(--brand); }
+.search-kbd:focus-visible { outline:none; }
+.search-kbd:focus-visible kbd { border-color:var(--brand); box-shadow:var(--ring); }
 
 .usermenu { display:flex; align-items:center; gap:.3rem; padding-left:.5rem; margin-left:.2rem; border-left:1px solid var(--line); }
 .userchip { display:flex; align-items:center; gap:.5rem; padding:.2rem .45rem .2rem .3rem; background:transparent; border:1px solid transparent; border-radius:var(--r-pill); color:var(--text); cursor:pointer; }
@@ -612,6 +633,40 @@ select { appearance:none; cursor:pointer;
   .topbar-tools { gap:.35rem; flex-wrap:wrap; }
   .meters { flex-direction:column; gap:.5rem; }
 }
+
+/* ======================================================================
+   COMMAND PALETTE (⌘K)
+   ====================================================================== */
+.cmdk { position:fixed; inset:0; z-index:80; display:none; }
+.cmdk.is-open { display:block; }
+.cmdk-backdrop { position:absolute; inset:0; background:rgba(4,7,10,.55); }
+.cmdk-panel {
+  position:relative; z-index:1; width:min(92vw,560px); margin:12vh auto 0;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
+  box-shadow:var(--shadow-lg); overflow:hidden; animation:cmdk-in var(--dur) var(--ease);
+}
+@keyframes cmdk-in { from { opacity:0; transform:translateY(-8px) scale(.99); } to { opacity:1; transform:none; } }
+.cmdk-input-wrap { display:flex; align-items:center; gap:.6rem; padding:.85rem 1rem; border-bottom:1px solid var(--line); }
+.cmdk-ico { color:var(--faint); font-size:1rem; }
+.cmdk-input { flex:1; min-width:0; background:transparent; border:none; outline:none; box-shadow:none; color:var(--text); font-size:.98rem; padding:0; }
+.cmdk-input::placeholder { color:var(--faint); }
+.cmdk-esc { flex:none; font-family:var(--font-mono); font-size:.6rem; color:var(--faint); background:var(--surface-3); border:1px solid var(--line); border-radius:4px; padding:.1rem .35rem; }
+.cmdk-list { list-style:none; margin:0; padding:.35rem; max-height:min(56vh,420px); overflow-y:auto; }
+.cmdk-row { display:flex; align-items:center; gap:.7rem; padding:.5rem .6rem; border-radius:var(--r-sm); cursor:pointer; }
+.cmdk-row.is-sel { background:var(--surface-2); }
+.cmdk-ri { display:inline-flex; align-items:center; justify-content:center; width:1.5rem; height:1.5rem; flex:none; border-radius:var(--r-sm); background:var(--surface-3); color:var(--muted); font-size:.8rem; }
+.cmdk-row.is-sel .cmdk-ri { background:var(--brand-tint); color:var(--brand); }
+.cmdk-rt { flex:1; min-width:0; display:flex; flex-direction:column; }
+.cmdk-rl { color:var(--text); font-size:.86rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmdk-rs { color:var(--faint); font-size:.72rem; font-family:var(--font-mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cmdk-rk { flex:none; font-family:var(--font-mono); font-size:.58rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--faint); }
+.cmdk-row.is-sel .cmdk-rk { color:var(--muted); }
+.cmdk-empty { padding:1.4rem 1rem; text-align:center; color:var(--muted); font-size:.85rem; }
+@media (max-width:560px) { .cmdk-panel { width:94vw; margin-top:8vh; } }
+
+/* Prospect card highlight when jumped-to from the palette */
+.icard--flash { animation:icard-flash 1.6s var(--ease); }
+@keyframes icard-flash { 0%,100% { box-shadow:var(--shadow-sm); } 15% { box-shadow:0 0 0 2px var(--brand), var(--shadow-md); } }
 
 /* ------------------------- Reduced motion ------------------------------ */
 @media (prefers-reduced-motion:reduce) {
