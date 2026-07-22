@@ -1,6 +1,6 @@
 /* =========================================================================
    Underwings — Sales Operations Console
-   High-end CRM, LIGHT by default (dark via persisted [data-theme="dark"]).
+   High-end CRM — dark theme (single palette on :root).
    Every value derives from the token block — no ad-hoc hexes in components
    (a few rgba() shadows aside). Class names match crm.js render output.
    ========================================================================= */
@@ -16,25 +16,25 @@
 
 /* ================================ Tokens ================================ */
 :root {
-  /* --- Light palette (default): cool paper, faint green bias --- */
-  --bg:#F2F5F4; --surface:#FFFFFF; --surface-2:#EBF0EE; --surface-3:#F6F9F8;
-  --line:#DCE4E1; --line-soft:#E7ECEA;
-  --text:#12201B; --muted:#5D6B65; --faint:#8A968F;
-  --brand:#12924A;         /* deep emerald — primary + won, legible on white */
+  /* --- Dark palette (retuned R3 ink) — the only theme --- */
+  --bg:#0B0F14; --surface:#141B22; --surface-2:#1C2731; --surface-3:#111820;
+  --line:#26313D; --line-soft:#1E2831;
+  --text:#E7EDF3; --muted:#93A0AC; --faint:#6C7A87;
+  --brand:#2FCB63;         /* emerald — primary + won */
   --brand-bright:#24D758;  /* neon brand — tiny accents only */
-  --brand-tint:#E5F6EC;    /* green wash for won/positive surfaces */
-  --software:#2563EB; --software-tint:#E7EEFD;
-  --warn:#B26A00; --warn-tint:#FBEEDA;
-  --danger:#D32B39; --danger-tint:#FBE6E8;
+  --brand-tint:#12291B;    /* green wash for won/positive surfaces */
+  --software:#4B9DFF; --software-tint:#132235;
+  --warn:#E8A33C; --warn-tint:#2A2013;
+  --danger:#F1626B; --danger-tint:#2C1417;
 
   /* Chart series alias read by crm.js cssVar() — literal so it resolves to hex */
-  --services:#12924A;
+  --services:#2FCB63;
 
-  /* Elevation — soft shadows, not glows */
-  --shadow-sm:0 1px 2px rgba(16,32,24,.07);
-  --shadow-md:0 2px 8px rgba(16,32,24,.08), 0 1px 2px rgba(16,32,24,.05);
-  --shadow-lg:0 16px 44px rgba(16,32,24,.16), 0 2px 8px rgba(16,32,24,.06);
-  --ring:0 0 0 3px rgba(18,146,74,.28);
+  /* Elevation — glows on ink */
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 2px 10px rgba(0,0,0,.5);
+  --shadow-lg:0 18px 50px rgba(0,0,0,.6);
+  --ring:0 0 0 3px rgba(47,203,99,.3);
 
   /* Radius */
   --r:9px; --r-sm:6px; --r-lg:14px; --r-pill:999px;
@@ -53,22 +53,6 @@
   /* Chevron notch depth for the signal chain */
   --notch:9px;
   --topbar-h:54px;
-}
-
-:root[data-theme="dark"] {
-  /* --- Dark palette (retuned R3 ink) --- */
-  --bg:#0B0F14; --surface:#141B22; --surface-2:#1C2731; --surface-3:#111820;
-  --line:#26313D; --line-soft:#1E2831;
-  --text:#E7EDF3; --muted:#93A0AC; --faint:#6C7A87;
-  --brand:#2FCB63; --brand-bright:#24D758; --brand-tint:#12291B;
-  --software:#4B9DFF; --software-tint:#132235;
-  --warn:#E8A33C; --warn-tint:#2A2013;
-  --danger:#F1626B; --danger-tint:#2C1417;
-  --services:#2FCB63;
-  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
-  --shadow-md:0 2px 10px rgba(0,0,0,.5);
-  --shadow-lg:0 18px 50px rgba(0,0,0,.6);
-  --ring:0 0 0 3px rgba(47,203,99,.3);
 }
 
 /* ------------------------------- Reset --------------------------------- */
@@ -573,10 +557,9 @@ select { appearance:none; cursor:pointer;
 .skeleton { position:relative; overflow:hidden; background:var(--surface-2); border-radius:var(--r-sm); }
 .skeleton::after {
   content:""; position:absolute; inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);
   transform:translateX(-100%); animation:shimmer 1.3s infinite;
 }
-:root[data-theme="dark"] .skeleton::after { background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent); }
 @keyframes shimmer { to { transform:translateX(100%); } }
 .skeleton-card { height:88px; margin-bottom:.55rem; }
 .skeleton-line { display:block; height:.7rem; margin:.4rem 0; }

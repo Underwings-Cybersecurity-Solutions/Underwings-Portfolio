@@ -8,8 +8,6 @@
   <link rel="icon" type="image/svg+xml" href="/images/icon.svg">
   <link rel="preload" href="/fonts/geist-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/geist-mono-500.woff2" as="font" type="font/woff2" crossorigin>
-  <!-- Apply persisted theme before first paint (light default) to avoid a flash -->
-  <script>try{document.documentElement.dataset.theme=localStorage.getItem('crmTheme')||'light';}catch(e){document.documentElement.dataset.theme='light';}</script>
   <link rel="stylesheet" href="/css/crm.css">
   <script>window.SUPABASE_URL="__SUPABASE_URL__";window.SUPABASE_ANON_KEY="__SUPABASE_ANON_KEY__";</script>
 </head>
@@ -123,10 +121,6 @@
         </div>
         <button id="crm-new-deal-btn" class="btn btn-primary btn-sm">
           <span class="btn-plus" aria-hidden="true">+</span> New deal
-        </button>
-        <button id="crm-theme-toggle" class="btn btn-ghost btn-icon" title="Toggle theme" aria-label="Switch to dark theme">
-          <svg id="crm-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"/></svg>
-          <svg id="crm-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="display:none" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>
         </button>
         <div class="usermenu">
           <button class="userchip" id="crm-user" aria-haspopup="true">
