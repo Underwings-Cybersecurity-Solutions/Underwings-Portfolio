@@ -212,9 +212,9 @@ select { appearance:none; cursor:pointer;
   position:relative; overflow:hidden;
 }
 .auth-brand-top { display:flex; align-items:center; gap:var(--sp-3); position:relative; z-index:1; }
-.auth-mark { height:44px; width:auto; }
 .auth-wordmark { display:flex; flex-direction:column; line-height:1.2; }
 .auth-name { font-weight:700; letter-spacing:.14em; font-size:.95rem; }
+.auth-name-sub { color:var(--brand); font-weight:700; margin-left:.5em; }
 .auth-sub { font-family:var(--font-mono); font-size:.72rem; color:var(--muted); letter-spacing:.02em; }
 
 .auth-chain { display:flex; gap:6px; position:relative; z-index:1; }
@@ -233,7 +233,8 @@ select { appearance:none; cursor:pointer;
 .auth-card { width:100%; max-width:380px; }
 .auth-card-head { margin-bottom:var(--sp-5); }
 .auth-card-head h1 { margin:.35rem 0 .35rem; font-size:1.55rem; }
-.auth-card-mark { height:40px; margin:0 auto var(--sp-4); }
+.auth-card-word { display:block; text-align:center; margin:0 auto var(--sp-4); font-weight:700; letter-spacing:.04em; font-size:1.1rem; color:var(--text); }
+.auth-card-word span { color:var(--brand); font-weight:700; margin-left:.4em; }
 .auth--solo .auth-card-head { text-align:center; }
 #login-form, #mfa-form { display:flex; flex-direction:column; gap:var(--sp-4); }
 .auth-foot { margin-top:var(--sp-4); font-size:.76rem; text-align:center; }
@@ -255,8 +256,8 @@ select { appearance:none; cursor:pointer;
   border-bottom:1px solid var(--line);
 }
 .topbar-brand { display:flex; align-items:center; gap:.5rem; padding-right:.2rem; }
-.topbar-mark { height:24px; width:auto; }
-.topbar-word { font-weight:600; letter-spacing:-.01em; font-size:.9rem; }
+.topbar-word { font-weight:700; letter-spacing:-.01em; font-size:.95rem; color:var(--text); }
+.topbar-word-sub { color:var(--brand); font-weight:700; margin-left:.4rem; }
 
 .viewnav { display:flex; gap:2px; margin-left:.2rem; }
 .viewnav-btn {
