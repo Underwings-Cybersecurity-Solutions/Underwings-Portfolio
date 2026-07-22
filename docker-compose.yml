@@ -171,6 +171,17 @@ services:
     networks:
       - underwings-network
 
+  # standalone CRM app at crm.underwings.org (same-origin Supabase via nginx→kong)
+  crm:
+    build: ./crm
+    container_name: underwings-crm
+    environment:
+      - SUPABASE_URL=https://crm.underwings.org
+      - SUPABASE_ANON_KEY=${ANON_KEY}
+    restart: always
+    networks:
+      - underwings-network
+
   # ===========================================
   # SUPABASE STACK
   # ===========================================
