@@ -1654,13 +1654,3 @@ body {
   .leads-tabs { overflow-x: auto; flex-wrap: nowrap; }
   .leads-search-input { min-width: 0; flex: 1; }
 }
-
-/* CRM */
-.crm-scoreboard { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
-.crm-stat { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:1rem 1.25rem; min-width:140px; }
-.crm-stat .n { font-size:1.6rem; font-weight:600; }
-.crm-stat .l { color:#6b7280; font-size:.8rem; text-transform:uppercase; letter-spacing:.5px; }
-.crm-controls { display:flex; gap:.75rem; margin:.75rem 0; }
-.crm-controls input, .crm-controls select { padding:.5rem .75rem; border:1px solid #d1d5db; border-radius:8px; }
-.crm-stage-pill { padding:.15rem .55rem; border-radius:999px; font-size:.75rem; background:#eef2ff; color:#3730a3; }
-.crm-motion-services { color:#065f46; } .crm-motion-software { color:#1e40af; }

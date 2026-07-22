@@ -114,9 +114,6 @@
           </svg>
           Leads
         </a>
-        <a href="#" class="nav-item" data-page="crm">
-          <span class="nav-icon">📊</span> CRM
-        </a>
         <a href="#" class="nav-item" data-page="clients">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -472,80 +469,6 @@
               <span id="leads-page-info">Page 1</span>
               <button id="leads-next" class="btn-tertiary" disabled>Next →</button>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CRM Page -->
-      <div id="page-crm" class="page">
-        <div class="page-header">
-          <h1>CRM</h1>
-          <div class="crm-actions">
-            <button id="crm-new-deal-btn" class="btn btn-primary">+ New Deal</button>
-            <button id="crm-export-btn" class="btn">Export CSV</button>
-          </div>
-        </div>
-        <div id="crm-scoreboard" class="crm-scoreboard"></div>
-        <div class="crm-chart-wrap"><canvas id="crm-chart-pipeline" height="120"></canvas></div>
-        <div class="crm-tabs" id="crm-tabs"></div>
-        <div class="crm-controls">
-          <input id="crm-search" type="search" placeholder="Search deals, company, contact…">
-          <select id="crm-stage-filter"></select>
-        </div>
-        <div class="crm-table-wrap"><table id="crm-table"><thead></thead><tbody></tbody></table></div>
-        <div class="crm-pager"><button id="crm-prev">Prev</button><span id="crm-page-info"></span><button id="crm-next">Next</button></div>
-      </div>
-      <!-- CRM drawer -->
-      <div id="crm-drawer" class="lead-drawer">
-        <div class="lead-drawer-backdrop" data-crm-close></div>
-        <div class="lead-drawer-panel" role="dialog" aria-modal="true">
-          <button class="lead-drawer-x" data-crm-close>×</button>
-          <div id="crm-drawer-body"></div>
-        </div>
-      </div>
-      <!-- CRM New Deal Modal -->
-      <div id="crm-newdeal-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2>New Deal</h2>
-            <button type="button" class="modal-close">&times;</button>
-          </div>
-          <div class="modal-body">
-            <div class="form-group">
-              <label for="nd-motion">Motion</label>
-              <select id="nd-motion">
-                <option value="services">Services</option>
-                <option value="software">Software</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="nd-title">Title</label>
-              <input type="text" id="nd-title">
-            </div>
-            <div class="form-group">
-              <label for="nd-company">Company</label>
-              <input type="text" id="nd-company">
-            </div>
-            <div class="form-group">
-              <label for="nd-domain">Company domain</label>
-              <input type="text" id="nd-domain" placeholder="acme.ae">
-            </div>
-            <div class="form-group">
-              <label for="nd-email">Contact email</label>
-              <input type="text" id="nd-email">
-            </div>
-            <div class="form-group">
-              <label for="nd-name">Contact name</label>
-              <input type="text" id="nd-name">
-            </div>
-            <div class="form-group">
-              <label for="nd-value">Value AED</label>
-              <input type="number" id="nd-value">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" id="nd-cancel" class="btn">Cancel</button>
-            <button type="button" id="nd-save" class="btn btn-primary">Create</button>
           </div>
         </div>
       </div>
