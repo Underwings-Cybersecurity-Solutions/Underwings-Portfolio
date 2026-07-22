@@ -91,6 +91,46 @@ function setOverlayOpen(el, open) {
   el.setAttribute('aria-hidden', open ? 'false' : 'true');
 }
 
+// Focus management for the drawer + modal dialogs: move focus into the dialog on
+// open, trap Tab inside it, and restore focus to the opener on close (the ⌘K
+// palette manages its own focus separately). Keeps the aria-modal contract honest
+// and stops focus from being stranded on the obscured background.
+const _overlayFocus = new Map();   // overlayId -> { prev, dialog, keyHandler }
+function crmFocusables(root) {
+  return Array.from(root.querySelectorAll(
+    'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+  )).filter((el) => el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement);
+}
+function crmOverlayFocusIn(overlayId, dialogSel, firstSel) {
+  const overlay = document.getElementById(overlayId);
+  const dialog = overlay && overlay.querySelector(dialogSel);
+  if (!dialog) return;
+  if (_overlayFocus.has(overlayId)) {                 // already open, content re-rendered — keep focus inside
+    if (!dialog.contains(document.activeElement)) dialog.focus();
+    return;
+  }
+  const prev = document.activeElement;
+  if (!dialog.hasAttribute('tabindex')) dialog.setAttribute('tabindex', '-1');
+  const keyHandler = (e) => {
+    if (e.key !== 'Tab') return;
+    const f = crmFocusables(dialog);
+    if (!f.length) { e.preventDefault(); dialog.focus(); return; }
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+  dialog.addEventListener('keydown', keyHandler);
+  _overlayFocus.set(overlayId, { prev, dialog, keyHandler });
+  ((firstSel && dialog.querySelector(firstSel)) || dialog).focus();
+}
+function crmOverlayFocusOut(overlayId) {
+  const st = _overlayFocus.get(overlayId);
+  if (!st) return;
+  st.dialog.removeEventListener('keydown', st.keyHandler);
+  _overlayFocus.delete(overlayId);
+  if (st.prev && document.contains(st.prev)) { try { st.prev.focus(); } catch (_) { /* opener gone */ } }
+}
+
 // Chart.js — dark-themed to the design tokens
 Chart.defaults.color = cssVar('--muted') || '#8A97A6';
 Chart.defaults.borderColor = cssVar('--line') || '#26313D';
@@ -381,6 +421,7 @@ async function crmBoot() {
 
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (document.getElementById('crm-cmdk').classList.contains('is-open')) return;  // palette owns its own Esc
     const openModalEl = document.querySelector('.modal.is-open');
     if (openModalEl) { closeModal(openModalEl.id); return; }
     if (document.getElementById('crm-drawer').classList.contains('is-open')) crmCloseDrawer();
@@ -660,6 +701,7 @@ async function crmOpenDrawer(id) {
   }
   crmRenderDrawer(d, acts || [], sig);
   setOverlayOpen(document.getElementById('crm-drawer'), true);
+  crmOverlayFocusIn('crm-drawer', '.drawer-panel');
 }
 
 function crmRenderDrawer(d, acts, sig) {
@@ -757,6 +799,7 @@ function feedIcon(type) {
 
 function crmCloseDrawer() {
   setOverlayOpen(document.getElementById('crm-drawer'), false);
+  crmOverlayFocusOut('crm-drawer');
   crmState._openId = null;
 }
 
@@ -925,8 +968,14 @@ async function crmPromoteProspect(id) {
 // ===========================================
 // NEW DEAL MODAL
 // ===========================================
-function openModal(id) { setOverlayOpen(document.getElementById(id), true); }
-function closeModal(id) { setOverlayOpen(document.getElementById(id), false); }
+function openModal(id) {
+  setOverlayOpen(document.getElementById(id), true);
+  crmOverlayFocusIn(id, '.modal-card', 'input:not([disabled]),select:not([disabled]),textarea:not([disabled])');
+}
+function closeModal(id) {
+  setOverlayOpen(document.getElementById(id), false);
+  crmOverlayFocusOut(id);
+}
 
 function crmWireNewDeal() {
   document.getElementById('crm-new-deal-btn').addEventListener('click', openNewDealModal);
@@ -1159,7 +1208,7 @@ function crmCmdkPaintSel() {
 }
 
 function crmCmdkKeydown(e) {
-  if (e.key === 'Escape') { e.preventDefault(); crmCloseCmdk(); return; }
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); crmCloseCmdk(); return; }
   if (e.key === 'Tab') { e.preventDefault(); return; }              // trap focus — input is the only stop
   if (!cmdkItems.length) return;
   if (e.key === 'ArrowDown') { e.preventDefault(); cmdkSel = (cmdkSel + 1) % cmdkItems.length; crmCmdkPaintSel(); return; }

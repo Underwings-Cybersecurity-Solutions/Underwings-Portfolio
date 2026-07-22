@@ -16,6 +16,7 @@
 
 /* ================================ Tokens ================================ */
 :root {
+  color-scheme:dark;   /* native controls, scrollbars, autofill render dark */
   /* --- Dark palette (retuned R3 ink) — the only theme --- */
   --bg:#0B0F14; --surface:#141B22; --surface-2:#1C2731; --surface-3:#111820;
   --line:#26313D; --line-soft:#1E2831;
