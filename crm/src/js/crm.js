@@ -6,6 +6,10 @@
 import { createClient } from '@supabase/supabase-js';
 import Chart from 'chart.js/auto';
 
+// Apply the persisted theme as early as possible (the inline <head> script does
+// this before first paint; repeated here so the module is self-contained).
+document.documentElement.dataset.theme = localStorage.getItem('crmTheme') || 'light';
+
 // ===========================================
 // CLIENT
 // ===========================================
@@ -263,6 +267,30 @@ function updateUserChip(user, role) {
 checkAuth();
 
 // ===========================================
+// THEME (light default, dark via persisted toggle)
+// ===========================================
+function crmSetTheme(theme) {
+  const t = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('crmTheme', t); } catch (_) { /* private mode */ }
+  const dark = t === 'dark';
+  const sun = document.getElementById('crm-theme-sun');
+  const moon = document.getElementById('crm-theme-moon');
+  if (sun) sun.style.display = dark ? 'none' : '';
+  if (moon) moon.style.display = dark ? '' : 'none';
+  const btn = document.getElementById('crm-theme-toggle');
+  if (btn) btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+  // Chart.js pulls its colours from CSS vars — refresh defaults + re-render so
+  // the pipeline chart tracks the theme.
+  Chart.defaults.color = cssVar('--muted') || Chart.defaults.color;
+  Chart.defaults.borderColor = cssVar('--line') || Chart.defaults.borderColor;
+  if (crmPipelineChart) crmRenderPipelineChart(crmLastPipeRows);
+}
+function crmToggleTheme() {
+  crmSetTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+}
+
+// ===========================================
 // BOOT + VIEW ROUTER
 // ===========================================
 async function crmBoot() {
@@ -289,6 +317,10 @@ async function crmBoot() {
 
   document.getElementById('crm-logout').addEventListener('click', doLogout);
   document.getElementById('crm-export-btn').addEventListener('click', crmExport);
+
+  // Theme toggle — sync the icon to the persisted theme, then wire the flip.
+  crmSetTheme(document.documentElement.dataset.theme || 'light');
+  document.getElementById('crm-theme-toggle').addEventListener('click', crmToggleTheme);
 
   document.getElementById('crm-view-toggle').addEventListener('click', (e) => {
     const btn = e.target.closest('.seg-btn'); if (!btn) return;
@@ -911,28 +943,33 @@ function crmRenderScoreboard(sb, pipeRows, staleCount, renewCount) {
 }
 
 let crmPipelineChart = null;
+let crmLastPipeRows = [];
 function crmRenderPipelineChart(rows) {
+  crmLastPipeRows = rows;                 // cached so a theme toggle can re-render
   const canvas = document.getElementById('crm-chart-pipeline'); if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (crmPipelineChart) crmPipelineChart.destroy();
   const services = rows.filter((r) => r.motion === 'services');
   const software = rows.filter((r) => r.motion === 'software');
   const stages = [...new Set(rows.map((r) => r.stage))];
+  // All colours come from CSS custom properties, so the chart adapts to the theme.
+  const gridColor = cssVar('--line') || '#DCE4E1';
+  const labelColor = cssVar('--muted') || '#5D6B65';
   crmPipelineChart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: stages.map(stageLabel),
       datasets: [
-        { label: 'Services (AED)', data: stages.map((st) => services.find((r) => r.stage === st)?.value_aed || 0), backgroundColor: cssVar('--services') || '#24D758' },
-        { label: 'Software (AED)', data: stages.map((st) => software.find((r) => r.stage === st)?.value_aed || 0), backgroundColor: cssVar('--software') || '#38BDF8' },
+        { label: 'Services (AED)', data: stages.map((st) => services.find((r) => r.stage === st)?.value_aed || 0), backgroundColor: cssVar('--brand') || '#12924A', borderRadius: 4, maxBarThickness: 34 },
+        { label: 'Software (AED)', data: stages.map((st) => software.find((r) => r.stage === st)?.value_aed || 0), backgroundColor: cssVar('--software') || '#2563EB', borderRadius: 4, maxBarThickness: 34 },
       ],
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { color: cssVar('--line') || '#26313D' } },
-        y: { beginAtZero: true, grid: { color: cssVar('--line') || '#26313D' } },
+        x: { grid: { color: gridColor, display: false }, ticks: { color: labelColor } },
+        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: labelColor } },
       },
     },
   });
