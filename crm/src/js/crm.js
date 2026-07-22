@@ -196,7 +196,8 @@ function showApp() {
 }
 
 async function afterAuthed() {
-  const { data: me } = await supabase.from('crm_users').select('role').maybeSingle();
+  const { data: { user: _me } } = await supabase.auth.getUser();
+  const { data: me } = await supabase.from('crm_users').select('role').eq('id', _me.id).maybeSingle();
   if (!me) { await supabase.auth.signOut(); showLoginError("This account doesn't have CRM access. Ask an admin to add you."); return; }
   window.__crmRole = me.role;
   const { data: f } = await supabase.auth.mfa.listFactors();
