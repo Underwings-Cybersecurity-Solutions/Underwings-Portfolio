@@ -41,7 +41,11 @@ POSTGRES_DB="$(grep -E '^POSTGRES_DB=' "$ENV_FILE" | head -1 | cut -d= -f2-)"
 [ -n "${SERVICE_ROLE_KEY:-}" ] || { echo "ERR: SERVICE_ROLE_KEY missing in .env"   >&2; exit 1; }
 case "$CRM_ROLE" in admin|member) ;; *) echo "ERR: CRM_ROLE must be 'admin' or 'member'" >&2; exit 1;; esac
 
-AUTH_URL="http://localhost:8000/auth/v1"   # kong gateway, exposed locally
+# Talk to GoTrue directly on the docker network (kong's /auth/v1/admin route
+# currently rejects the service-role key — config drift — so bypass the gateway).
+AUTH_IP="$(docker inspect underwings-auth --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' 2>/dev/null | tr -d '[:space:]')"
+[ -n "$AUTH_IP" ] || { echo "ERR: could not resolve underwings-auth container IP" >&2; exit 1; }
+AUTH_URL="http://$AUTH_IP:9999"   # GoTrue admin API, direct
 
 echo "→ Provisioning CRM user: $CRM_EMAIL (role=$CRM_ROLE)"
 
@@ -59,10 +63,10 @@ if [ "$CREATE_RESP" = "200" ] || [ "$CREATE_RESP" = "201" ]; then
   echo "  created. user_id=$USER_ID"
 elif [ "$CREATE_RESP" = "422" ] || [ "$CREATE_RESP" = "409" ]; then
   echo "  user exists; updating password..."
-  LIST_RESP="$(curl -s "$AUTH_URL/admin/users?email=$CRM_EMAIL" \
+  LIST_RESP="$(curl -s "$AUTH_URL/admin/users?per_page=1000" \
     -H "apikey: $SERVICE_ROLE_KEY" \
     -H "Authorization: Bearer $SERVICE_ROLE_KEY")"
-  USER_ID="$(echo "$LIST_RESP" | jq -r '.users[0].id // .[0].id // empty')"
+  USER_ID="$(echo "$LIST_RESP" | jq -r --arg e "$CRM_EMAIL" '(.users // .)[] | select(.email==$e) | .id' | head -1)"
   [ -n "$USER_ID" ] || { echo "ERR: user lookup failed: $LIST_RESP" >&2; exit 1; }
   PATCH_RESP="$(curl -s -o /tmp/_crm_patch.json -w '%{http_code}' \
     -X PUT "$AUTH_URL/admin/users/$USER_ID" \
