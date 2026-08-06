@@ -1,73 +1,237 @@
 'use strict';
 /*
- * leadgen/config.js — single place to tune the lead generator.
- * Edit ICP / sectors / categories here; no code changes needed.
+ * config.js — single place to tune the Underwings lead generator.
+ * Edit ICP / sources / caps here; no code changes needed.
+ *
+ * Underwings is a UAE cybersecurity & compliance consultancy. The buyers we
+ * want are UAE organisations carrying a regulatory obligation (ISO 27001,
+ * NESA/UAE IA, ADHICS, PDPL) or an obvious security gap, in the SME-to-
+ * mid-market band where there is unlikely to be an in-house security team.
  */
 module.exports = {
   // ---- Who we're looking for (Claude scores against this) ----
   icp: {
     description:
-      'UAE-based small-to-mid businesses in regulated or data-sensitive ' +
-      'sectors (finance, banking, insurance, healthcare, legal, real estate, ' +
-      'logistics, technology/IT, government-adjacent) that plausibly need ' +
-      'cybersecurity services: ISO 27001 / GRC, penetration testing (PTaaS), ' +
-      'cloud security, or security awareness training.',
-    // Underwings services Claude can map a lead to:
+      'UAE-based small-to-mid-market organisations (roughly 30-1000 staff) in ' +
+      'regulated or data-sensitive sectors — banking, finance, insurance, ' +
+      'healthcare and clinics, legal, real estate, logistics and freight, ' +
+      'education, retail/e-commerce, technology and IT services, and ' +
+      'government-adjacent entities — that carry a security or compliance ' +
+      'obligation but are unlikely to have a mature in-house security team. ' +
+      'Strong signals: an ISO 27001 / NESA / ADHICS / PDPL obligation or ' +
+      'deadline, a recent breach or outage, a tender or RFP mentioning ' +
+      'information security, rapid headcount or branch growth, a new UAE ' +
+      'entity or licence, a cloud or ERP migration, or handling of payment, ' +
+      'health or personal data at scale.',
+    // The Underwings service lines Claude must map each lead to:
     services: ['GRC / ISO 27001', 'PTaaS / Pen Testing', 'Cloud Security',
                'Network & Infrastructure', 'Training & Awareness'],
+    sectors: ['Banking & Finance', 'Insurance', 'Healthcare', 'Legal',
+              'Real Estate', 'Logistics', 'Education', 'Retail & E-commerce',
+              'Technology & IT', 'Government-adjacent', 'Hospitality',
+              'Manufacturing'],
     geo: 'United Arab Emirates',
   },
 
-  // ---- Source tuning ----
+  // ---- Discovery sources ----
+
+  // 1. OpenStreetMap Overpass (free, no key). Geography-bounded and
+  // sector-tagged, which is exactly our ICP shape. Categories rotate per
+  // cycle so we don't re-hit all 16 jobs every 12h (and trip 429s).
   overpass: {
     iso: 'AE',
-    // OSM office/amenity categories that map to our target sectors.
     officeCategories: ['company', 'it', 'financial', 'insurance', 'lawyer',
-                       'accountant', 'consulting', 'logistics', 'government'],
-    amenityCategories: ['bank', 'hospital', 'clinic', 'pharmacy'],
+                       'accountant', 'consulting', 'logistics', 'government',
+                       'educational_institution', 'estate_agent'],
+    amenityCategories: ['bank', 'hospital', 'clinic', 'pharmacy', 'college'],
     perCategoryLimit: 60,
+    categoriesPerCycle: 6,  // 6 of 16 per cycle — all 16 at once earned 429s
   },
-  wikidata: { limit: 150 },
-  places: {
-    // Google Places API (New) — gated on GOOGLE_PLACES_API_KEY.
-    monthlyCap: 9000,          // hard billing backstop (free SKU = 10k/mo); real use ~480/mo
-    perRunResultLimit: 20,     // results requested per text query
-    queries: ['IT companies in Dubai', 'financial services Abu Dhabi',
-              'private hospitals UAE', 'law firms Dubai'],
+
+  // 2. Wikidata SPARQL (free) — UAE-headquartered businesses.
+  wikidata: { limit: 300 },
+
+  // 2b. Passive OSINT tier (free, no keys). All three read PUBLIC ARCHIVES —
+  // certificate transparency logs, Wikipedia, GitHub's public API — never a
+  // prospect's own infrastructure, and lib/passive.js paces every request.
+  // Everything here is .ae / UAE-scoped by construction.
+
+  // Certificate Transparency: the .ae second levels are UAE-only by registry
+  // policy. One pattern per cycle — each query takes ~60s (see ctlogs.js).
+  ctlogs: {
+    patterns: ['%.co.ae', '%.net.ae', '%.org.ae', '%.gov.ae', '%.sch.ae'],
+    perCycle: 1,
+    perPattern: 120,      // registrable domains kept per pattern
+    timeoutMs: 90000,
+    minIntervalMs: 5000,
+    attempts: 2,          // crt.sh 404s/502s transiently — see ctlogs.js
+    retryIntervalMs: 20000,
   },
-  hunter: {
-    // Hunter.io → named person emails. Gated on HUNTER_API_KEY. Free plan =
-    // 50 searches + 100 verifications / month → separate monthly budgets.
-    // Leads are processed top-AI-score first, so the budget is spent on the best.
-    searchCap: 45,             // domain-search calls/month (buffer under 50)
-    verifyCap: 95,             // email-verifier calls/month (buffer under 100)
-    verify: true,              // verify each found email → real deliverability status
-  },
-  googleNews: {
-    // Intent / trigger-event queries (free RSS, no key).
-    queries: [
-      'UAE company data breach', 'UAE cybersecurity compliance',
-      'UAE new headquarters opening', 'UAE fintech funding',
-      'Dubai healthcare expansion', 'Abu Dhabi bank technology',
+
+  // Wikipedia categories — UAE companies that have an article but no Wikidata
+  // website statement, so wikidata.js can never see them.
+  wikipedia: {
+    categories: [
+      'Category:Companies_of_the_United_Arab_Emirates',
+      'Category:Companies_based_in_Dubai',
+      'Category:Companies_based_in_Abu_Dhabi',
+      'Category:Banks_of_the_United_Arab_Emirates',
+      'Category:Insurance_companies_of_the_United_Arab_Emirates',
+      'Category:Health_care_companies_of_the_United_Arab_Emirates',
+      'Category:Logistics_companies_of_the_United_Arab_Emirates',
+      'Category:Real_estate_companies_of_the_United_Arab_Emirates',
+      'Category:Information_technology_companies_of_the_United_Arab_Emirates',
+      'Category:Financial_services_companies_of_the_United_Arab_Emirates',
+      'Category:Telecommunications_companies_of_the_United_Arab_Emirates',
+      'Category:Manufacturing_companies_of_the_United_Arab_Emirates',
     ],
-    perQueryLimit: 15,
+    perCycle: 4,
+    perCategory: 200,
+    minIntervalMs: 2000,
   },
+
+  // GitHub orgs by UAE location — a company with public repos has developers
+  // and cloud infrastructure: the pen-testing / cloud-security profile.
+  // Unauthenticated search allows 10 req/min, hence the wide interval.
+  github: {
+    locations: ['Dubai', 'Abu Dhabi', 'Sharjah', 'United Arab Emirates',
+                'UAE', 'Ajman', 'Ras Al Khaimah', 'Fujairah'],
+    perCycle: 2,
+    perLocation: 25,
+    minIntervalMs: 7000,
+  },
+
+  // 3. Google News RSS (free) — breach + compliance trigger events.
+  googleNews: {
+    queries: [
+      // breach / incident — the highest-intent trigger for a security firm
+      'UAE company data breach',
+      'UAE ransomware attack company',
+      'Dubai data leak customers',
+      'UAE cyber attack business disruption',
+      // compliance triggers
+      'UAE ISO 27001 certification company',
+      'UAE NESA information assurance compliance',
+      'Abu Dhabi ADHICS healthcare information security',
+      'UAE PDPL personal data protection compliance deadline',
+      // growth / new-entity triggers
+      'new company licence Dubai expansion',
+      'UAE fintech licence granted',
+      'Dubai healthcare group new clinic',
+      'UAE logistics company expansion technology',
+    ],
+    perQueryLimit: 10,
+  },
+
+  // 4. Firecrawl web search — template × region matrix, rotated per cycle.
+  websearch: {
+    templates: [
+      'healthcare companies in {region}',
+      'financial services companies in {region}',
+      'logistics companies in {region}',
+      'law firms in {region}',
+      'ISO 27001 certification required {region}',
+      'tender information security {region}',
+      'penetration testing services {region}',
+      'data protection officer {region}',
+    ],
+    regions: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah',
+              'Fujairah', 'Umm Al Quwain', 'DMCC', 'DIFC', 'ADGM',
+              'Jebel Ali Free Zone', 'Dubai Internet City'],
+    perCycle: 6,          // 96-query matrix → full sweep every 16 cycles (~8 days)
+    perQueryLimit: 10,
+  },
+
+  // 5. Trade-show exhibitor directories (Firecrawl scrape → markdown).
+  // URLs are DATA and change yearly — live-verify each one before adding it,
+  // or the source silently burns Firecrawl credits on pages with no companies.
+  //
+  // DISABLED 2026-08-02: none of the four candidates could be verified.
+  //   gisec.ae/exhibitor-list      — 200, but the SPA serves an identical shell
+  //                                  for ANY path (/why-exhibit included), and a
+  //                                  JS-rendered scrape returned only marketing
+  //                                  links, no company directory.
+  //   visit.gisec.ae               — checked for the "catalogue on the visit
+  //                                  subdomain" pattern; 23 links, none an
+  //                                  exhibitor list. The 2026 edition has passed
+  //                                  and no 2027 directory is published yet.
+  //   www.gitex.com/exhibitor-list — renders 136 bytes: "click here → /home".
+  //   www.intersecexpo.com/…       — hard 404 on /exhibitor-list and /exhibitors.
+  //   seamless-middleeast.com      — domain does not resolve (no DNS at all).
+  // Re-enable by adding a URL whose scrape yields a real company list, and
+  // capture a fixture under fixtures/ so the extractor stays under test.
+  exhibitors: {
+    shows: [],
+    perShowLimit: 120,
+    showsPerCycle: 2,
+  },
+
+  // 6. Google Places (gated on GOOGLE_PLACES_API_KEY) — the best source of
+  // phone numbers. Overlaps Overpass heavily, so it runs last and fills gaps.
+  places: {
+    monthlyCap: 9000,        // free SKU is 10k/mo
+    perRunResultLimit: 20,
+    templates: ['{sector} companies in {region}'],
+    sectors: ['healthcare', 'financial services', 'legal', 'logistics',
+              'insurance', 'real estate', 'education', 'e-commerce',
+              'IT services'],
+    regions: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah',
+              'Fujairah', 'Umm Al Quwain'],
+    perCycle: 4,
+  },
+
+  // ---- Paid-API budget caps (hard backstops, lib/budget.js) ----
+  // Firecrawl is SHARED with the Al Khaznah project (which keeps its own
+  // counter), so its cap is an explicit SPLIT of the plan, not the whole plan.
+  // Apollo is Underwings' own key (added 2026-08-02, replacing Hunter whose
+  // shared key sat permanently at its plan limit).
+  apollo: {
+    // Three counters because searches, email-reveals and org-enrichments draw
+    // down different plan allowances. Worst case each spends once per kept
+    // lead (~25/cycle, 2 cycles/day) plus the refresh pass — align these with
+    // the actual plan tier once its monthly credit numbers are known.
+    // ⚠️ Free plan (current): ONLY orgCap is spendable — people search and
+    // match 403 until the plan is upgraded; their caps sit ready for that day.
+    searchCap: 600,   // mixed_people/search calls per month   [paid plans]
+    matchCap: 300,    // people/match email reveals per month  [paid plans]
+    orgCap: 600,      // organizations/enrich calls per month  [works on Free]
+  },
+  firecrawl: { monthlyCap: 300 },   // of the shared 3000/mo plan
 
   // ---- Run behaviour ----
-  maxCandidatesPerRun: 50,   // cap to control cost/time per cycle
-  intervalMinutes: 360,      // continuous loop cadence (6h) when run with --loop
+  scoreThreshold: 6,        // write only leads with icp_score >= this
+  // 80, up from the initial 50 (2026-08-02, "more leads"): the only cost of
+  // this knob is Haiku scoring — website discovery and Apollo stay bounded by
+  // their own monthly caps, so a bigger scored pool raises throughput without
+  // raising the paid-API ceiling.
+  maxCandidatesPerRun: 80,
+  intervalMinutes: 720,     // 12h loop cadence
+  runNowPollSeconds: 60,    // poll crm_leadgen_settings.run_requested_at this often
   claudeModel: 'claude-haiku-4-5-20251001',
   claudeBatchSize: 8,
-
-  // ---- Sheet ----
-  sheet: {
-    id: '1hPvWyTclZbB6G3uL-cDJROQrfIIuRgWbbM5oc0_TIr0',
-    tab: 'OSINT_LEADS',          // unified lean tab (contacts + osint security signal)
-    headerRow: 1,
-    firstDataRow: 2,
-    // Lean sales layout — 17 cols A–Q. leadgen owns A–L, O–Q; osint owns M, N.
-    // A # | B Company | C Contact Name | D Title | E Email | F Email Status |
-    // G Phone | H LinkedIn | I Website | J Industry | K Service | L AI Score |
-    // M Gap Score(osint) | N Security Talking Points(osint) | O Status | P Notes | Q Date Added
+  refresh: {
+    reverifyAfterDays: 30,
+    maxRowsPerCycle: 25,
   },
+  outreach: {
+    backfillPerCycle: 40,   // draft-less existing rows re-drafted per cycle
+  },
+  contacts: {
+    // A large UAE site publishes every branch inbox and account manager —
+    // one company came back with 40 addresses. Keep the primary plus the
+    // best few; more than this buries the useful ones in the drawer.
+    maxPerProspect: 12,
+  },
+  // Collaboration track: firms to partner with, not sell to. 5/cycle × 2
+  // cycles/day = ~10/day, deliberately small — see run.js selectLeads().
+  partners: {
+    perCycle: 5,
+    scoreThreshold: 6,
+  },
+
+  // ---- Sales status flow ----
+  // Mirrors the crm_prospects status CHECK in migration 011. The pipeline only
+  // ever seeds 'new'; everything past that belongs to the sales team.
+  salesStatuses: ['new', 'enriched', 'contacted', 'replied', 'qualified',
+                  'disqualified', 'promoted', 'suppressed'],
 };

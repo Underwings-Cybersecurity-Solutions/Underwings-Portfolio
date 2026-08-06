@@ -64,12 +64,6 @@ const schema = [
     "serviceType": "Penetration Testing",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": {
-      "@type": "AggregateOffer",
-      "priceCurrency": "AED",
-      "lowPrice": "15000",
-      "highPrice": "48000"
-    },
     "description": "OSCP-led external and internal network penetration testing in the UAE. Real exploitation, Active Directory attacks, detailed reporting, remediation walkthroughs.",
     "url": "https://underwings.org/services/offensive-security/network-penetration-testing"
   },
@@ -89,7 +83,7 @@ export const prerender = false;
 
 <Layout
   title="Network Penetration Testing UAE — OSCP-Led | Underwings"
-  description="OSCP-led external and internal network penetration testing in the UAE. Active Directory attacks, lateral movement, real exploitation, detailed reports, remediation walkthroughs. AED 15,000 – 48,000."
+  description="OSCP-led external and internal network penetration testing in the UAE. Active Directory attacks, lateral movement, real exploitation, detailed reports, remediation walkthroughs. Fixed-scope quotes via scoping call."
   keywords="network penetration testing UAE, pen test Dubai, OSCP pentester UAE, Active Directory pentest, internal network pen test UAE, external pentest Abu Dhabi"
   wfPage="services-page"
   schema={schema}
@@ -125,7 +119,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 15,000 – 48,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">OSCP · CPTS · CEH</span>
             <span class="svc-hero-badge svc-hero-badge-time">2 – 3 weeks typical</span>
           </div>
@@ -298,40 +291,13 @@ export const prerender = false;
       </div>
     </section>
 
-    <!-- Pricing -->
+    <!-- Scoping -->
     <section class="section">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
         <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
       </div>
       <div class="container-medium">
-        <ServiceScopeHint body="Share your IP ranges and goals — we'll send a written scoping brief and indicative AED pricing within one working day." />
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 15k – 48k</div>
-            <p class="svc-pricing-note">Per engagement. Scoping call + written quote within 48 hours.</p>
-            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
-            <ul class="svc-pricing-drivers">
-              <li>Number of live hosts in scope</li>
-              <li>External-only vs. internal-only vs. combined</li>
-              <li>Active Directory domain size &amp; trusts</li>
-              <li>Timeline (standard vs. expedited 1.5-week)</li>
-              <li>Re-test iterations beyond the included first re-test</li>
-            </ul>
-          </div>
-          <div class="svc-pricing-card">
-            <h4>Commercial terms</h4>
-            <ul class="svc-pricing-terms">
-              <li><strong>Deposit:</strong> 50% at signing; balance on final report</li>
-              <li><strong>Net terms:</strong> Net-30 from invoice date</li>
-              <li><strong>Quote validity:</strong> 30 days</li>
-              <li><strong>Re-test:</strong> 1 × critical/high re-test included</li>
-              <li><strong>Scope changes:</strong> require written change request</li>
-              <li><strong>No surprise charges.</strong> Ever.</li>
-            </ul>
-          </div>
-        </div>
+        <ServiceScopeHint body="Share your IP ranges and goals — we'll send a written scoping brief and a fixed-scope quote within one working day." />
       </div>
     </section>
 
@@ -394,7 +360,7 @@ export const prerender = false;
           </a>
           <a href="/#contact?service=vulnerability-assessment" class="svc-related-card">
             <h4>Vulnerability Assessment (VA only)</h4>
-            <p>If you're not ready for full pen testing — scan-and-report from AED 3.5k.</p>
+            <p>If you're not ready for full pen testing — a lighter scan-and-report engagement.</p>
             <div class="svc-related-cta">Contact to scope <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </a>
           <a href="/#contact?service=firewall-review" class="svc-related-card">
@@ -420,7 +386,7 @@ export const prerender = false;
         <div class="section-wrapper-vertical" style="align-items:center;text-align:center;">
           <h2 class="heading" style="max-width:600px;">Ready to see what an attacker would actually find?</h2>
           <p class="text-medium" style="max-width:600px;">
-            Book a 30-minute scoping call. We'll scope your engagement, give you a price range in writing within 48 hours, and answer any question you have about the methodology, timeline, or deliverables.
+            Book a 30-minute scoping call. We'll scope your engagement, send you a written, fixed-scope quote within 48 hours, and answer any question you have about the methodology, timeline, or deliverables.
           </p>
           <div class="button">
             <a href="/#contact?service=network-penetration-testing" class="button-hidden w-button">Book a Scoping Call →</a>

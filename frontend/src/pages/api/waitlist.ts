@@ -8,7 +8,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
-import { notifyN8nInbound } from '../../lib/n8n-inbound';
+import { notifyCrmInbound } from '../../lib/crm-inbound';
 
 export const prerender = false;
 
@@ -154,7 +154,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   }
 
   // Fire-and-forget: push lead into Krayin via n8n. Never blocks signup response.
-  notifyN8nInbound({
+  notifyCrmInbound({
     source: 'waitlist',
     person: {
       name: name || email.split('@')[0],

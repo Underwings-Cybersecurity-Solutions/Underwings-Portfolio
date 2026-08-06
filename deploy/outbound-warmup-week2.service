@@ -1,0 +1,9 @@
+[Unit]
+Description=Underwings outbound warmup ramp — week 2 (cap 5 -> 12, health-gated)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/deployer/underwings
+ExecStart=/home/deployer/underwings/scripts/outbound-warmup-bump.sh 12

@@ -7,82 +7,13 @@
 import Layout from '../../../layouts/Layout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
-import PricingTiers from '../../../components/PricingTiers.astro';
 import '../../../styles/category-hub.css';
-
-const tiers = [
-  {
-    name: "Starter",
-    price: "AED 9,000",
-    ideal: "Sub-30-employee UAE companies wanting a first cloud baseline check.",
-    includes: [
-      "Azure OR M365 baseline review (one platform, not both)",
-      "Up to 30 users / single tenant",
-      "CIS top-tier control review",
-      "Findings report + 30-min remediation walkthrough",
-    ],
-    notIncluded: [
-      "Combined Azure + M365 review",
-      "Identity deep-dive (Conditional Access design)",
-    ],
-  },
-  {
-    name: "Essentials",
-    price: "AED 15,000",
-    ideal: "Small-to-mid companies on a single cloud platform with growing user base.",
-    includes: [
-      "Azure OR M365 full posture review (one platform)",
-      "Up to 100 users / single tenant",
-      "CIS Benchmark + Microsoft Secure Score deep-dive",
-      "Identity, MFA, Conditional Access analysis",
-      "Prioritised remediation roadmap",
-    ],
-    notIncluded: [
-      "Cross-platform mapping (Azure + M365)",
-      "Custom application or workload review",
-    ],
-  },
-  {
-    name: "Professional",
-    price: "AED 30,000–55,000",
-    ideal: "Mid-market companies running both Azure and M365.",
-    includes: [
-      "Azure + M365 combined posture review",
-      "Identity & access deep-dive across both",
-      "Defender for Cloud / Defender XDR review",
-      "Privileged access path analysis",
-      "Executive readout + technical workshop",
-    ],
-    notIncluded: [
-      "Hybrid AD or on-prem AD review",
-      "Multi-tenant federation design",
-    ],
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "AED 50,000–75,000",
-    ideal: "Multi-tenant or hybrid-cloud organisations with custom workloads.",
-    includes: [
-      "Hybrid cloud (Azure + M365 + on-prem AD federation)",
-      "Custom application review (API, app registrations, managed identities)",
-      "Multi-tenant access path mapping",
-      "Privileged Identity Management (PIM) design",
-      "Quarterly posture re-check for 12 months",
-    ],
-    notIncluded: [
-      "AWS or GCP review (separate quote)",
-      "Custom application source-code review",
-    ],
-  },
-];
 
 const flagship = [
   {
     slug: "azure-cloud-security-assessment",
     title: "Azure Cloud Security Assessment",
     tagline: "Azure tenant, Entra ID, RBAC, storage, NSGs, Defender for Cloud — reviewed against CIS Azure Benchmark and Microsoft best practices.",
-    price: "AED 11,000 – 24,000",
     certs: ["Azure Security"],
     lead: "Manoj Prabhakaran",
     hasPage: true,
@@ -92,21 +23,11 @@ const flagship = [
     slug: "microsoft-365-security-review",
     title: "Microsoft 365 Security Review",
     tagline: "Exchange, SharePoint, Teams, Conditional Access, MFA, DLP — the Microsoft 365 posture most UAE organisations haven't configured.",
-    price: "AED 7,000 – 18,000",
     certs: ["Azure Security", "Security+"],
-    lead: "Vinoth Samiyappa",
+    lead: "Vinoth Sivasamy",
     hasPage: true,
     href: "/services/cloud-security/microsoft-365-security-review",
   },
-];
-
-const comingY2 = [
-  { slug: "aws-cloud-security-assessment", title: "AWS Cloud Security Assessment", desc: "CIS AWS benchmark, IAM, VPC, S3, GuardDuty. Launching when AWS adoption in our UAE client base crosses threshold." },
-];
-
-const comingY3 = [
-  { slug: "gcp-cloud-security-assessment", title: "GCP Cloud Security Assessment", desc: "CIS GCP benchmark, IAM, Cloud Logging, Security Command Center. Demand-driven rollout." },
-  { slug: "cnapp-implementation", title: "Cloud Native Application Protection (CNAPP) Implementation", desc: "Unified CSPM + CWPP + CIEM platform rollout — for mid-market organisations with complex multi-cloud footprints." },
 ];
 
 // Mirrors the EXISTING visible FAQ section below (schema only — no content change).
@@ -114,7 +35,7 @@ const faqs = [
   { q: "We're already on Azure / M365 with default config — is that really risky?", a: "Yes. Microsoft ships secure defaults for some settings, but the most impactful controls (Conditional Access policies, Defender posture, RBAC scope, storage anonymous access, SharePoint external sharing, Entra privileged-role membership) all need explicit configuration. Every UAE tenant we've seen has 10–30 high-severity findings out of the box." },
   { q: "Will an assessment disrupt our users or production environment?", a: "No. The assessment is read-only — we use a Global Reader role (Azure) and a delegated read-only admin (M365). No changes are made without your explicit approval during the remediation phase. Users see nothing and operations are unaffected." },
   { q: "Do you just give a report, or do you actually fix the issues?", a: "Both. The deliverable is a CIS-mapped findings report with a prioritised remediation plan, and we can implement the fixes for you — change-controlled, in your maintenance window, with your team shadowing for knowledge transfer." },
-  { q: "What's the difference between an Azure assessment and an M365 review?", a: "An Azure assessment covers subscription-level resources: VMs, networking, storage, key vault, RBAC, Defender for Cloud posture, and Entra ID at the directory level. An M365 review covers user-facing workloads: Exchange, SharePoint, Teams, OneDrive, Conditional Access, MFA, DLP and sensitivity labels. Most clients need both — we usually bundle them at a discount." },
+  { q: "What's the difference between an Azure assessment and an M365 review?", a: "An Azure assessment covers subscription-level resources: VMs, networking, storage, key vault, RBAC, Defender for Cloud posture, and Entra ID at the directory level. An M365 review covers user-facing workloads: Exchange, SharePoint, Teams, OneDrive, Conditional Access, MFA, DLP and sensitivity labels. Most clients need both — we usually bundle them into a single engagement." },
   { q: "What level of access do you need to start?", a: "For Azure: a guest account with the Global Reader role at the tenant root, plus Reader on the subscriptions in scope. For M365: a delegated read-only admin role. We sign an NDA before access is granted, and access can be revoked the moment delivery is complete. No credentials leave your tenant." },
   { q: "Will this work prepare us for ISO 27001, NESA or PDPL?", a: "Yes. Every finding is mapped to ISO 27001 Annex A controls, UAE IA V2, ADHICS v2, and relevant PDPL clauses on request. The remediation evidence we produce becomes audit evidence — one of the highest-leverage activities for any UAE compliance programme." },
 ];
@@ -549,14 +470,6 @@ export const prerender = false;
     })();
     </script>
 
-    <PricingTiers
-      serviceSlug="cloud-security"
-      tiers={tiers}
-      eyebrow="Pricing — Four tiers"
-      heading="Pick your scope, lock the fee"
-      sub="From single-platform baselines for SMEs to hybrid-cloud reviews for multi-tenant organisations."
-    />
-
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
         <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
@@ -578,7 +491,6 @@ export const prerender = false;
             {flagship.map((svc) => (
               <a href={svc.href} class="flag-card" aria-label={`Learn about ${svc.title}`}>
                 <div class="flag-card-head">
-                  <span class="flag-price">{svc.price}</span>
                   {svc.hasPage ? (
                     <span class="flag-badge flag-badge-ready">Full page</span>
                   ) : (
@@ -604,79 +516,7 @@ export const prerender = false;
       </div>
     </section>
 
-    <section class="section">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
-        <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
-      </div>
-      <div class="container">
-        <div class="section-wrapper-vertical section-wrapper-vertical-large">
-          <div class="heading-horizontal">
-            <div class="heading-horizontal-inner">
-              <div class="heading-horizontal-left-part">
-                <h2 class="heading">Year 2 — 2027 roadmap</h2>
-              </div>
-              <div class="heading-horizontal-right-part">
-                <p class="text-medium">Additions driven by client demand.</p>
-              </div>
-            </div>
-          </div>
 
-          <div class="soon-grid">
-            {comingY2.map((svc) => (
-              <div class="soon-card" data-service-slug={svc.slug}>
-                <div class="soon-card-head">
-                  <span class="soon-badge soon-badge-2027">2027</span>
-                </div>
-                <h3 class="soon-title">{svc.title}</h3>
-                <p class="soon-desc">{svc.desc}</p>
-                <form class="soon-form" data-waitlist-form data-service-slug={svc.slug} data-service-year="2027">
-                  <input type="email" name="email" placeholder="you@company.com" aria-label={`Email for ${svc.title} waitlist`} required />
-                  <button type="submit" class="soon-btn">Add me to 2027 waitlist →</button>
-                  <p class="soon-msg" aria-live="polite"></p>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section bg-color-dark">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
-        <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
-      </div>
-      <div class="container">
-        <div class="section-wrapper-vertical section-wrapper-vertical-large">
-          <div class="heading-horizontal">
-            <div class="heading-horizontal-inner">
-              <div class="heading-horizontal-left-part">
-                <h2 class="heading">Year 3 — 2028 roadmap</h2>
-              </div>
-              <div class="heading-horizontal-right-part">
-                <p class="text-medium">Multi-cloud expansion when client demand justifies the investment.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="soon-grid">
-            {comingY3.map((svc) => (
-              <div class="soon-card" data-service-slug={svc.slug}>
-                <div class="soon-card-head">
-                  <span class="soon-badge soon-badge-2028">2028</span>
-                </div>
-                <h3 class="soon-title">{svc.title}</h3>
-                <p class="soon-desc">{svc.desc}</p>
-                <form class="soon-form" data-waitlist-form data-service-slug={svc.slug} data-service-year="2028">
-                  <input type="email" name="email" placeholder="you@company.com" aria-label={`Email for ${svc.title} waitlist`} required />
-                  <button type="submit" class="soon-btn">Add me to 2028 waitlist →</button>
-                  <p class="soon-msg" aria-live="polite"></p>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
 
     <section class="section">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
@@ -767,7 +607,7 @@ export const prerender = false;
               storage, key vault, RBAC, Defender for Cloud posture, Entra ID at the directory level.
               <strong>M365 review</strong> covers user-facing workloads: Exchange, SharePoint, Teams, OneDrive,
               Conditional Access, MFA, DLP, sensitivity labels. Most clients need both — we usually
-              bundle them at a discount.
+              bundle them into a single engagement.
             </div>
           </details>
 
@@ -824,5 +664,3 @@ export const prerender = false;
 
   <Footer />
 </Layout>
-
-<script src="/js/waitlist.js" defer></script>

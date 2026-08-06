@@ -14,7 +14,7 @@ const faqs = [
   { q: "Does PDPL actually apply to my business?", a: "Almost certainly yes. PDPL applies to <strong>any UAE entity that processes personal data</strong>, regardless of sector or size. If you have employees, customers, or suppliers whose data is stored in or moves through UAE jurisdiction, you're in scope. The only narrow exclusions are personal-use and certain government processing." },
   { q: "What's the penalty for non-compliance?", a: "Administrative fines defined by the UAE Data Office are the primary risk today. Regulatory enforcement has ramped substantially in 2025 – 2026, and the reputational cost of a data-breach disclosure tends to be larger than the fine itself. Early compliance is materially cheaper than reactive compliance." },
   { q: "How long does a PDPL program take to build?", a: "4 – 6 weeks for a typical UAE SME with moderate data complexity. Larger organisations or those with cross-border data flows can extend to 8 – 10 weeks. Individual gaps (e.g., just a privacy notice refresh) can be scoped as half-engagements." },
-  { q: "Do I need a Data Protection Officer?", a: "A DPO is <strong>required</strong> if you process sensitive personal data at scale or your core business is systematic monitoring. Many UAE mid-market organisations do need one. We help you assess the DPO requirement and, if needed, recommend fractional DPO-as-a-Service arrangements (formalised offering launches in 2027)." },
+  { q: "Do I need a Data Protection Officer?", a: "A DPO is <strong>required</strong> if you process sensitive personal data at scale or your core business is systematic monitoring. Many UAE mid-market organisations do need one. We help you assess the DPO requirement and, if needed, recommend fractional DPO-as-a-Service arrangements (formalised offering is on our roadmap)." },
   { q: "Can you handle breach-notification incident response?", a: "We establish the breach-notification process, playbook, and decision tree. Actual incident response is out of scope of this advisory engagement — see our Tabletop IR Exercise service for response-readiness testing, and our Year-2 Incident Response Retainer for on-call IR support." },
   { q: "How does PDPL relate to ISO 27001?", a: "They overlap significantly (~60% of controls) but PDPL is a law (compliance is mandatory if applicable) and ISO 27001 is a voluntary certification (demonstrates good practice). Many clients align both programs — we design the PDPL engagement so deliverables feed directly into an ISO 27001 Annex A.18 / A.5.34 evidence set." },
   { q: "What about cross-border data transfers?", a: "PDPL restricts transfers to jurisdictions without adequate protection. We map your current transfers, identify where Standard Contractual Clauses, explicit consent, or other safeguards are needed, and draft the necessary instruments or contractual clauses." },
@@ -31,7 +31,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "UAE PDPL Compliance Advisory", "serviceType": "Data Protection Advisory",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "11000", "highPrice": "24000" },
     "description": "UAE Personal Data Protection Law (PDPL) compliance advisory — data mapping, privacy notices, consent, breach notification, DPIA, cross-border transfers.",
     "url": "https://underwings.org/services/grc/uae-pdpl-advisory"
   },
@@ -45,7 +44,7 @@ export const prerender = false;
 
 <Layout
   title="UAE PDPL Compliance Advisory | Underwings"
-  description="UAE Personal Data Protection Law (PDPL) compliance advisory. Data mapping, privacy notices, consent workflows, breach notification, DPIA, cross-border transfers. Led by GRC Mastery + ISO 27001 LA. AED 11,000 – 24,000."
+  description="UAE Personal Data Protection Law (PDPL) compliance advisory. Data mapping, privacy notices, consent workflows, breach notification, DPIA, cross-border transfers. Led by GRC Mastery + ISO 27001 LA. Written quote within 48 hours of a scoping call."
   keywords="UAE PDPL advisory, UAE data protection law consultant, PDPL compliance Dubai, privacy notice UAE, DPIA UAE, data protection officer UAE, cross border data transfer UAE"
   wfPage="services-page"
   schema={schema}
@@ -73,7 +72,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 11,000 – 24,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">GRC Mastery · ISO 27001 LA</span>
             <span class="svc-hero-badge svc-hero-badge-time">4 – 6 weeks</span>
           </div>
@@ -109,7 +107,7 @@ export const prerender = false;
         <div class="svc-not-list">
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not legal advice.</strong> We deliver the compliance program; your legal counsel reviews instruments before execution.</div></div>
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a template download.</strong> Every artefact is authored to your actual data flows, not copy-paste from a library.</div></div>
-          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a DPO retainer.</strong> DPO-as-a-Service launches in 2027; this engagement is a one-time build.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a DPO retainer.</strong> DPO-as-a-Service is on our roadmap; this engagement is a one-time build.</div></div>
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not an incident-response service.</strong> We set up the breach-notification process; actual response support is a separate engagement.</div></div>
         </div>
       </div>
@@ -158,38 +156,6 @@ export const prerender = false;
           <div class="svc-process-row"><div class="svc-process-row-num">W3</div><div><div class="svc-process-row-step">Instrument authoring</div><div class="svc-process-row-duration">Weeks 3 – 4</div></div><div class="svc-process-row-desc">Privacy notices, consent records, DSR workflow, breach-notification process, DPIA template + one completed DPIA, SCC / transfer instruments.</div></div>
           <div class="svc-process-row"><div class="svc-process-row-num">W4</div><div><div class="svc-process-row-step">Operationalisation</div><div class="svc-process-row-duration">Weeks 4 – 5</div></div><div class="svc-process-row-desc">Staff briefing delivery, process testing, tools/platforms recommendations, roll-out plan.</div></div>
           <div class="svc-process-row"><div class="svc-process-row-num">W5</div><div><div class="svc-process-row-step">Handover &amp; ongoing support</div><div class="svc-process-row-duration">Week 6</div></div><div class="svc-process-row-desc">Final documentation package, 90-minute handover workshop, 30-day question-support window.</div></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
-      <div class="container-medium">
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 11k – 24k</div>
-            <p class="svc-pricing-note">Per engagement. Written quote within 48 hours of scoping call.</p>
-            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
-            <ul class="svc-pricing-drivers">
-              <li>Organisation size &amp; data complexity</li>
-              <li>Number of distinct processing activities</li>
-              <li>Cross-border transfer volume</li>
-              <li>Sensitive-data categories (health, biometric, minors)</li>
-              <li>Add-on: DPIAs beyond the one included</li>
-            </ul>
-          </div>
-          <div class="svc-pricing-card">
-            <h4>Commercial terms</h4>
-            <ul class="svc-pricing-terms">
-              <li><strong>Deposit:</strong> 50% at signing</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Quote validity:</strong> 30 days</li>
-              <li><strong>Start lead time:</strong> 1 – 2 weeks</li>
-              <li><strong>ISO 27001 Implementation bundle:</strong> 10% discount if bought together</li>
-            </ul>
-          </div>
         </div>
       </div>
     </section>

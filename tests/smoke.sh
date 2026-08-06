@@ -107,6 +107,29 @@ check_post "Newsletter API — invalid email" "$BASE/api/newsletter" '{"email":"
 check_post "Newsletter API — no CAPTCHA token" "$BASE/api/newsletter" '{"email":"test@example.com"}' 403 "CAPTCHA"
 
 echo ""
+echo "CRM (crm.underwings.org):"
+check "CRM healthz" "https://crm.underwings.org/healthz" 200 "underwings-crm ok"
+check "CRM app shell serves the LeadGen view" "https://crm.underwings.org/" 200 'data-crm-view="leadgen"'
+check "CRM app shell serves the Partners view" "https://crm.underwings.org/" 200 'data-crm-view="partners"'
+# RLS regression guard: the anon key is public by design, so an anon read of a
+# crm_* table MUST come back as an empty array — not a row, not an error.
+CRM_ANON=$(curl -s "https://crm.underwings.org/env.js" | sed -n "s/.*SUPABASE_ANON_KEY *= *['\"]\([^'\"]*\).*/\1/p")
+if [ -n "$CRM_ANON" ]; then
+  body=$(curl -s "https://crm.underwings.org/rest/v1/crm_prospects?select=company_name" \
+    -H "apikey: $CRM_ANON" -H "Authorization: Bearer $CRM_ANON")
+  if [ "$body" = "[]" ]; then
+    echo "  PASS  CRM prospects are not readable anonymously"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL  CRM prospects leaked to anon — got: ${body:0:120}"
+    FAIL=$((FAIL + 1))
+  fi
+else
+  echo "  FAIL  could not read the CRM anon key from env.js"
+  FAIL=$((FAIL + 1))
+fi
+
+echo ""
 echo "Security Headers:"
 headers=$(curl -sI "$BASE/")
 for header in "X-Frame-Options" "X-Content-Type-Options" "Referrer-Policy"; do

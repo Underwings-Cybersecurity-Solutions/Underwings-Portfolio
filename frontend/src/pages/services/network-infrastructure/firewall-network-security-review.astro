@@ -17,7 +17,7 @@ const faqs = [
   { q: "How long does it take?", a: "5 – 8 working days for a single-site single-firewall review. Multi-site, HA-pair, and complex SD-WAN environments extend to 10 – 14 days." },
   { q: "Is this a penetration test?", a: "No — this is a configuration and design review (no active exploitation). We often recommend pairing it with our Network Penetration Testing service so the design-level findings get validated by active testing." },
   { q: "Can you help implement the fixes?", a: "Yes. Post-review implementation is offered as follow-on days at a pre-agreed rate, or as a fixed-scope remediation package. Vinoth can work directly with your network team or act as the implementation lead." },
-  { q: "Do you handle Zero Trust migrations?", a: "Zero Trust Architecture design launches in 2027 (you can join the waitlist on the Network & Infrastructure category page). For now, we handle traditional firewall hardening and segmentation uplift." },
+  { q: "Do you handle Zero Trust migrations?", a: "Zero Trust Architecture design is on our roadmap. For now, we handle traditional firewall hardening and segmentation uplift." },
 ];
 
 const schema = [
@@ -30,7 +30,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "Firewall & Network Security Review", "serviceType": "Firewall Configuration Review",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "8500", "highPrice": "21000" },
     "description": "FortiGate configuration review, firewall rules audit, network segmentation, and routing security review for UAE mid-market.",
     "url": "https://underwings.org/services/network-infrastructure/firewall-network-security-review"
   },
@@ -44,7 +43,7 @@ export const prerender = false;
 
 <Layout
   title="Firewall & Network Security Review UAE | Underwings"
-  description="UAE firewall configuration and network security review. FortiGate, Palo Alto, Cisco. CCNP + Fortinet + OSCP combination — rare skill combo in the region. Find the 30 – 200 stale rules most environments carry. AED 8,500 – 21,000."
+  description="UAE firewall configuration and network security review. FortiGate, Palo Alto, Cisco. CCNP + Fortinet + OSCP combination — rare skill combo in the region. Find the 30 – 200 stale rules most environments carry."
   keywords="FortiGate configuration review UAE, firewall rule audit Dubai, network segmentation review UAE, FortiGate consultant UAE, CCNP Fortinet UAE"
   wfPage="services-page"
   schema={schema}
@@ -72,7 +71,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 8,500 – 21,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">Fortinet · CCNP · OSCP</span>
             <span class="svc-hero-badge svc-hero-badge-time">5 – 8 working days</span>
           </div>
@@ -157,38 +155,6 @@ export const prerender = false;
       </div>
     </section>
 
-    <section class="section">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
-      <div class="container-medium">
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 8.5k – 21k</div>
-            <p class="svc-pricing-note">Per engagement. Written quote within 48 hours.</p>
-            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
-            <ul class="svc-pricing-drivers">
-              <li>Number of firewalls / HA pairs</li>
-              <li>Rule-base size (100 rules vs. 1,000+)</li>
-              <li>Multi-site / SD-WAN complexity</li>
-              <li>Vendor mix (single vs. multi)</li>
-              <li>Add-on: remediation-support days</li>
-            </ul>
-          </div>
-          <div class="svc-pricing-card">
-            <h4>Commercial terms</h4>
-            <ul class="svc-pricing-terms">
-              <li><strong>Deposit:</strong> 50% at signing</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Quote validity:</strong> 30 days</li>
-              <li><strong>Access:</strong> read-only admin or config export</li>
-              <li><strong>No production changes</strong> without your network team</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
       <div class="container-medium">
@@ -196,7 +162,7 @@ export const prerender = false;
         <div class="svc-team">
           <div class="svc-team-card">
             <p class="svc-team-role">Lead Reviewer</p>
-            <h3 class="svc-team-name">Vinoth Samiyappa</h3>
+            <h3 class="svc-team-name">Vinoth Sivasamy</h3>
             <p class="svc-team-certs">CCNP · Fortinet · Azure · Six Sigma</p>
             <p class="svc-team-focus"><strong>Focus:</strong> FortiGate configuration, firewall rule-base hygiene, network segmentation, routing security, HA design.</p>
           </div>

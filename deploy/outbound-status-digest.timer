@@ -1,0 +1,9 @@
+[Unit]
+Description=Post Underwings outbound status digest daily at 18:00 Asia/Dubai
+
+[Timer]
+OnCalendar=*-*-* 18:00:00 Asia/Dubai
+Persistent=true
+
+[Install]
+WantedBy=timers.target

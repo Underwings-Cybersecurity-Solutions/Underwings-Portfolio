@@ -32,7 +32,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "Web Application Penetration Testing", "serviceType": "Web Application Penetration Testing",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "12000", "highPrice": "32000" },
     "description": "Manual web application and API penetration testing in UAE — OWASP Top 10, API security, authentication flaws, business-logic testing. Led by OSCP/CPTS-certified practitioners.",
     "url": "https://underwings.org/services/offensive-security/web-application-penetration-testing"
   },
@@ -46,7 +45,7 @@ export const prerender = false;
 
 <Layout
   title="Web App Penetration Testing UAE — OWASP | Underwings"
-  description="UAE web application penetration testing by OSCP/CPTS-certified practitioners. OWASP Top 10, API security, authentication bypass, business-logic testing. Manual, not vuln-scan PDFs. AED 12,000 – 32,000."
+  description="UAE web application penetration testing by OSCP/CPTS-certified practitioners. OWASP Top 10, API security, authentication bypass, business-logic testing. Manual, not vuln-scan PDFs. Fixed-scope quotes via scoping call."
   keywords="web application penetration testing UAE, API penetration testing Dubai, OWASP Top 10 pentest UAE, WAPT Abu Dhabi, web app security audit UAE, business logic testing"
   wfPage="services-page"
   schema={schema}
@@ -74,7 +73,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 12,000 – 32,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">CPTS · CEH · OSCP</span>
             <span class="svc-hero-badge svc-hero-badge-time">2 – 3 weeks typical</span>
           </div>
@@ -163,34 +161,7 @@ export const prerender = false;
     <section class="section">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
       <div class="container-medium">
-        <ServiceScopeHint body="Tell us about your app and target environments — we'll send a written scoping brief and indicative AED pricing within one working day." />
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 12k – 32k</div>
-            <p class="svc-pricing-note">Per engagement. Written quote within 48 hours.</p>
-            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
-            <ul class="svc-pricing-drivers">
-              <li>Number of authenticated endpoints / pages</li>
-              <li>Number of user roles and role-based features</li>
-              <li>API surface size and complexity</li>
-              <li>Payment or financial transactions in scope</li>
-              <li>Testing mode (grey-box / black-box / white-box)</li>
-              <li>Timeline (standard 2 – 3 weeks vs. expedited 1.5-week)</li>
-            </ul>
-          </div>
-          <div class="svc-pricing-card">
-            <h4>Commercial terms</h4>
-            <ul class="svc-pricing-terms">
-              <li><strong>Deposit:</strong> 50% at signing; balance on final report</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Quote validity:</strong> 30 days</li>
-              <li><strong>Re-test:</strong> 1 × critical/high re-test included</li>
-              <li><strong>Scope changes:</strong> written change request required</li>
-            </ul>
-          </div>
-        </div>
+        <ServiceScopeHint body="Tell us about your app and target environments — we'll send a written scoping brief and a fixed-scope quote within one working day." />
       </div>
     </section>
 

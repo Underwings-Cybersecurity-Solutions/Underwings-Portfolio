@@ -64,9 +64,9 @@ const breadcrumbSchema = {
                   <span>See open roles</span>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
-                <a href="mailto:careers@underwings.org" class="crs-btn crs-btn-secondary">
+                <!--email_off--><a href="mailto:careers@underwings.org" class="crs-btn crs-btn-secondary">
                   <span>Email careers@underwings.org</span>
-                </a>
+                </a><!--/email_off-->
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ const breadcrumbSchema = {
 
         {positions.length === 0 ? (
           <div class="crs-empty">
-            <p>No openings published yet. Send your CV to <a href="mailto:careers@underwings.org">careers@underwings.org</a> and we'll keep you in mind as roles open.</p>
+            <p>No openings published yet. Send your CV to <!--email_off--><a href="mailto:careers@underwings.org">careers@underwings.org</a><!--/email_off--> and we'll keep you in mind as roles open.</p>
           </div>
         ) : (
           <div class="crs-roles">
@@ -141,10 +141,10 @@ const breadcrumbSchema = {
                     {p.requirements.map((r) => (<li>{r}</li>))}
                   </ul>
                 )}
-                <a href={`mailto:careers@underwings.org?subject=${encodeURIComponent('Interest: ' + p.title)}`} class="crs-role-apply">
+                <!--email_off--><a href={`mailto:careers@underwings.org?subject=${encodeURIComponent('Interest: ' + p.title)}`} class="crs-role-apply">
                   {p.status === 'active' ? 'Apply' : 'Express interest'}
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </a>
+                </a><!--/email_off-->
               </article>
             ))}
           </div>
@@ -182,7 +182,7 @@ const breadcrumbSchema = {
         <div class="vertical-heading-top" style="text-align:center;">
           <div class="label" style="margin: 0 auto;"><div class="text-small color-grey">How to apply</div></div>
           <h2 class="heading heading-center">Three steps. <span class="text-gradient-clip bg-color-green-gradient">No theatre.</span></h2>
-          <p class="crs-section-sub" style="margin-left:auto;margin-right:auto;">Email <a href="mailto:careers@underwings.org" class="crs-link">careers@underwings.org</a> with your CV and a short note (3–5 sentences) about which role you want and why. We reply within one working day, even if it's a no.</p>
+          <p class="crs-section-sub" style="margin-left:auto;margin-right:auto;">Email <!--email_off--><a href="mailto:careers@underwings.org" class="crs-link">careers@underwings.org</a><!--/email_off--> with your CV and a short note (3–5 sentences) about which role you want and why. We reply within one working day, even if it's a no.</p>
 
           <ol class="crs-steps">
             <li><strong>Apply</strong><span>CV + short note</span></li>
@@ -191,10 +191,10 @@ const breadcrumbSchema = {
           </ol>
 
           <div class="crs-apply-cta">
-            <a href="mailto:careers@underwings.org" class="crs-btn crs-btn-primary">
+            <!--email_off--><a href="mailto:careers@underwings.org" class="crs-btn crs-btn-primary">
               <span>Email careers@underwings.org</span>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a>
+            </a><!--/email_off-->
             <a href="https://www.linkedin.com/company/underwings-cybersecurity" target="_blank" rel="noopener noreferrer nofollow" class="crs-btn crs-btn-secondary">
               <span>or message us on LinkedIn</span>
             </a>

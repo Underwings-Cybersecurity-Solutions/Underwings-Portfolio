@@ -22,7 +22,7 @@ Differentiators (why clients choose Underwings):
 
 - **Manoj Prabhakaran** — Founder. Penetration testing, compliance strategy, cloud security architecture. Certs: CPTS, CDSA, CompTIA Security+, Azure Cloud Security, ISO/IEC 27001 Lead Auditor, HTB Omniscient.
 - **Nelson Durairaj** — Senior Penetration Tester. Networks, web apps, infrastructure. Certs: OSCP, eJPT, CEH, HTB Omniscient.
-- **Vinoth Samiyappa** — Co-founder, Networking & Infrastructure (14+ yrs). Certs: CCNP, Fortinet NSE, Six Sigma, Microsoft Azure.
+- **Vinoth Sivasamy** — Co-founder, Networking & Infrastructure (14+ yrs). Certs: CCNP, Fortinet NSE, Six Sigma, Microsoft Azure.
 - **Gowtham** — CEO. Operations and technology strategy; full-stack engineering and QA background.
 - **Guna** — Business Development Manager.
 - **Prathima Selvaraj** — Digital Marketing Manager.

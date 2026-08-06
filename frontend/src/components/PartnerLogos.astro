@@ -22,10 +22,15 @@ interface Partner {
   invert_logo: boolean;
 }
 
-// Partners are hidden until we have official channel partner agreements.
-// Once approved, add them via the admin dashboard (which writes to the partners table)
-// or temporarily seed via SQL: see /supabase/migrations/003_partners.sql
-let partners: Partner[] = [];
+// Fallback partner list — shown when Supabase has no visible partners.
+// Logos live in /public/images/partners/. invert_logo forces dark logos to white
+// (brightness(0) invert(1)) so they read on the dark background.
+let partners: Partner[] = [
+  { id: 'sophos',   name: 'Sophos',   logo_url: '/images/partners/sophos.svg',   website_url: 'https://www.sophos.com',            display_order: 1, invert_logo: true  },
+  { id: 'sprinto',  name: 'Sprinto',  logo_url: '/images/partners/sprinto.png',  website_url: 'https://sprinto.com',              display_order: 2, invert_logo: false },
+  { id: 'hexnode',  name: 'Hexnode',  logo_url: '/images/partners/hexnode.svg',  website_url: 'https://www.hexnode.com',          display_order: 3, invert_logo: true  },
+  { id: 'trillium', name: 'Trillium', logo_url: '/images/partners/trillium.png', website_url: 'https://www.trilliuminfosec.com',  display_order: 4, invert_logo: false },
+];
 
 try {
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || 'http://kong:8000';

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-import { notifyN8nInbound } from '../../lib/n8n-inbound';
+import { notifyCrmInbound } from '../../lib/crm-inbound';
 
 export const prerender = false;
 
@@ -18,6 +18,7 @@ function buildContactReplyHTML(name: string, company?: string, service?: string,
   const year = new Date().getFullYear();
 
   const serviceMap: Record<string, string> = {
+    'free-assessment': 'Free Security Assessment',
     'VAPT': 'Vulnerability Assessment & Penetration Testing',
     'ISO 27001': 'ISO 27001 Implementation & Audit Support',
     'Training': 'Cybersecurity Awareness Training',
@@ -217,7 +218,7 @@ async function pushToKrayinCRM(data: {
   message?: string;
   service?: string;
 }): Promise<void> {
-  await notifyN8nInbound({
+  await notifyCrmInbound({
     source: 'contact_form',
     person: {
       name: data.name || 'Unknown',

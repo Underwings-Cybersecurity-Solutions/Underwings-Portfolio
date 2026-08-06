@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <g transform="translate(4, 4)">
+    <!-- Left wing -->
+    <path d="M20,20 Q8,12 4,0 Q12,8 20,20Z" fill="#24d758" opacity="0.9"/>
+    <path d="M20,20 Q6,18 0,12 Q10,14 20,20Z" fill="#24d758" opacity="0.7"/>
+    <path d="M20,20 Q8,26 4,40 Q12,30 20,20Z" fill="#24d758" opacity="0.5"/>
+    <!-- Right wing -->
+    <path d="M20,20 Q32,12 36,0 Q28,8 20,20Z" fill="#24d758" opacity="0.9"/>
+    <path d="M20,20 Q34,18 40,12 Q30,14 20,20Z" fill="#24d758" opacity="0.7"/>
+    <path d="M20,20 Q32,26 36,40 Q28,30 20,20Z" fill="#24d758" opacity="0.5"/>
+    <!-- Center body -->
+    <circle cx="20" cy="20" r="4" fill="#24d758"/>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+{
+  "name": "underwings-mjml-compiler",
+  "version": "1.0.0",
+  "description": "Tiny HTTP service that compiles MJML to HTML for the Roundcube mjml_compose plugin",
+  "main": "server.js",
+  "type": "module",
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "mjml": "^4.15.3"
+  }
+}

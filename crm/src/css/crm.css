@@ -157,6 +157,8 @@ select { appearance:none; cursor:pointer;
 .pill--software { color:var(--software); background:var(--software-tint); }
 .pill--won { color:var(--brand); background:var(--brand-tint); }
 .pill--muted { color:var(--muted); background:var(--surface-2); }
+.pill--warn { color:var(--warn); background:var(--warn-tint); }
+.pill--danger { color:var(--danger); background:var(--danger-tint); }
 
 .chip {
   display:inline-flex; align-items:center; gap:.25rem;
@@ -434,6 +436,148 @@ select { appearance:none; cursor:pointer;
 .talk li.muted::before { color:var(--faint); }
 .icard-foot { display:flex; align-items:center; justify-content:space-between; gap:.6rem; margin-top:auto; padding-top:.1rem; }
 .icard-src { font-size:.66rem; color:var(--faint); }
+
+/* ======================================================================
+   LeadGen — pipeline-fed prospect table
+   ====================================================================== */
+.lg-toolbar { margin-top:var(--sp-1); }
+.lg-filter { display:inline-flex; align-items:center; gap:.4rem; font-size:.72rem; color:var(--muted); }
+.lg-filter select { padding:.3rem 1.6rem .3rem .55rem; font-size:.78rem; }
+
+.lg-table { border:1px solid var(--line); border-radius:var(--r); overflow-x:auto; background:var(--surface); box-shadow:var(--shadow-sm); }
+.lg-table .dtable { min-width:1000px; }   /* five touch boxes + notes need the room */
+.lg-table td { vertical-align:middle; }
+
+.lg-co { display:block; padding:0; border:none; background:none; cursor:pointer;
+  font:inherit; font-weight:600; color:var(--text); text-align:left; }
+.lg-co:hover { color:var(--brand); text-decoration:underline; }
+.lg-domain { display:block; font-size:.7rem; color:var(--muted); }
+.lg-contact { cursor:pointer; }
+.lg-who { font-weight:500; }
+.lg-estatus { font-size:.6rem; }
+
+.lg-fit { display:inline-flex; align-items:center; justify-content:flex-end; gap:.45rem; }
+.lg-fit-bar { display:block; width:34px; height:5px; border-radius:3px; background:var(--surface-2); position:relative; overflow:hidden; }
+.lg-fit-bar::after { content:""; position:absolute; inset:0 auto 0 0; width:var(--v,0%); border-radius:inherit; background:var(--brand); }
+
+/* outreach ticks — replaced the per-row status dropdown */
+.lg-touches { white-space:nowrap; }
+.lg-touch { display:inline-flex; align-items:center; gap:.18rem; margin-right:.38rem;
+  font-size:.7rem; color:var(--muted); cursor:pointer; user-select:none; }
+.lg-touch:last-child { margin-right:0; }
+.lg-touch input { width:.85rem; height:.85rem; margin:0; accent-color:var(--brand); cursor:pointer; }
+.lg-touch:hover { color:var(--text); }
+.lg-touch:has(input:checked) { color:var(--text); font-weight:600; }
+.lg-notes { width:100%; min-width:9rem; padding:.28rem .45rem; font-size:.76rem;
+  border:1px solid transparent; border-radius:var(--r-sm); background:transparent; color:var(--text); }
+.lg-notes:hover { border-color:var(--line-soft); }
+.lg-notes:focus { border-color:var(--line); background:var(--surface-2); outline:none; }
+
+.lg-foot { display:flex; justify-content:center; padding-top:var(--sp-2); }
+
+@keyframes lgFlash { 0%,100% { background:transparent; } 30% { background:var(--brand-tint); } }
+.lg-row--flash { animation:lgFlash 1.5s var(--ease); }
+
+/* prospect drawer (LeadGen) — sectioned layout + sticky action bar.
+   The drawer is the workbench where a first touch happens: judge (meters),
+   pick a contact, send the draft, log the touch, promote — top to bottom. */
+#crm-drawer-body { display:flex; flex-direction:column; min-height:100%; }
+.lgd-meters { padding:var(--sp-4) var(--sp-5) 0; }
+.lgd-sec { padding:var(--sp-4) var(--sp-5) 0; }
+.lgd-sec .lg-subhead { margin:0 0 .55rem; display:flex; align-items:center; gap:.5rem; }
+.lg-facts { display:grid; grid-template-columns:auto 1fr auto 1fr; gap:.35rem .9rem; margin:0; font-size:.8rem; }
+.lg-facts dt { color:var(--muted); font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; align-self:center; }
+.lg-facts dd { margin:0; }
+.lg-why { font-size:.82rem; margin:0; }
+.lg-signal { font-size:.76rem; margin:0; }
+.lg-subhead { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+
+/* Internal analyst notes — amber edge = "context for you, never for the client" */
+.lgd-internal {
+  display:flex; flex-direction:column; gap:.5rem;
+  padding:.7rem .85rem;
+  background:var(--surface-3); border:1px solid var(--line-soft);
+  border-left:3px solid var(--warn); border-radius:var(--r-sm);
+}
+.lgd-internal-tag {
+  font-size:.58rem; font-weight:700; letter-spacing:.05em;
+  padding:.14rem .45rem; border-radius:var(--r-pill);
+  color:var(--warn); background:var(--warn-tint);
+}
+
+.lg-people { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.6rem; }
+.lg-person { display:flex; flex-direction:column; gap:.35rem; font-size:.78rem;
+  padding:.6rem .75rem; border:1px solid var(--line-soft); border-radius:var(--r-sm); background:var(--surface-2); }
+.lg-person.is-primary { border-color:rgba(47,203,99,.45); }
+.lg-person-top { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; }
+.lg-person-name { font-weight:600; display:inline-flex; align-items:center; gap:.4rem; }
+.lg-person-title { color:var(--muted); font-size:.72rem; }
+.lg-person-ways { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .7rem; }
+.lg-person-mail { color:var(--brand); font-size:.74rem; }
+
+/* cold-email draft (drawer) */
+.lg-mail { display:flex; flex-direction:column; gap:.45rem; }
+.lg-mail-label { font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+.lg-mail-subject, .lg-mail-body {
+  width:100%; padding:.5rem .65rem; font-size:.8rem; font-family:inherit; color:var(--text);
+  border:1px solid var(--line-soft); border-radius:var(--r-sm); background:var(--surface-2);
+}
+.lg-mail-subject:focus, .lg-mail-body:focus { border-color:var(--brand); outline:none; box-shadow:var(--ring); }
+.lg-mail-body { resize:vertical; line-height:1.55; }
+.lg-mail-actions { display:flex; flex-wrap:wrap; align-items:center; gap:.45rem; }
+.lg-mail-hint { font-size:.72rem; margin:0; }
+
+/* Sticky action bar — log the touch and promote without going back to the table */
+.lgd-foot {
+  position:sticky; bottom:0; z-index:2;
+  margin-top:auto; margin-bottom:calc(-1 * var(--sp-6));
+  display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); flex-wrap:wrap;
+  padding:var(--sp-3) var(--sp-5);
+  background:var(--surface); border-top:1px solid var(--line);
+  box-shadow:0 -8px 22px rgba(0,0,0,.35);
+}
+.lgd-touches { display:flex; flex-wrap:wrap; gap:.35rem; }
+.lgd-touch { position:relative; }
+.lgd-touch input { position:absolute; inset:0; opacity:0; cursor:pointer; margin:0; }
+.lgd-touch span {
+  display:inline-flex; align-items:center;
+  padding:.34rem .62rem; border-radius:var(--r-pill);
+  font-size:.64rem; font-weight:600; letter-spacing:.03em; text-transform:uppercase;
+  color:var(--faint); background:var(--surface-2); border:1px solid var(--line-soft);
+  transition:color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast);
+}
+.lgd-touch:hover span { color:var(--text); }
+.lgd-touch input:checked + span { color:var(--brand); background:var(--brand-tint); border-color:rgba(47,203,99,.4); }
+.lgd-touch input:focus-visible + span { box-shadow:var(--ring); }
+.lg-actions { white-space:nowrap; }
+.lg-more-c { font-size:.68rem; color:var(--muted); font-weight:600; cursor:default; }
+.lg-mail-btn { font-size:.85rem; line-height:1; }
+
+@media (max-width:600px) {
+  .lg-filter { font-size:.68rem; }
+  .lg-toolbar { gap:var(--sp-2); }
+  .lg-facts { grid-template-columns:auto 1fr; }
+}
+
+/* web leads */
+#crm-wl-rows tr[data-wl-open] { cursor:pointer; }
+.wl-msg { max-width:340px; font-size:.78rem; color:var(--muted); }
+.wl-status {
+  font-size:.74rem; padding:.3rem .4rem;
+  color:var(--text); background:var(--surface-2);
+  border:1px solid var(--line-soft); border-radius:var(--r-sm);
+}
+.wl-notes {
+  width:100%; min-width:140px; font-size:.76rem; padding:.35rem .5rem;
+  color:var(--text); background:var(--surface-2);
+  border:1px solid var(--line-soft); border-radius:var(--r-sm);
+}
+.wl-status:focus, .wl-notes:focus { border-color:var(--brand); outline:none; }
+.wl-message {
+  margin:0; padding:.7rem .85rem; font-size:.82rem; line-height:1.55; white-space:pre-wrap;
+  background:var(--surface-2); border:1px solid var(--line-soft); border-radius:var(--r-sm);
+}
+.seg-btn .mono { font-size:.66rem; color:var(--faint); margin-left:.15rem; }
 
 /* ======================================================================
    Reports — scoreboard + chart

@@ -70,13 +70,33 @@ function daysSince(dateString) {
   return Math.max(0, Math.floor(ms / 86400000));
 }
 
+// Staleness reads crm_deals.last_activity_at (maintained by the
+// crm_activities_touch_deal trigger), NOT updated_at — updated_at is bumped by
+// any field edit, so a deal nobody has contacted in 40 days looked "fresh" the
+// moment someone corrected its value. v_crm_stale_deals uses the same column,
+// so the ⏳ badge and the Reports "Stale deals" tile can no longer disagree.
+function dealLastActivity(d) { return d.last_activity_at || d.updated_at; }
+
 function isStale(d) {
   if (d.status !== 'open') return false;
   const threshold = d.motion === 'software' ? 21 : 30;
-  return daysSince(d.updated_at) > threshold;
+  return daysSince(dealLastActivity(d)) > threshold;
 }
 
 function val(id) { return document.getElementById(id).value.trim(); }
+
+// HTML5 drag-and-drop does not fire on touch, but the board still renders on
+// tablets — so on a coarse pointer we drop the drag affordance entirely and
+// point people at the drawer stepper, which does work there.
+const CRM_COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
+
+function crmApplyDragHint() {
+  const hint = document.querySelector('.toolbar-hint');
+  if (!hint) return;
+  hint.textContent = CRM_COARSE_POINTER
+    ? 'Tap a card to open it, then pick a stage in the stepper.'
+    : 'Drag cards to move a deal along the chain.';
+}
 
 function csvCell(v) {
   if (v == null) return '';
@@ -152,13 +172,22 @@ const STAGE_LABELS = {
 function stageLabel(stage) { return STAGE_LABELS[stage] || stage; }
 
 let crmState = {
-  view: 'pipeline',       // 'pipeline' | 'prospects' | 'reports'
+  view: 'pipeline',       // 'pipeline' | 'leadgen' | 'reports'
   motion: 'services',     // 'services' | 'software'
   search: '',
   stageFilter: '',        // '' = all stages (signal-chain toggle)
   layout: 'kanban',       // 'kanban' | 'list'
   deals: [],
-  prospects: [],          // cached on load — the ⌘K palette searches these
+  stageTotals: null,      // server-side per-stage figures (v_crm_stage_totals)
+  prospects: [],          // loaded LeadGen page — the ⌘K palette searches these
+  lg: {                   // LeadGen view: filters are server-side, not client-side
+    service: '', status: '', geo: '',
+    kind: 'customer',     // 'customer' = LeadGen tab, 'partner' = Partners tab
+    offset: 0, total: 0, stats: null, loading: false,
+  },
+  wl: {                   // Web Leads view: small tables, filtered client-side
+    kind: '', rows: [], loading: false,
+  },
   _openId: null,
 };
 
@@ -381,7 +410,8 @@ async function crmBoot() {
     clearTimeout(_searchT);
     _searchT = setTimeout(() => {
       if (crmState.view === 'pipeline') crmLoadBoard();
-      else if (crmState.view === 'prospects') crmLoadProspects();
+      else if (crmState.view === 'leadgen' || crmState.view === 'partners') crmLoadLeadgen({ reset: true });
+      else if (crmState.view === 'webleads') crmRenderWebleads();
     }, 250);
   });
 
@@ -406,11 +436,15 @@ async function crmBoot() {
   crmWireNewDeal();
   crmInjectMotionToggle();
   crmWireCmdk();
+  crmApplyDragHint();
 
-  document.querySelector('.board-list').addEventListener('click', (e) => {
+  document.querySelector('[data-crm-view-panel="pipeline"] .board-list').addEventListener('click', (e) => {
     const tr = e.target.closest('tr[data-id]'); if (!tr) return;
     crmOpenDrawer(tr.dataset.id);
   });
+
+  crmWireLeadgen();
+  crmWireWebleads();
 
   document.querySelectorAll('[data-crm-close]').forEach((el) => el.addEventListener('click', () => {
     const drawer = el.closest('.drawer');
@@ -441,17 +475,23 @@ function crmSwitchView(view) {
     if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   document.querySelectorAll('[data-crm-view-panel]').forEach((p) => {
-    const active = p.dataset.crmViewPanel === view;
+    // a panel may serve more than one view (leadgen + partners share one)
+    const active = p.dataset.crmViewPanel.split(/\s+/).includes(view);
     p.classList.toggle('is-active', active);
     p.hidden = !active;
   });
   if (view === 'pipeline') crmLoadBoard();
-  else if (view === 'prospects') crmLoadProspects();
+  else if (view === 'leadgen' || view === 'partners') {
+    crmState.lg.kind = view === 'partners' ? 'partner' : 'customer';
+    crmApplyLeadgenCopy();
+    crmLoadLeadgen({ reset: true });
+  } else if (view === 'webleads') crmLoadWebleads();
   else if (view === 'reports') crmLoadReports();
 }
 
 function crmInjectMotionToggle() {
-  const toolbar = document.querySelector('.toolbar');
+  // scoped to the pipeline panel: the LeadGen view has its own .toolbar
+  const toolbar = document.querySelector('[data-crm-view-panel="pipeline"] .toolbar');
   if (!toolbar || document.getElementById('crm-motion-toggle')) return;
   const wrap = document.createElement('div');
   wrap.className = 'seg';
@@ -480,7 +520,7 @@ function crmApplyLayout() {
   const forcedList = window.matchMedia('(max-width:600px)').matches;
   const effective = forcedList ? 'list' : crmState.layout;
   document.getElementById('crm-board').hidden = effective !== 'kanban';
-  document.querySelector('.board-list').hidden = effective !== 'list';
+  document.querySelector('[data-crm-view-panel="pipeline"] .board-list').hidden = effective !== 'list';
   document.querySelectorAll('#crm-view-toggle .seg-btn').forEach((b) => {
     const active = b.dataset.layout === crmState.layout;
     b.classList.toggle('is-active', active);
@@ -491,18 +531,44 @@ function crmApplyLayout() {
 // ===========================================
 // PIPELINE — load + presentation (Phase A query, new UX)
 // ===========================================
+const BOARD_PAGE_SIZE = 500;
+
+// PostgREST can't filter a parent row by an embedded resource without an inner
+// join (which would silently drop deals that have no company/contact). So we
+// resolve matching company/contact ids first and fold them into the same .or()
+// — the search box promises "deals, company, contact" and now actually does it.
+async function crmSearchIdFilters(term) {
+  const like = `%${term}%`;
+  const [{ data: cos }, { data: cts }] = await Promise.all([
+    supabase.from('crm_companies').select('id').or(`name.ilike.${like},domain.ilike.${like}`).limit(200),
+    supabase.from('crm_contacts').select('id').or(`name.ilike.${like},email.ilike.${like}`).limit(200),
+  ]);
+  const parts = [`title.ilike.${like}`, `description.ilike.${like}`];
+  if (cos?.length) parts.push(`company_id.in.(${cos.map((r) => r.id).join(',')})`);
+  if (cts?.length) parts.push(`contact_id.in.(${cts.map((r) => r.id).join(',')})`);
+  return parts.join(',');
+}
+
 async function crmLoadBoard() {
   crmRenderBoardSkeleton();
+
+  // Strip totals come from v_crm_stage_totals (server-side aggregate over ALL
+  // deals). Previously they were summed from the loaded page, so past 500 deals
+  // the pipeline silently under-reported, and any active search rewrote the
+  // totals to match the filter.
+  const totalsP = supabase.from('v_crm_stage_totals').select('*').eq('motion', crmState.motion);
+
   let q = supabase.from('crm_deals')
     .select('*, crm_companies!company_id(name,domain), crm_contacts(name,email,phone,whatsapp_ok)')
     .eq('motion', crmState.motion)
     .order('updated_at', { ascending: false })
-    .limit(500);
+    .limit(BOARD_PAGE_SIZE);
   if (crmState.search) {
-    const s = crmState.search.replace(/[%,]/g, '');
-    q = q.or(`title.ilike.%${s}%,description.ilike.%${s}%`);
+    const s = crmState.search.replace(/[%,()]/g, '').trim();
+    if (s) q = q.or(await crmSearchIdFilters(s));
   }
-  const { data, error } = await q;
+
+  const [{ data, error }, { data: totals, error: totalsErr }] = await Promise.all([q, totalsP]);
   if (error) {
     console.error('[crm] load board', error);
     toast('Could not load the pipeline: ' + error.message, 'error');
@@ -510,11 +576,16 @@ async function crmLoadBoard() {
     document.getElementById('crm-pipeline-strip').innerHTML = '';
     return;
   }
+  if (totalsErr) console.warn('[crm] stage totals', totalsErr.message);
   crmState.deals = data || [];
+  crmState.stageTotals = totals || null;
   crmRenderStrip(crmState.deals);
   crmRenderKanban(crmState.deals);
   crmRenderList(crmState.deals);
   crmApplyLayout();
+  if (crmState.deals.length >= BOARD_PAGE_SIZE) {
+    toast(`Showing the ${BOARD_PAGE_SIZE} most recently updated deals — narrow with search.`);
+  }
 }
 
 function crmRenderBoardSkeleton() {
@@ -541,11 +612,32 @@ function crmRenderBoardEmpty(msg) {
   if (btn) btn.addEventListener('click', openNewDealModal);
 }
 
+// Per-stage count/value. With no search active these come from the server view
+// (authoritative across every deal); while searching they're computed from the
+// loaded rows so the strip and the board always describe the same set.
+function crmStageFigures(deals) {
+  const m = new Map();
+  if (!crmState.search && Array.isArray(crmState.stageTotals)) {
+    for (const r of crmState.stageTotals) {
+      m.set(r.stage, { count: Number(r.deal_count) || 0, val: Number(r.value_aed) || 0 });
+    }
+  } else {
+    for (const d of deals) {
+      const e = m.get(d.stage) || { count: 0, val: 0 };
+      e.count += 1;
+      e.val += Number(d.value_aed) || 0;
+      m.set(d.stage, e);
+    }
+  }
+  return m;
+}
+
 function crmRenderStrip(deals) {
   const stages = CRM_STAGES[crmState.motion];
+  const figures = crmStageFigures(deals);
   const totals = stages.map((s) => {
-    const rows = deals.filter((d) => d.stage === s);
-    return { stage: s, count: rows.length, val: rows.reduce((a, d) => a + (Number(d.value_aed) || 0), 0) };
+    const f = figures.get(s) || { count: 0, val: 0 };
+    return { stage: s, count: f.count, val: f.val };
   });
   const maxVal = Math.max(1, ...totals.map((t) => t.val));
   document.getElementById('crm-pipeline-strip').innerHTML = totals.map((t) => {
@@ -567,11 +659,13 @@ function crmRenderKanban(deals) {
     return;
   }
   const stages = CRM_STAGES[crmState.motion];
+  const figures = crmStageFigures(deals);
   board.innerHTML = stages.map((stage) => {
     const stageRows = deals.filter((d) => d.stage === stage);
     const visibleRows = (crmState.stageFilter && crmState.stageFilter !== stage) ? [] : stageRows;
-    const count = stageRows.length;
-    const sumVal = stageRows.reduce((a, d) => a + (Number(d.value_aed) || 0), 0);
+    const f = figures.get(stage) || { count: 0, val: 0 };
+    const count = f.count;
+    const sumVal = f.val;
     const wonClass = stage === 'won' ? ' kcol--won' : '';
     const cardsHtml = visibleRows.map(dealCardHtml).join('');
     return `<section class="kcol${wonClass}" data-stage="${stage}">
@@ -592,7 +686,7 @@ function dealCardHtml(d) {
   const co = esc(d.crm_companies?.name || '—');
   const pillClass = d.stage === 'won' ? 'pill--won' : `pill--${motionClass}`;
   const pillLabel = d.stage === 'won' ? 'Won' : (d.motion === 'software' ? 'Software' : 'Services');
-  return `<article class="dcard dcard--${motionClass}${wonClass}${staleClass}" tabindex="0" role="button" draggable="true" data-id="${escAttr(d.id)}">
+  return `<article class="dcard dcard--${motionClass}${wonClass}${staleClass}" tabindex="0" role="button"${CRM_COARSE_POINTER ? '' : ' draggable="true"'} data-id="${escAttr(d.id)}">
     <span class="dcard-edge"></span>
     <div class="dcard-head">
       <span class="pill ${pillClass}">${pillLabel}</span>
@@ -611,7 +705,7 @@ function dealChipHtml(d, stale) {
   if (d.stage === 'won') return `<span class="chip chip--won">Closed</span>`;
   if (d.stage === 'lost') return `<span class="chip" title="${escAttr(d.lost_reason || '')}">Lost</span>`;
   if (stale) {
-    const days = daysSince(d.updated_at);
+    const days = daysSince(dealLastActivity(d));
     return `<span class="chip chip--stale mono" title="No activity for ${days} days">⏳ ${days}d</span>`;
   }
   if (d.next_action) return `<span class="chip chip--next">${esc(d.next_action)}</span>`;
@@ -714,7 +808,7 @@ function crmRenderDrawer(d, acts, sig) {
   if (d.stage === 'lost') {
     badges.push(`<span class="badge">Lost${d.lost_reason ? ': ' + esc(d.lost_reason) : ''}</span>`);
   } else if (isStale(d)) {
-    badges.push(`<span class="badge badge--warn mono">⏳ ${daysSince(d.updated_at)}d idle</span>`);
+    badges.push(`<span class="badge badge--warn mono">⏳ ${daysSince(dealLastActivity(d))}d idle</span>`);
   }
 
   const waPhone = (d.crm_contacts?.phone || '').replace(/[^0-9]/g, '');
@@ -754,8 +848,15 @@ function crmRenderDrawer(d, acts, sig) {
     <div class="drawer-grid">
       <label class="field"><span>Value (AED)</span><input class="mono" id="dw-value" type="number" value="${escAttr(numOrEmpty(d.value_aed))}"></label>
       <label class="field"><span>Owner</span><select id="dw-owner">${ownerOptionsHtml(d.owner_id)}</select></label>
+      <label class="field"><span>Billing</span><select id="dw-billing">
+        <option value="one_off"${d.billing === 'monthly' ? '' : ' selected'}>One-off</option>
+        <option value="monthly"${d.billing === 'monthly' ? ' selected' : ''}>Monthly</option>
+      </select></label>
+      <label class="field"><span>MRR (AED)</span><input class="mono" id="dw-mrr" type="number" value="${escAttr(numOrEmpty(d.mrr_aed))}"></label>
       <label class="field"><span>Next action</span><input id="dw-next" value="${escAttr(d.next_action || '')}"></label>
       <label class="field"><span>Next action date</span><input class="mono" id="dw-nextdate" type="date" value="${escAttr(d.next_action_date || '')}"></label>
+      <label class="field"><span>Expected close</span><input class="mono" id="dw-close" type="date" value="${escAttr(d.expected_close_date || '')}"></label>
+      <label class="field"><span>Renewal date</span><input class="mono" id="dw-renewal" type="date" value="${escAttr(d.renewal_date || '')}"></label>
       <label class="field"><span>Lost reason</span><input id="dw-lost" value="${escAttr(d.lost_reason || '')}"></label>
     </div>
     <button type="button" id="dw-save" class="btn btn-primary btn-block">Save changes</button>
@@ -822,8 +923,12 @@ async function crmSetOwner(id, ownerId) {
 async function crmSaveDeal(id) {
   const patch = {
     value_aed: val('dw-value') || null,
+    billing: val('dw-billing') || 'one_off',
+    mrr_aed: val('dw-mrr') || null,
     next_action: val('dw-next') || null,
     next_action_date: val('dw-nextdate') || null,
+    expected_close_date: val('dw-close') || null,
+    renewal_date: val('dw-renewal') || null,
     lost_reason: val('dw-lost') || null,
   };
   const { error } = await supabase.from('crm_deals').update(patch).eq('id', id);
@@ -844,122 +949,768 @@ async function crmAddActivity(id) {
 }
 
 // ===========================================
-// PROSPECTS / SIGNALS (intel feed)
+// LEADGEN — prospects found by the underwings-leadgen pipeline.
+//
+// The pipeline writes crm_prospects as service_role and owns every enrichment
+// column. Migration 011 grants browser sessions UPDATE on (status, notes) only,
+// so this view can offer exactly those two edits and nothing else — the UI and
+// the grant agree by construction rather than by discipline.
 // ===========================================
-async function crmLoadProspects() {
-  crmRenderIntelSkeleton();
-  let q = supabase.from('crm_prospects')
-    .select('*')
-    .neq('status', 'suppressed')
-    .order('ai_score', { ascending: false, nullsFirst: false })
-    .limit(200);
-  if (crmState.search) {
-    const s = crmState.search.replace(/[%,]/g, '');
-    q = q.or(`company_name.ilike.%${s}%,domain.ilike.%${s}%`);
-  }
-  const { data, error } = await q;
-  if (error) {
-    console.error('[crm] load prospects', error);
-    toast('Could not load signals: ' + error.message, 'error');
-    crmRenderIntelEmpty();
-    return;
-  }
-  crmState.prospects = data || [];
-  crmRenderIntel(crmState.prospects);
-}
-
-function crmRenderIntelSkeleton() {
-  document.getElementById('crm-prospects').innerHTML = Array.from({ length: 3 }).map(() => `
-    <article class="icard">
-      <span class="skeleton skeleton-line w-60"></span>
-      <span class="skeleton skeleton-line w-40"></span>
-      <div class="skeleton skeleton-card"></div>
-    </article>`).join('');
-}
-
-function crmRenderIntelEmpty() {
-  document.getElementById('crm-prospects').innerHTML = `
-    <div class="empty">
-      <span class="empty-ico" aria-hidden="true">◇</span>
-      <p>No signals yet. The leadgen automation will populate this feed as it finds fits.</p>
-    </div>`;
-}
+const LG_PAGE_SIZE = 100;
+const LG_SERVICES = ['GRC / ISO 27001', 'PTaaS / Pen Testing', 'Cloud Security',
+  'Network & Infrastructure', 'Training & Awareness'];
+// mirrors the crm_prospects status CHECK; 'promoted' is set by the RPC, not by hand
+const LG_STATUSES = ['new', 'enriched', 'contacted', 'replied', 'qualified',
+  'disqualified', 'promoted', 'suppressed'];
+const LG_STATUS_LABELS = {
+  new: 'New', enriched: 'Enriched', contacted: 'Contacted', replied: 'Replied',
+  qualified: 'Qualified', disqualified: 'Disqualified', promoted: 'Promoted',
+  suppressed: 'Suppressed',
+};
+// The row shows these ticks instead of a lifecycle dropdown: "have I tried
+// this company, and how" is the question a small team can answer
+// consistently, where 'qualified' vs 'replied' is a quiz nobody agrees on.
+// Mail is deliberately separate from Msg (migration 017): Mail is the drafted
+// cold email actually going out, Msg is the WhatsApp/SMS follow.
+// Columns are sales-owned (migrations 016 + 017).
+const LG_TOUCHES = [
+  { col: 'touch_call',   label: 'Call',   title: 'Called' },
+  { col: 'touch_mail',   label: 'Mail',   title: 'Cold email sent' },
+  { col: 'touch_msg',    label: 'Msg',    title: 'WhatsApp or SMS sent' },
+  { col: 'touch_li',     label: 'LI',     title: 'Reached out on LinkedIn' },
+  { col: 'touch_follow', label: 'Follow', title: 'Follow-up done' },
+];
 
 function clampScore(n) { n = Number(n) || 0; return Math.max(0, Math.min(100, n)); }
 
-function crmRenderIntel(prospects) {
-  const host = document.getElementById('crm-prospects');
-  if (!prospects.length) { crmRenderIntelEmpty(); return; }
-  host.innerHTML = prospects.map((p) => {
-    const promoted = p.status === 'promoted';
-    const fit = clampScore(p.ai_score);
-    const gap = clampScore(p.gap_score);
-    const talk = (p.talking_points || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    const talkHtml = talk.length ? talk.map((t) => `<li>${esc(t)}</li>`).join('') : `<li class="muted">No talking points yet.</li>`;
-    const pillHtml = promoted
-      ? `<span class="pill pill--muted"><span aria-hidden="true">✓</span> Promoted</span>`
-      : (p.industry ? `<span class="pill pill--muted">${esc(p.industry)}</span>` : '');
-    const footBtn = promoted
-      ? `<button type="button" class="btn btn-ghost btn-sm" disabled>In pipeline</button>`
-      : `<button type="button" class="btn btn-primary btn-sm" data-promote="${escAttr(p.id)}">Promote to deal</button>`;
-    const srcTxt = promoted ? `promoted · ${esc(formatDate(p.updated_at))}` : `source · ${esc(p.source || '—')}`;
-    return `<article class="icard${promoted ? ' icard--promoted' : ''}" data-id="${escAttr(p.id)}">
-      <header class="icard-head">
-        <div>
-          <h3 class="icard-co">${esc(p.company_name)}</h3>
-          <span class="icard-domain mono">${esc(p.domain || '')}</span>
-        </div>
-        ${pillHtml}
-      </header>
-      <div class="meters">
-        <div class="meter"><span class="meter-label">Fit</span><span class="meter-track"><i class="meter-fill" style="--v:${fit}%"></i></span><span class="meter-num mono">${p.ai_score ?? '—'}</span></div>
-        <div class="meter"><span class="meter-label">Gap</span><span class="meter-track"><i class="meter-fill" style="--v:${gap}%"></i></span><span class="meter-num mono">${p.gap_score ?? '—'}</span></div>
+/** Fit is scored 1-10; the meter wants a percentage. */
+function fitPct(score) { return clampScore((Number(score) || 0) * 10); }
+
+function crmWireLeadgen() {
+  const svc = document.getElementById('crm-lg-service');
+  for (const s of LG_SERVICES) svc.insertAdjacentHTML('beforeend', `<option value="${escAttr(s)}">${esc(s)}</option>`);
+  const st = document.getElementById('crm-lg-status');
+  for (const s of LG_STATUSES) st.insertAdjacentHTML('beforeend', `<option value="${escAttr(s)}">${esc(LG_STATUS_LABELS[s])}</option>`);
+
+  for (const [id, key] of [['crm-lg-service', 'service'], ['crm-lg-status', 'status'], ['crm-lg-geo', 'geo']]) {
+    document.getElementById(id).addEventListener('change', (e) => {
+      crmState.lg[key] = e.target.value;
+      crmLoadLeadgen({ reset: true });
+    });
+  }
+  document.getElementById('crm-lg-more').addEventListener('click', () => crmLoadLeadgen({ reset: false }));
+  document.getElementById('crm-lg-export').addEventListener('click', crmExport);
+  document.getElementById('crm-lg-run').addEventListener('click', crmLeadgenRunNow);
+
+  // one delegated listener for the whole table — rows are re-rendered often
+  document.getElementById('crm-lg-rows').addEventListener('click', (e) => {
+    const promote = e.target.closest('[data-lg-promote]');
+    if (promote) { crmPromoteProspect(promote.dataset.lgPromote); return; }
+    const copy = e.target.closest('[data-lg-copy]');
+    if (copy) { crmCopyOutreach(copy.dataset.lgCopy); return; }
+    const open = e.target.closest('[data-lg-open]');
+    if (open) crmOpenProspect(open.dataset.lgOpen);
+  });
+  document.getElementById('crm-lg-rows').addEventListener('change', (e) => {
+    const box = e.target.closest('[data-lg-touch]');
+    if (box) crmLeadgenSetTouch(box.dataset.lgTouch, box.dataset.lgTouchCol, box.checked, box);
+  });
+  // commit notes on blur rather than per keystroke
+  document.getElementById('crm-lg-rows').addEventListener('focusout', (e) => {
+    const inp = e.target.closest('[data-lg-notes]');
+    if (inp && inp.value !== inp.dataset.lgOriginal) crmLeadgenSetNotes(inp.dataset.lgNotes, inp.value, inp);
+  });
+
+  // "Run now" mutates shared state and costs API budget — admins only. The
+  // hide is cosmetic; crm_leadgen_request_run() enforces is_crm_admin().
+  document.getElementById('crm-lg-run').hidden = window.__crmRole !== 'admin';
+}
+
+/** The two tracks share one panel, so the copy has to say which one you are
+ * looking at — partners are collaborators, not people to sell to. */
+function crmApplyLeadgenCopy() {
+  const partner = crmState.lg.kind === 'partner';
+  document.getElementById('crm-lg-eyebrow').textContent =
+    partner ? 'Collaboration' : 'Lead generation';
+  document.getElementById('crm-lg-title').textContent =
+    partner ? 'Firms worth partnering with' : 'Prospects worth a first move';
+  document.getElementById('crm-lg-sub').textContent = partner
+    ? 'MSPs, integrators, auditors and advisers whose clients need security work. Approach them as channel partners, not prospects.'
+    : 'Scored against the Underwings ICP every 12 hours. Promote the ones you\'ll pursue.';
+}
+
+/** Build the PostgREST query for the current filters. Shared by the table and
+ * the CSV export so what you download is what you are looking at. */
+function crmLeadgenQuery(select = '*') {
+  let q = supabase.from('crm_prospects').select(select, { count: 'exact' })
+    .eq('kind', crmState.lg.kind);
+  const { service, status, geo } = crmState.lg;
+  if (status) q = q.eq('status', status);
+  else q = q.neq('status', 'suppressed');   // "All open" hides suppressed
+  if (service) q = q.eq('service', service);
+  if (geo) q = q.eq('geo_bucket', geo);
+  if (crmState.search) {
+    const s = crmState.search.replace(/[%,()]/g, '');
+    if (s) q = q.or(`company_name.ilike.%${s}%,domain.ilike.%${s}%,industry.ilike.%${s}%`);
+  }
+  return q.order('ai_score', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false });
+}
+
+async function crmLoadLeadgen({ reset = true } = {}) {
+  if (crmState.lg.loading) return;
+  crmState.lg.loading = true;
+  if (reset) { crmState.lg.offset = 0; crmRenderLeadgenSkeleton(); }
+  try {
+    const from = crmState.lg.offset;
+    const { data, error, count } = await crmLeadgenQuery().range(from, from + LG_PAGE_SIZE - 1);
+    if (error) throw error;
+    const rows = data || [];
+    crmState.prospects = reset ? rows : crmState.prospects.concat(rows);
+    crmState.lg.offset = from + rows.length;
+    crmState.lg.total = count ?? crmState.prospects.length;
+    crmRenderLeadgen(crmState.prospects);
+    crmRenderLeadgenCount();
+  } catch (e) {
+    console.error('[crm] load leadgen', e);
+    toast('Could not load prospects: ' + (e.message || 'Unknown error'), 'error');
+    if (reset) crmRenderLeadgenEmpty();
+  } finally {
+    crmState.lg.loading = false;
+  }
+  crmLoadLeadgenStats();
+}
+
+async function crmLoadLeadgenStats() {
+  // the view returns one row PER KIND (migration 014) — without the filter
+  // this would be a multi-row response and maybeSingle() would error
+  const { data, error } = await supabase.from('v_crm_leadgen_stats').select('*')
+    .eq('kind', crmState.lg.kind).maybeSingle();
+  if (error) { console.warn('[crm] leadgen stats', error.message); return; }
+  crmState.lg.stats = data || null;
+  crmRenderLeadgenStats(data);
+}
+
+function crmRenderLeadgenStats(s) {
+  const host = document.getElementById('crm-lg-stats');
+  if (!s) { host.innerHTML = ''; return; }
+  const pct = (n) => (s.total ? Math.round((n / s.total) * 100) : 0);
+  const lastRun = s.last_run_at
+    ? `${formatDate(s.last_run_at)}${s.last_run_ok === false ? ' · failed' : ''}`
+    : 'never';
+  host.innerHTML = [
+    { label: 'Prospects', num: s.total, meta: `${s.added_7d} added this week` },
+    { label: 'With an email', num: s.with_email, meta: `${pct(s.with_email)}% of total` },
+    { label: 'Named contacts', num: s.named_contacts, meta: `${pct(s.named_contacts)}% of total` },
+    { label: 'Verified emails', num: s.verified_emails, meta: `${pct(s.verified_emails)}% of total` },
+    { label: 'Avg fit', num: s.avg_score ?? '—', meta: 'out of 10', brand: true },
+    { label: 'Promoted', num: s.promoted, meta: `last run ${lastRun}` },
+  ].map((t) => `
+    <div class="tile">
+      <span class="tile-label">${esc(t.label)}</span>
+      <span class="tile-num${t.brand ? ' tile-num--brand' : ''} mono">${esc(String(t.num ?? 0))}</span>
+      <span class="tile-meta">${esc(t.meta)}</span>
+    </div>`).join('');
+}
+
+function crmRenderLeadgenCount() {
+  const shown = crmState.prospects.length;
+  const total = crmState.lg.total;
+  document.getElementById('crm-lg-count').textContent =
+    total ? `Showing ${shown} of ${total}` : '';
+  // no silent truncation: the button is the only way more rows arrive
+  document.getElementById('crm-lg-more').hidden = shown >= total;
+}
+
+function crmRenderLeadgenSkeleton() {
+  document.getElementById('crm-lg-rows').innerHTML = Array.from({ length: 6 }).map(() => `
+    <tr><td colspan="8"><span class="skeleton skeleton-line w-60"></span></td></tr>`).join('');
+}
+
+function crmRenderLeadgenEmpty() {
+  document.getElementById('crm-lg-rows').innerHTML = `
+    <tr><td colspan="8">
+      <div class="empty">
+        <span class="empty-ico" aria-hidden="true">◇</span>
+        <p>No prospects match these filters. The leadgen pipeline adds new ones every 12 hours.</p>
       </div>
-      <ul class="talk">${talkHtml}</ul>
-      <div class="icard-foot"><span class="icard-src mono">${srcTxt}</span>${footBtn}</div>
-    </article>`;
+    </td></tr>`;
+  document.getElementById('crm-lg-more').hidden = true;
+}
+
+function crmRenderLeadgen(rows) {
+  const host = document.getElementById('crm-lg-rows');
+  if (!rows.length) { crmRenderLeadgenEmpty(); return; }
+  host.innerHTML = rows.map((p) => {
+    const promoted = p.status === 'promoted';
+    const where = [p.emirate, p.country].filter(Boolean)[0] || '—';
+    const touches = LG_TOUCHES.map(({ col, label, title }) => `
+      <label class="lg-touch" title="${escAttr(title)} — ${escAttr(p.company_name)}">
+        <input type="checkbox" data-lg-touch="${escAttr(p.id)}" data-lg-touch-col="${col}"${p[col] ? ' checked' : ''}>
+        <span>${esc(label)}</span>
+      </label>`).join('');
+    return `<tr data-id="${escAttr(p.id)}">
+      <td>
+        <button type="button" class="lg-co" data-lg-open="${escAttr(p.id)}">${esc(p.company_name)}</button>
+        <span class="lg-domain mono">${esc(p.domain || '—')}</span>
+      </td>
+      <td>${p.service ? `<span class="pill pill--services">${esc(p.service)}</span>` : '<span class="muted">—</span>'}</td>
+      <td class="ta-r">
+        <span class="lg-fit"><i class="lg-fit-bar" style="--v:${fitPct(p.ai_score)}%"></i><span class="mono">${p.ai_score ?? '—'}</span></span>
+      </td>
+      <td>${esc(where)}</td>
+      <td class="lg-contact" data-lg-open="${escAttr(p.id)}"><span class="muted">View</span></td>
+      <td class="lg-touches">${touches}</td>
+      <td><input class="lg-notes" type="text" placeholder="Add a note…" aria-label="Notes for ${escAttr(p.company_name)}"
+                 value="${escAttr(p.notes || '')}" data-lg-notes="${escAttr(p.id)}" data-lg-original="${escAttr(p.notes || '')}"></td>
+      <td class="ta-r lg-actions">
+        <button type="button" class="btn btn-sm lg-mail-btn" data-lg-copy="${escAttr(p.id)}"
+                title="Copy cold email for ${escAttr(p.company_name)}" aria-label="Copy cold email for ${escAttr(p.company_name)}">✉</button>
+        ${promoted
+          ? '<span class="pill pill--muted">In pipeline</span>'
+          : `<button type="button" class="btn btn-primary btn-sm" data-lg-promote="${escAttr(p.id)}">Promote</button>`}
+      </td>
+    </tr>`;
   }).join('');
-  host.querySelectorAll('[data-promote]').forEach((b) => b.addEventListener('click', () => crmPromoteProspect(b.dataset.promote)));
+  crmLeadgenFillContacts(rows);
 }
 
-// ---------- Company/contact upsert helpers (reused verbatim by Promote + New Deal) ----------
-async function crmUpsertCompany({ name, domain }) {
-  if (domain) {
-    const { data } = await supabase.from('crm_companies').select('id').eq('domain', domain.toLowerCase()).maybeSingle();
-    if (data) return data.id;
+/** Contacts live in a child table. One batched query for the whole page beats
+ * a request per row; the highest-confidence contact wins. */
+async function crmLeadgenFillContacts(rows) {
+  const ids = rows.map((r) => r.id);
+  if (!ids.length) return;
+  const { data, error } = await supabase.from('crm_prospect_contacts')
+    .select('prospect_id,name,job_title,email,email_status,phone')
+    .in('prospect_id', ids)
+    .order('confidence', { ascending: false, nullsFirst: false });
+  if (error) { console.warn('[crm] prospect contacts', error.message); return; }
+  const best = new Map();
+  const count = new Map();
+  for (const c of data || []) {
+    if (!best.has(c.prospect_id)) best.set(c.prospect_id, c);
+    count.set(c.prospect_id, (count.get(c.prospect_id) || 0) + 1);
   }
-  const { data, error } = await supabase.from('crm_companies').insert({ name: name || domain || 'Unknown', domain: domain ? domain.toLowerCase() : null }).select('id').single();
-  if (error) throw error;
-  return data.id;
-}
-async function crmUpsertContact({ email, name, company_id, phone, job_title }) {
-  if (email) {
-    const { data } = await supabase.from('crm_contacts').select('id').eq('email', email.toLowerCase()).maybeSingle();
-    if (data) return data.id;
+  for (const row of document.querySelectorAll('#crm-lg-rows tr[data-id]')) {
+    const c = best.get(row.dataset.id);
+    const cell = row.querySelector('.lg-contact');
+    if (!cell) continue;
+    if (!c) { cell.innerHTML = '<span class="muted">—</span>'; continue; }
+    const who = c.name || c.email || c.phone || '—';
+    const sub = c.name ? (c.job_title || c.email || '') : '';
+    // a company usually has several reachable addresses now; say so, because
+    // the row can only show one and the rest are a click away in the drawer
+    const extra = (count.get(row.dataset.id) || 1) - 1;
+    cell.innerHTML = `<span class="lg-who">${esc(who)}</span>` +
+      (sub ? `<span class="lg-domain">${esc(sub)}</span>` : '') +
+      (c.email_status ? ` <span class="pill pill--muted lg-estatus">${esc(c.email_status)}</span>` : '') +
+      (extra > 0 ? ` <span class="lg-more-c" title="${extra} more contact${extra > 1 ? 's' : ''}">+${extra}</span>` : '');
   }
-  const { data, error } = await supabase.from('crm_contacts').insert({ email: email ? email.toLowerCase() : null, name, company_id, phone, job_title }).select('id').single();
-  if (error) throw error;
-  return data.id;
 }
 
+// ---------- sales-owned mutations (only the granted columns are writable) ----------
+
+/** Tick/untick one outreach box. Also advances `status` on the first touch so
+ * the funnel still means something without anyone maintaining a dropdown —
+ * but never downgrades a row that is already further along. */
+async function crmLeadgenSetTouch(id, col, checked, box) {
+  const row = crmState.prospects.find((p) => p.id === id);
+  const patch = { [col]: checked };
+  if (checked && row && (row.status === 'new' || row.status === 'enriched')) {
+    patch.status = 'contacted';
+  }
+  const { error } = await supabase.from('crm_prospects').update(patch).eq('id', id);
+  if (error) {
+    toast('Could not save: ' + error.message, 'error');
+    if (box) box.checked = !checked;          // put the tick back where it was
+    return;
+  }
+  if (row) Object.assign(row, patch);
+  crmLoadLeadgenStats();
+}
+
+async function crmLeadgenSetNotes(id, notes, input) {
+  const { error } = await supabase.from('crm_prospects').update({ notes }).eq('id', id);
+  if (error) {
+    toast('Could not save note: ' + error.message, 'error');
+    if (input) input.value = input.dataset.lgOriginal || '';
+    return;
+  }
+  if (input) input.dataset.lgOriginal = notes;
+  const row = crmState.prospects.find((p) => p.id === id);
+  if (row) row.notes = notes;
+  toast('Note saved.', 'success');
+}
+
+// ---------- cold-email drafts (outreach_subject/body — sales-owned, mig. 013) ----------
+// The pipeline writes one AI draft per prospect (hook-led, personalised);
+// sales edit here, copy, and send from their own mailbox.
+
+/** Clipboard with a fallback for anything that blocks the async API. */
+async function crmCopyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch { /* denied */ }
+    ta.remove();
+    return ok;
+  }
+}
+
+function crmOutreachSubject(p) {
+  if (p.outreach_subject) return p.outreach_subject;
+  const sector = (p.industry || '').trim();
+  return `${sector ? sector.charAt(0).toUpperCase() + sector.slice(1) : 'Your'} security — worth 15 minutes?`;
+}
+
+/** Stored AI draft, or a client-side rendering of the fixed template
+ * (2026-08-05 spec) for rows the pipeline hasn't backfilled yet. The
+ * fallback deliberately does NOT use `why` — that column is written in
+ * internal analyst voice ("no in-house security team") and must never be
+ * pasted to a client verbatim. Keep this skeleton in sync with
+ * leadgen/lib/outreach.js composeEmail(). */
+function crmOutreachBody(p, contactName) {
+  if (p.outreach_body) return p.outreach_body;
+  const first = String(contactName || '').trim().split(/\s+/)[0] || '';
+  const sector = (p.industry || '').trim().toLowerCase();
+  const services = p.kind === 'partner'
+    ? 'white-label security and compliance delivery for their clients'
+    : (p.service || 'cybersecurity and compliance');
+  const block = p.kind === 'partner'
+    ? `Security and compliance requirements keep landing on firms like ${p.company_name}'s clients — work that sits outside what most teams deliver day to day. Handled on referral or white-label terms, it becomes revenue instead of something you turn away.`
+    : `${sector ? sector.charAt(0).toUpperCase() + sector.slice(1) : 'UAE'} organisations are under growing audit and regulatory pressure — ISO 27001, UAE PDPL and sector frameworks — usually with a lean IT team carrying it. The gap tends to surface only when an audit, a client questionnaire, or an incident forces it.`;
+  return `${first ? `Hi ${first},` : 'Hello,'}\n\n` +
+    `Quick note from Underwings Cybersecurity Solutions. We work with ${sector || 'UAE'} organisations on ${services}.\n\n` +
+    `${block}\n\n` +
+    `I'm not asking you to switch anything. A 15-minute call, and I'll tell you honestly whether we're a fit.\n\n` +
+    `Pick a slot that works: https://calendly.com/underwings1415/30min\n\n` +
+    `If it's easier to look before you talk, I've attached our company profile and current service list, and our free assessment is open here: https://underwings.org/#contact\n\n` +
+    `Regards,\n[YOUR NAME]\n[TITLE] | Underwings Cybersecurity Solutions\n+971 505670394 | https://underwings.org`;
+}
+
+async function crmCopyOutreach(id) {
+  const p = crmState.prospects.find((r) => r.id === id);
+  if (!p) return;
+  const ok = await crmCopyText(crmOutreachBody(p));
+  toast(ok ? `Cold email for ${p.company_name} copied — edit before sending.` : 'Copy failed — open the prospect and copy from there.', ok ? 'success' : 'error');
+}
+
+async function crmSaveOutreach(id, subject, body) {
+  const { error } = await supabase.from('crm_prospects')
+    .update({ outreach_subject: subject, outreach_body: body }).eq('id', id);
+  if (error) { toast('Could not save draft: ' + error.message, 'error'); return false; }
+  const row = crmState.prospects.find((r) => r.id === id);
+  if (row) { row.outreach_subject = subject; row.outreach_body = body; }
+  toast('Draft saved.', 'success');
+  return true;
+}
+
+async function crmLeadgenRunNow() {
+  const btn = document.getElementById('crm-lg-run');
+  btn.disabled = true;
+  try {
+    const { data, error } = await supabase.rpc('crm_leadgen_request_run');
+    if (error) throw error;
+    toast(data && data.queued === false
+      ? 'A run is already queued.'
+      : 'Run queued — the pipeline picks it up within a minute.', 'success');
+  } catch (e) {
+    toast('Could not queue a run: ' + (e.message || 'Unknown error'), 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/** Prospect detail: everything the pipeline knows, including every contact —
+ * this child table was previously never shown anywhere in the UI. */
+async function crmOpenProspect(id) {
+  const body = document.getElementById('crm-drawer-body');
+  body.innerHTML = '<span class="skeleton skeleton-line w-60"></span>';
+  setOverlayOpen(document.getElementById('crm-drawer'), true);
+  crmOverlayFocusIn('crm-drawer', '.drawer-panel');
+  try {
+    const { data: p, error } = await supabase.from('crm_prospects').select('*').eq('id', id).single();
+    if (error) throw error;
+    const { data: contacts } = await supabase.from('crm_prospect_contacts')
+      .select('*').eq('prospect_id', id).order('confidence', { ascending: false, nullsFirst: false });
+
+    const talk = (p.talking_points || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    // contacts arrive ordered by confidence — the mail link wants one WITH an email
+    const bestContact = (contacts || []).find((c) => c.email) || (contacts || [])[0] || null;
+    const mailPill = (s) => s === 'verified' ? 'pill--won' : s === 'invalid' ? 'pill--danger' : s === 'risky' ? 'pill--warn' : 'pill--muted';
+    const contactHtml = (contacts || []).length ? (contacts || []).map((c) => `
+      <li class="lg-person${bestContact && c.id === bestContact.id ? ' is-primary' : ''}">
+        <div class="lg-person-top">
+          <span class="lg-person-name">${esc(c.name || '(unnamed)')}${bestContact && c.id === bestContact.id ? ' <span class="pill pill--won">best</span>' : ''}</span>
+          <span class="lg-domain">via ${esc(c.source || '—')}</span>
+        </div>
+        ${c.job_title ? `<span class="lg-person-title">${esc(c.job_title)}</span>` : ''}
+        <div class="lg-person-ways">
+          ${c.email ? `<a class="mono lg-person-mail" href="mailto:${escAttr(c.email)}">${esc(c.email)}</a>
+            <span class="pill ${mailPill(c.email_status)}">${esc(c.email_status || 'unchecked')}</span>
+            <button type="button" class="btn btn-sm" data-copy-email="${escAttr(c.email)}">Copy</button>` : '<span class="muted">No email found</span>'}
+          ${c.phone ? `<a class="mono" href="tel:${escAttr(String(c.phone).replace(/[^+\d]/g, ''))}">${esc(c.phone)}</a>` : ''}
+          ${c.linkedin_url ? `<a href="${escAttr(c.linkedin_url)}" rel="noopener noreferrer" target="_blank">LinkedIn ↗</a>` : ''}
+        </div>
+      </li>`).join('') : '<li class="muted">No contact found yet — the pipeline keeps looking.</li>';
+
+    const statusPill = p.status === 'promoted' ? 'pill--won'
+      : p.status === 'replied' || p.status === 'qualified' ? 'pill--services' : 'pill--muted';
+
+    body.innerHTML = `
+      <header class="drawer-head">
+        <div class="drawer-eyebrow">
+          <span class="eyebrow">${p.kind === 'partner' ? 'Channel partner' : 'LeadGen prospect'}</span>
+          <span class="pill ${statusPill}">${esc(LG_STATUS_LABELS[p.status] || p.status || '—')}</span>
+        </div>
+        <h2 class="drawer-title">${esc(p.company_name)}</h2>
+        <p class="drawer-sub muted">
+          <span class="mono">${esc(p.domain || '—')}</span>
+          ${[p.emirate, p.country].filter(Boolean).length ? `<span>· ${esc([p.emirate, p.country].filter(Boolean).join(', '))}</span>` : ''}
+          ${p.website ? `<a href="${escAttr(p.website)}" rel="noopener noreferrer" target="_blank">Website ↗</a>` : ''}
+        </p>
+      </header>
+      <div class="meters lgd-meters">
+        <div class="meter"><span class="meter-label">Fit</span><span class="meter-track"><i class="meter-fill" style="--v:${fitPct(p.ai_score)}%"></i></span><span class="meter-num mono">${p.ai_score ?? '—'}</span></div>
+        <div class="meter"><span class="meter-label">Gap</span><span class="meter-track"><i class="meter-fill" style="--v:${clampScore(p.gap_score)}%"></i></span><span class="meter-num mono">${p.gap_score ?? '—'}</span></div>
+      </div>
+      <section class="lgd-sec">
+        <dl class="lg-facts">
+          <dt>Service</dt><dd>${esc(p.service || '—')}</dd>
+          <dt>Industry</dt><dd>${esc(p.industry || '—')}</dd>
+          <dt>Source</dt><dd>${esc(p.source || '—')}</dd>
+          <dt>Found</dt><dd>${esc(formatDate(p.created_at))}</dd>
+        </dl>
+      </section>
+      ${p.why || p.signal || talk.length ? `
+      <section class="lgd-sec">
+        <h3 class="lg-subhead">Why this prospect <span class="lgd-internal-tag">internal — don't paste</span></h3>
+        <div class="lgd-internal">
+          ${p.why ? `<p class="lg-why">${esc(p.why)}</p>` : ''}
+          ${p.signal ? `<p class="lg-signal muted">Signal: ${esc(p.signal)}</p>` : ''}
+          ${talk.length ? `<ul class="talk">${talk.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+        </div>
+      </section>` : ''}
+      <section class="lgd-sec">
+        <h3 class="lg-subhead">Contacts (${(contacts || []).length})</h3>
+        <ul class="lg-people">${contactHtml}</ul>
+      </section>
+      <section class="lgd-sec">
+        <h3 class="lg-subhead">${p.kind === 'partner' ? 'Outreach email' : 'Cold email'}</h3>
+        <div class="lg-mail">
+          <label class="lg-mail-label" for="lg-mail-subject">Subject</label>
+          <input id="lg-mail-subject" class="lg-mail-subject" type="text"
+                 value="${escAttr(crmOutreachSubject(p))}">
+          <label class="lg-mail-label" for="lg-mail-body">Body</label>
+          <textarea id="lg-mail-body" class="lg-mail-body" rows="14">${esc(crmOutreachBody(p, bestContact && bestContact.name))}</textarea>
+          <div class="lg-mail-actions">
+            <button type="button" class="btn btn-primary btn-sm" id="lg-mail-copy">Copy body</button>
+            <button type="button" class="btn btn-sm" id="lg-mail-copy-subject">Copy subject</button>
+            <button type="button" class="btn btn-sm" id="lg-mail-save">Save draft</button>
+            ${bestContact && bestContact.email
+              ? `<a class="btn btn-sm" id="lg-mail-open" href="#">Email ${esc(bestContact.email)}</a>` : ''}
+          </div>
+          <p class="muted lg-mail-hint">${p.outreach_body
+            ? 'Drafted for this prospect. Replace [YOUR NAME] and [TITLE] with your own details, attach the company profile, and send from your own mailbox.'
+            : 'Standard template — the pipeline drafts a personalised one on its next cycle.'}</p>
+        </div>
+      </section>
+      <footer class="lgd-foot">
+        <div class="lgd-touches" role="group" aria-label="Outreach touches">
+          ${LG_TOUCHES.map((t) => `
+            <label class="lgd-touch" title="${escAttr(t.title)}">
+              <input type="checkbox" data-lgd-touch="${t.col}" ${p[t.col] ? 'checked' : ''}>
+              <span>${t.label}</span>
+            </label>`).join('')}
+        </div>
+        ${p.status === 'promoted'
+          ? '<span class="pill pill--won">In pipeline</span>'
+          : `<button type="button" class="btn btn-primary btn-sm" id="lgd-promote">Promote to pipeline</button>`}
+      </footer>`;
+
+    const subjEl = document.getElementById('lg-mail-subject');
+    const bodyEl = document.getElementById('lg-mail-body');
+    const PLACEHOLDER_RE = /\[YOUR NAME\]|\[TITLE\]/;
+    document.getElementById('lg-mail-copy').addEventListener('click', async () => {
+      const ok = await crmCopyText(bodyEl.value);
+      if (!ok) { toast('Copy failed.', 'error'); return; }
+      toast(PLACEHOLDER_RE.test(bodyEl.value)
+        ? 'Body copied — replace [YOUR NAME] and [TITLE] before sending.'
+        : 'Email body copied.', 'success');
+    });
+    document.getElementById('lg-mail-copy-subject').addEventListener('click', async () => {
+      const ok = await crmCopyText(subjEl.value);
+      toast(ok ? 'Subject copied.' : 'Copy failed.', ok ? 'success' : 'error');
+    });
+    document.getElementById('lg-mail-save').addEventListener('click', () =>
+      crmSaveOutreach(id, subjEl.value.trim(), bodyEl.value.trim()));
+    const mailLink = document.getElementById('lg-mail-open');
+    if (mailLink) {
+      // href is built at click time so edits (even unsaved ones) are included
+      mailLink.addEventListener('click', () => {
+        if (PLACEHOLDER_RE.test(bodyEl.value)) toast('Replace [YOUR NAME] and [TITLE] before sending.', 'success');
+        mailLink.href = `mailto:${encodeURIComponent(bestContact.email)}` +
+          `?subject=${encodeURIComponent(subjEl.value)}&body=${encodeURIComponent(bodyEl.value)}`;
+      });
+    }
+    // per-contact email copy
+    body.querySelector('.lg-people').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-copy-email]');
+      if (!btn) return;
+      const ok = await crmCopyText(btn.dataset.copyEmail);
+      toast(ok ? `${btn.dataset.copyEmail} copied.` : 'Copy failed.', ok ? 'success' : 'error');
+    });
+    // touches sync straight back to the table + stat tiles
+    body.querySelector('.lgd-touches').addEventListener('change', async (e) => {
+      const box = e.target.closest('[data-lgd-touch]');
+      if (!box) return;
+      await crmLeadgenSetTouch(id, box.dataset.lgdTouch, box.checked, box);
+      crmRenderLeadgen(crmState.prospects);
+    });
+    const promoteBtn = document.getElementById('lgd-promote');
+    if (promoteBtn) {
+      promoteBtn.addEventListener('click', async () => {
+        promoteBtn.disabled = true;
+        await crmPromoteProspect(id);
+        crmCloseDrawer();
+      });
+    }
+  } catch (e) {
+    body.innerHTML = `<p class="muted">Could not load this prospect: ${esc(e.message || 'Unknown error')}</p>`;
+  }
+}
+
+// ===========================================
+// WEB LEADS VIEW
+// Inbound from the website, merged from two tables: form_submissions
+// (contact/quote forms) and subscribers (newsletter + lead_magnet checklist
+// downloads). Both are small (dozens of rows), so they're fetched whole and
+// filtered client-side. Browser sessions may only write lead_status +
+// admin_notes (column grants, migration 018) — mirrored in the controls.
+// ===========================================
+const WL_KINDS = [
+  { key: '', label: 'All' },
+  { key: 'contact', label: 'Contact' },
+  { key: 'quote', label: 'Quote' },
+  { key: 'resource', label: 'Resources' },
+  { key: 'newsletter', label: 'Newsletter' },
+];
+const WL_STATUSES = ['new', 'reviewed', 'contacted', 'closed'];
+const WL_KIND_PILL = { contact: 'pill--services', quote: 'pill--software', resource: 'pill--warn', newsletter: 'pill--muted' };
+
+/** A lead_magnet:* subscription is a resource download; everything else on
+ * subscribers is a newsletter signup. form_submissions carries its own type. */
+function wlKindOf(row) {
+  if (row._table === 'subscribers') {
+    return String(row.subscription_source || '').startsWith('lead_magnet') ? 'resource' : 'newsletter';
+  }
+  return row.form_type || 'contact';
+}
+
+/** Human label for what a subscriber actually downloaded. */
+function wlResourceName(source) {
+  return String(source || '').replace(/^lead_magnet:/, '').replace(/-/g, ' ');
+}
+
+function crmWireWebleads() {
+  const kinds = document.getElementById('crm-wl-kinds');
+  kinds.addEventListener('click', (e) => {
+    const btn = e.target.closest('.seg-btn'); if (!btn) return;
+    crmState.wl.kind = btn.dataset.wlKind;
+    crmRenderWebleads();
+  });
+  const rows = document.getElementById('crm-wl-rows');
+  rows.addEventListener('click', (e) => {
+    if (e.target.closest('select,input,a,button')) return;
+    const tr = e.target.closest('tr[data-wl-open]');
+    if (tr) crmOpenWeblead(tr.dataset.wlOpen);
+  });
+  rows.addEventListener('change', (e) => {
+    const sel = e.target.closest('[data-wl-status]');
+    if (sel) crmWebleadUpdate(sel.dataset.wlStatus, { lead_status: sel.value }, sel);
+  });
+  rows.addEventListener('focusout', (e) => {
+    const inp = e.target.closest('[data-wl-notes]');
+    if (inp && inp.value !== inp.dataset.wlOriginal) {
+      crmWebleadUpdate(inp.dataset.wlNotes, { admin_notes: inp.value }, inp);
+    }
+  });
+}
+
+async function crmLoadWebleads() {
+  if (crmState.wl.loading) return;
+  crmState.wl.loading = true;
+  document.getElementById('crm-wl-rows').innerHTML =
+    '<tr><td colspan="6"><span class="skeleton skeleton-line w-60"></span></td></tr>';
+  try {
+    const [subs, forms] = await Promise.all([
+      supabase.from('subscribers').select('*').order('created_at', { ascending: false }).limit(1000),
+      supabase.from('form_submissions').select('*').order('created_at', { ascending: false }).limit(1000),
+    ]);
+    if (forms.error) throw forms.error;
+    if (subs.error) throw subs.error;
+    const rows = [
+      ...(forms.data || []).map((r) => ({ ...r, _table: 'form_submissions' })),
+      ...(subs.data || []).map((r) => ({ ...r, _table: 'subscribers' })),
+    ];
+    rows.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+    crmState.wl.rows = rows;
+    crmRenderWebleads();
+  } catch (e) {
+    console.error('[crm] load webleads', e);
+    toast('Could not load web leads: ' + (e.message || 'Unknown error'), 'error');
+    document.getElementById('crm-wl-rows').innerHTML =
+      '<tr><td colspan="6" class="muted">Could not load web leads — retry from the Web Leads tab.</td></tr>';
+  } finally {
+    crmState.wl.loading = false;
+  }
+}
+
+function crmWebleadVisible() {
+  const s = (crmState.search || '').trim().toLowerCase();
+  return crmState.wl.rows.filter((r) => {
+    if (crmState.wl.kind && wlKindOf(r) !== crmState.wl.kind) return false;
+    if (!s) return true;
+    return [r.name, r.email, r.company, r.message, r.subscription_source]
+      .some((v) => v && String(v).toLowerCase().includes(s));
+  });
+}
+
+function crmRenderWebleads() {
+  const visible = crmWebleadVisible();
+
+  const counts = {};
+  for (const r of crmState.wl.rows) counts[wlKindOf(r)] = (counts[wlKindOf(r)] || 0) + 1;
+  document.getElementById('crm-wl-kinds').innerHTML = WL_KINDS.map((k) => `
+    <button type="button" class="seg-btn${crmState.wl.kind === k.key ? ' is-active' : ''}"
+            data-wl-kind="${k.key}" aria-selected="${crmState.wl.kind === k.key}">
+      ${k.label} <span class="mono">${k.key ? counts[k.key] || 0 : crmState.wl.rows.length}</span>
+    </button>`).join('');
+
+  document.getElementById('crm-wl-count').textContent =
+    `${visible.length} of ${crmState.wl.rows.length} leads`;
+
+  document.getElementById('crm-wl-rows').innerHTML = visible.length ? visible.map((r) => {
+    const kind = wlKindOf(r);
+    const who = r._table === 'subscribers'
+      ? `<span class="mono">${esc(r.email)}</span>`
+      : `<strong>${esc(r.name || '—')}</strong><br><span class="mono muted">${esc(r.email)}</span>${r.company ? `<br><span class="muted">${esc(r.company)}</span>` : ''}`;
+    const msg = r._table === 'subscribers'
+      ? (kind === 'resource' ? `Downloaded: ${esc(wlResourceName(r.subscription_source))}` : 'Newsletter signup')
+      : esc((r.message || r.service_interest || '—').slice(0, 140));
+    const key = `${r._table}:${r.id}`;
+    return `
+    <tr data-wl-open="${escAttr(key)}" tabindex="0">
+      <td class="mono">${esc(formatDate(r.created_at))}</td>
+      <td><span class="pill ${WL_KIND_PILL[kind] || 'pill--muted'}">${esc(kind)}</span></td>
+      <td>${who}</td>
+      <td class="wl-msg">${msg}</td>
+      <td>
+        <select class="wl-status" data-wl-status="${escAttr(key)}" aria-label="Lead status">
+          ${WL_STATUSES.map((s) => `<option value="${s}"${(r.lead_status || 'new') === s ? ' selected' : ''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="wl-notes" type="text" value="${escAttr(r.admin_notes || '')}"
+                 data-wl-notes="${escAttr(key)}" data-wl-original="${escAttr(r.admin_notes || '')}"
+                 placeholder="Add a note…" aria-label="Notes"></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="muted">No web leads match — clear the search or pick another type.</td></tr>';
+}
+
+function crmWebleadFind(key) {
+  const [table, id] = String(key).split(/:(.+)/);
+  return crmState.wl.rows.find((r) => r._table === table && String(r.id) === id) || null;
+}
+
+async function crmWebleadUpdate(key, patch, el) {
+  const row = crmWebleadFind(key);
+  if (!row) return;
+  const { error } = await supabase.from(row._table).update(patch).eq('id', row.id);
+  if (error) {
+    toast('Could not save: ' + error.message, 'error');
+    crmRenderWebleads();   // snap the control back to stored state
+    return;
+  }
+  Object.assign(row, patch);
+  if (el && 'wlOriginal' in el.dataset) el.dataset.wlOriginal = el.value;
+  toast('Saved.', 'success');
+}
+
+/** Web-lead detail drawer: the full message plus every qualifying field the
+ * form captured, with copy/mailto — triage stays in the table row. */
+function crmOpenWeblead(key) {
+  const r = crmWebleadFind(key);
+  if (!r) return;
+  const kind = wlKindOf(r);
+  const body = document.getElementById('crm-drawer-body');
+  const facts = r._table === 'subscribers'
+    ? [['Source', kind === 'resource' ? wlResourceName(r.subscription_source) : 'Newsletter'],
+       ['Subscribed', r.subscribed ? 'yes' : 'unsubscribed'],
+       ['Received', formatDate(r.created_at)]]
+    : [['Service interest', r.service_interest], ['Budget', r.budget_range],
+       ['Timeline', r.timeline], ['Heard via', r.how_heard], ['Phone', r.phone],
+       ['Received', formatDate(r.created_at)]];
+  body.innerHTML = `
+    <header class="drawer-head">
+      <div class="drawer-eyebrow">
+        <span class="eyebrow">Web lead</span>
+        <span class="pill ${WL_KIND_PILL[kind] || 'pill--muted'}">${esc(kind)}</span>
+      </div>
+      <h2 class="drawer-title">${esc(r.name || r.email)}</h2>
+      <p class="drawer-sub muted">
+        <span class="mono">${esc(r.email)}</span>
+        ${r.company ? `<span>· ${esc(r.company)}</span>` : ''}
+      </p>
+    </header>
+    <section class="lgd-sec">
+      <dl class="lg-facts">
+        ${facts.filter(([, v]) => v).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}
+      </dl>
+    </section>
+    ${r.message ? `
+    <section class="lgd-sec">
+      <h3 class="lg-subhead">Message</h3>
+      <p class="wl-message">${esc(r.message)}</p>
+    </section>` : ''}
+    <section class="lgd-sec">
+      <div class="lg-mail-actions">
+        <a class="btn btn-primary btn-sm" href="mailto:${escAttr(r.email)}">Reply by email</a>
+        <button type="button" class="btn btn-sm" id="wl-copy-email">Copy email</button>
+      </div>
+    </section>`;
+  document.getElementById('wl-copy-email').addEventListener('click', async () => {
+    const ok = await crmCopyText(r.email);
+    toast(ok ? `${r.email} copied.` : 'Copy failed.', ok ? 'success' : 'error');
+  });
+  setOverlayOpen(document.getElementById('crm-drawer'), true);
+  crmOverlayFocusIn('crm-drawer', '.drawer-panel');
+}
+
+// ---------- Intake (shared by Promote + New Deal, and by the website forms) ----------
+// One atomic server-side upsert instead of the old read-then-insert pair, which
+// created a duplicate company whenever no domain was supplied and raised a
+// unique-violation when two writers raced on the same domain.
+async function crmIntake(payload) {
+  const { data, error } = await supabase.rpc('crm_intake', { payload });
+  if (error) throw error;
+  return data || {};
+}
+
+// Promote runs entirely server-side (crm_prospect_promote, migration 011).
+// The old client-side version called crm_intake and then PATCHed the prospect
+// in a second, unchecked round trip: if that PATCH failed you got a deal with
+// no back-link and a prospect that still looked unpromoted. Both writes now
+// share one transaction, and the best contact is chosen in SQL.
 async function crmPromoteProspect(id) {
   try {
-    const { data: p, error: pErr } = await supabase.from('crm_prospects').select('*').eq('id', id).single();
-    if (pErr) throw pErr;
-    const { data: pcs } = await supabase.from('crm_prospect_contacts').select('*').eq('prospect_id', id).order('confidence', { ascending: false });
-    const top = (pcs || [])[0] || {};
-    const companyId = await crmUpsertCompany({ name: p.company_name, domain: p.domain });
-    const contactId = top.email ? await crmUpsertContact({ email: top.email, name: top.name, company_id: companyId, phone: top.phone, job_title: top.job_title }) : null;
-    const { data: deal, error } = await supabase.from('crm_deals').insert({
-      title: `${p.company_name} — outbound`, motion: 'services', stage: 'new',
-      company_id: companyId, contact_id: contactId, source: 'leadgen',
-      ai_score: p.ai_score, description: p.talking_points, icp_segment: 'other',
-      owner_id: crmMe,
-    }).select('id').single();
+    const { data, error } = await supabase.rpc('crm_prospect_promote', { p_prospect_id: id });
     if (error) throw error;
-    await supabase.from('crm_prospects').update({ status: 'promoted', promoted_deal_id: deal.id }).eq('id', id);
-    toast('Promoted to pipeline', 'success');
-    crmLoadProspects();
+    toast(data && data.created === false ? 'Already in the pipeline.' : 'Promoted to pipeline', 'success');
+    crmLoadLeadgen({ reset: true });
   } catch (e) {
     toast('Promote failed: ' + (e.message || 'Unknown error'), 'error');
   }
@@ -990,35 +1741,69 @@ function openNewDealModal() {
 }
 
 async function crmNewDeal() {
+  const btn = document.getElementById('nd-save');
+  btn.disabled = true;                                   // no double-submit
   try {
-    const companyId = await crmUpsertCompany({ name: val('nd-company'), domain: val('nd-domain') });
-    const contactId = val('nd-email') ? await crmUpsertContact({ email: val('nd-email'), name: val('nd-name'), company_id: companyId }) : null;
-    const { error } = await supabase.from('crm_deals').insert({
+    await crmIntake({
+      company_name: val('nd-company'), domain: val('nd-domain'),
+      email: val('nd-email'), contact_name: val('nd-name'),
       title: val('nd-title') || 'Untitled', motion: val('nd-motion'), stage: 'new',
-      value_aed: val('nd-value') || null, company_id: companyId, contact_id: contactId, source: 'other',
+      value_aed: val('nd-value') || null, source: 'other',
       owner_id: document.getElementById('nd-owner').value || null,
     });
-    if (error) throw error;
     closeModal('crm-newdeal-modal');
     toast('Deal created.', 'success');
     if (crmState.view === 'pipeline') crmLoadBoard();
   } catch (e) {
     toast('Create failed: ' + (e.message || 'Unknown error'), 'error');
+  } finally {
+    btn.disabled = false;
   }
 }
 
 // ===========================================
 // REPORTS — scoreboard + pipeline chart (Phase A count-based reads)
 // ===========================================
+function crmRenderReportsSkeleton() {
+  document.getElementById('crm-scoreboard').innerHTML = Array.from({ length: 7 }).map(() => `
+    <div class="tile">
+      <span class="skeleton skeleton-line w-60"></span>
+      <span class="skeleton skeleton-line w-40"></span>
+    </div>`).join('');
+}
+
+function crmRenderReportsError(msg) {
+  document.getElementById('crm-scoreboard').innerHTML = `
+    <div class="empty">
+      <span class="empty-ico" aria-hidden="true">▟</span>
+      <p>${esc(msg)}</p>
+    </div>`;
+  if (crmPipelineChart) { crmPipelineChart.destroy(); crmPipelineChart = null; }
+}
+
 async function crmLoadReports() {
-  const [{ data: sb }, { data: pipe }, { count: staleCount }, { count: renewCount }] = await Promise.all([
+  // Skeleton first: without it the panel showed the design-reference numbers
+  // baked into index.html until the fetch resolved, and a failed fetch left
+  // them on screen looking like real figures.
+  crmRenderReportsSkeleton();
+  const [sbRes, pipeRes, staleRes, renewRes] = await Promise.all([
     supabase.from('v_crm_quarter_scoreboard').select('*').maybeSingle(),
     supabase.from('v_crm_pipeline').select('*'),
     supabase.from('v_crm_stale_deals').select('*', { count: 'exact', head: true }),
     supabase.from('v_crm_renewals_next_90d').select('*', { count: 'exact', head: true }),
   ]);
-  crmRenderScoreboard(sb || {}, pipe || [], staleCount || 0, renewCount || 0);
-  crmRenderPipelineChart(pipe || []);
+  // Report failures instead of rendering zeros — "AED 0 / 0%" is indistinguishable
+  // from a genuinely empty quarter, which is the worst possible failure mode for
+  // a number someone might forecast against.
+  const failed = [sbRes, pipeRes, staleRes, renewRes].find((r) => r.error);
+  if (failed) {
+    console.error('[crm] load reports', failed.error);
+    toast('Could not load reports: ' + failed.error.message, 'error');
+    crmRenderReportsError('Reports could not be loaded, so no figures are shown. Try refreshing.');
+    return;
+  }
+  crmRenderScoreboard(sbRes.data || {}, pipeRes.data || [], staleRes.count || 0, renewRes.count || 0);
+  crmRenderPipelineChart(pipeRes.data || []);
 }
 
 function crmRenderScoreboard(sb, pipeRows, staleCount, renewCount) {
@@ -1044,7 +1829,10 @@ function crmRenderPipelineChart(rows) {
   if (crmPipelineChart) crmPipelineChart.destroy();
   const services = rows.filter((r) => r.motion === 'services');
   const software = rows.filter((r) => r.motion === 'software');
-  const stages = [...new Set(rows.map((r) => r.stage))];
+  // Canonical pipeline order. Deriving the axis from the rows put stages in
+  // whatever order the GROUP BY happened to return, so the funnel read as noise.
+  const canonical = [...new Set([...CRM_STAGES.services, ...CRM_STAGES.software])];
+  const stages = canonical.filter((s) => rows.some((r) => r.stage === s));
   // All colours come from CSS custom properties, so the chart adapts to the theme.
   const gridColor = cssVar('--line') || '#DCE4E1';
   const labelColor = cssVar('--muted') || '#5D6B65';
@@ -1071,22 +1859,47 @@ function crmRenderPipelineChart(rows) {
 // ===========================================
 // CSV EXPORT
 // ===========================================
+// Embedded resources arrive as nested objects; the old export dropped every
+// non-scalar column, so the file carried company_id/contact_id UUIDs and none
+// of the names that were explicitly fetched. Flatten them into real columns.
+function csvFlatten(row) {
+  const out = {};
+  for (const [k, v] of Object.entries(row)) {
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const prefix = k.replace(/^crm_/, '').replace(/s$/, '');
+      for (const [k2, v2] of Object.entries(v)) out[`${prefix}_${k2}`] = v2;
+    } else if (Array.isArray(v)) {
+      out[k] = JSON.stringify(v);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 async function crmExport() {
   try {
-    let data;
-    if (crmState.view === 'prospects') {
-      ({ data } = await supabase.from('crm_prospects').select('*').limit(5000));
+    let data, error;
+    if (crmState.view === 'leadgen' || crmState.view === 'partners') {
+      // export exactly what the current filters show, not the whole table
+      ({ data, error } = await crmLeadgenQuery().range(0, 4999));
     } else {
-      ({ data } = await supabase.from('crm_deals').select('*, crm_companies!company_id(name), crm_contacts(email)').eq('motion', crmState.motion).limit(5000));
+      ({ data, error } = await supabase.from('crm_deals')
+        .select('*, crm_companies!company_id(name,domain), crm_contacts(name,email,phone)')
+        .eq('motion', crmState.motion).limit(5000));
     }
+    if (error) throw error;
     if (!data || !data.length) { toast('Nothing to export.', 'error'); return; }
-    const cols = Object.keys(data[0]).filter((c) => typeof data[0][c] !== 'object');
+    const flat = data.map(csvFlatten);
+    const cols = [...new Set(flat.flatMap((r) => Object.keys(r)))];
     const rows = [cols.join(',')];
-    for (const r of data) rows.push(cols.map((c) => csvCell(r[c])).join(','));
+    for (const r of flat) rows.push(cols.map((c) => csvCell(r[c])).join(','));
     const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `underwings-crm-${crmState.view === 'prospects' ? 'prospects' : crmState.motion}-${new Date().toISOString().slice(0, 10)}.csv`;
+    const what = crmState.view === 'partners' ? 'partners'
+      : crmState.view === 'leadgen' ? 'leadgen' : crmState.motion;
+    a.download = `underwings-crm-${what}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
     toast('Export started.', 'success');
@@ -1153,14 +1966,19 @@ function crmCmdkBuild(query) {
   const actions = [
     { icon: '+', label: 'New deal', kind: 'Action', run: () => { crmCloseCmdk(); openNewDealModal(); } },
     { icon: '▚', label: 'Go to Pipeline', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('pipeline'); } },
-    { icon: '◇', label: 'Go to Prospects', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('prospects'); } },
+    { icon: '◇', label: 'Go to LeadGen', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('leadgen'); } },
+    { icon: '⋈', label: 'Go to Partners', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('partners'); } },
+    { icon: '▷', label: 'Run LeadGen now', kind: 'Action', admin: true, run: () => { crmCloseCmdk(); crmLeadgenRunNow(); } },
     { icon: '▤', label: 'Go to Reports', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('reports'); } },
     { icon: '↧', label: 'Export current view (CSV)', kind: 'Action', run: () => { crmCloseCmdk(); crmExport(); } },
   ];
   if (crmState._openId) {
     actions.push({ icon: '✎', label: 'Log activity on open deal', kind: 'Action', run: () => { crmCloseCmdk(); const i = document.getElementById('dw-activity-input'); if (i) i.focus(); } });
   }
-  for (const a of actions) if (!q || a.label.toLowerCase().includes(q)) items.push(a);
+  for (const a of actions) {
+    if (a.admin && window.__crmRole !== 'admin') continue;
+    if (!q || a.label.toLowerCase().includes(q)) items.push(a);
+  }
 
   for (const d of crmState.deals) {
     const co = d.crm_companies?.name || '';
@@ -1221,18 +2039,21 @@ function crmCmdkActivate(i) {
   if (it && typeof it.run === 'function') it.run();
 }
 
-// Jump to a prospect: switch to the Signals view, then scroll + flash its card
-// once the feed has rendered (the load is async, so poll briefly for the card).
+// Jump to a prospect: switch to the view holding it, then scroll + flash its
+// row once the table has rendered (the load is async, so poll briefly for it).
 function crmFocusProspect(id) {
-  crmSwitchView('prospects');
+  // a partner lives in the Partners tab; switching to LeadGen would load a
+  // page that can never contain it, and the poll below would just time out
+  const row = crmState.prospects.find((p) => p.id === id);
+  crmSwitchView(row && row.kind === 'partner' ? 'partners' : 'leadgen');
   const sel = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
   let tries = 0;
   const tick = () => {
-    const card = document.querySelector(`#crm-prospects .icard[data-id="${sel}"]`);
-    if (card) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      card.classList.add('icard--flash');
-      setTimeout(() => card.classList.remove('icard--flash'), 1600);
+    const row = document.querySelector(`#crm-lg-rows tr[data-id="${sel}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.classList.add('lg-row--flash');
+      setTimeout(() => row.classList.remove('lg-row--flash'), 1600);
     } else if (tries++ < 12) {
       setTimeout(tick, 120);
     }

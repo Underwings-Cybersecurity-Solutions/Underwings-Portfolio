@@ -13,7 +13,7 @@ import '../../../styles/category-hub.css';
 import '../../../styles/service-page.css';
 
 const faqs = [
-  { q: "Do you test iOS, Android, or both?", a: "Both. We test native iOS (Swift/Objective-C), native Android (Kotlin/Java), and cross-platform builds (React Native, Flutter, Xamarin). Per-platform pricing is per binary — one iOS build and one Android build of the same app are two scopes." },
+  { q: "Do you test iOS, Android, or both?", a: "Both. We test native iOS (Swift/Objective-C), native Android (Kotlin/Java), and cross-platform builds (React Native, Flutter, Xamarin). Scoping is per binary — one iOS build and one Android build of the same app are two scopes." },
   { q: "What methodology do you follow?", a: "OWASP MASTG (Mobile Application Security Testing Guide) and OWASP MASVS (Mobile Application Security Verification Standard), aligned to NIST SP 800-115. Our test plan covers all 8 MASVS control groups: architecture, data storage, cryptography, authentication, network, platform interaction, code quality, and resilience." },
   { q: "Do I need to give you a jailbroken / rooted device?", a: "No — we provide our own instrumented test devices (both jailbroken iOS and rooted Android) plus non-rooted devices to test both attack paths. You provide the app binary (IPA/APK) and test credentials." },
   { q: "What do you actually test?", a: "Static analysis of the binary (decompilation, hardcoded secrets, insecure libraries, obfuscation quality), dynamic analysis (runtime inspection, method hooking with Frida, SSL pinning bypass, local storage inspection), network traffic analysis (API calls, TLS config, certificate validation), platform-specific attacks (deep links, IPC, keychain/keystore misuse, WebView issues), and authentication/authorization flaws against the backing API." },
@@ -33,7 +33,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "Mobile Application Penetration Testing", "serviceType": "Mobile Application Penetration Testing",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "14000", "highPrice": "38000" },
     "description": "Manual iOS and Android mobile application penetration testing in UAE — OWASP MASTG and MASVS aligned. Static + dynamic analysis, runtime instrumentation, network, storage, and platform-attack coverage.",
     "url": "https://underwings.org/services/offensive-security/mobile-application-penetration-testing"
   },
@@ -47,7 +46,7 @@ export const prerender = false;
 
 <Layout
   title="Mobile App Penetration Testing UAE | Underwings"
-  description="UAE mobile application penetration testing (iOS and Android) by OSCP/CPTS-certified practitioners. OWASP MASTG, MASVS, static + dynamic analysis, runtime instrumentation. AED 14,000 – 38,000."
+  description="UAE mobile application penetration testing (iOS and Android) by OSCP/CPTS-certified practitioners. OWASP MASTG, MASVS, static + dynamic analysis, runtime instrumentation. Fixed-scope quotes via scoping call."
   keywords="mobile penetration testing UAE, iOS pentest Dubai, Android pentest UAE, OWASP MASTG UAE, mobile app security Abu Dhabi, MASVS audit UAE"
   wfPage="services-page"
   schema={schema}
@@ -75,7 +74,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 14,000 – 38,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">OSCP · CPTS · CEH</span>
             <span class="svc-hero-badge svc-hero-badge-time">7 – 14 days typical</span>
           </div>
@@ -184,34 +182,7 @@ export const prerender = false;
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
       <div class="container-medium">
-        <ServiceScopeHint body="Tell us about your app and target environments — we'll send a written scoping brief and indicative AED pricing within one working day." />
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 14k – 38k</div>
-            <p class="svc-pricing-note">Per engagement. Written quote within 48 hours.</p>
-            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
-            <ul class="svc-pricing-drivers">
-              <li>Single platform (iOS or Android) vs. both</li>
-              <li>Native vs. cross-platform build (React Native, Flutter)</li>
-              <li>App complexity — number of screens, roles, flows</li>
-              <li>Payment, health data, or PII in scope</li>
-              <li>Obfuscation and anti-tamper protections present</li>
-              <li>Timeline (standard vs. expedited)</li>
-            </ul>
-          </div>
-          <div class="svc-pricing-card">
-            <h4>Commercial terms</h4>
-            <ul class="svc-pricing-terms">
-              <li><strong>Deposit:</strong> 50% at signing; balance on final report</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Quote validity:</strong> 30 days</li>
-              <li><strong>Re-test:</strong> 1 × critical/high re-test included</li>
-              <li><strong>Scope changes:</strong> written change request required</li>
-            </ul>
-          </div>
-        </div>
+        <ServiceScopeHint body="Tell us about your app and target environments — we'll send a written scoping brief and a fixed-scope quote within one working day." />
       </div>
     </section>
 

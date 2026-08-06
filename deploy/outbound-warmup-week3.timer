@@ -1,0 +1,9 @@
+[Unit]
+Description=Fire Underwings outbound warmup week-3 ramp on 2026-06-12 09:00 Asia/Dubai
+
+[Timer]
+OnCalendar=2026-06-12 09:00:00 Asia/Dubai
+Persistent=true
+
+[Install]
+WantedBy=timers.target

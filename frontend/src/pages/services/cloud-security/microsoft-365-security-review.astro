@@ -12,7 +12,7 @@ import '../../../styles/service-page.css';
 
 const faqs = [
   { q: "What exactly do you review?", a: "Exchange Online (mail security, anti-phishing, anti-malware, SPF/DKIM/DMARC), SharePoint and OneDrive sharing and external access, Teams security, Conditional Access policies, MFA coverage and exceptions, privileged roles, Data Loss Prevention policies, Microsoft Defender for Office 365 and Defender for Cloud Apps posture. Measured against Microsoft Secure Score and CIS Microsoft 365 Foundations Benchmark." },
-  { q: "How is this different from the Azure Cloud Security Assessment?", a: "Azure assessment focuses on Azure infrastructure (subscriptions, VMs, storage, networking). M365 Review focuses on the productivity-and-collaboration side (Exchange, SharePoint, Teams, DLP, Conditional Access). Most mid-market UAE organisations need both — bundle for 10% discount." },
+  { q: "How is this different from the Azure Cloud Security Assessment?", a: "Azure assessment focuses on Azure infrastructure (subscriptions, VMs, storage, networking). M365 Review focuses on the productivity-and-collaboration side (Exchange, SharePoint, Teams, DLP, Conditional Access). Most mid-market UAE organisations need both — we can bundle them into a single engagement." },
   { q: "How long does it take?", a: "3 – 5 working days fieldwork plus 1 – 2 days reporting. End-to-end in 1 – 2 weeks calendar time." },
   { q: "What do you need from us?", a: "Security Reader + Global Reader role on the M365 tenant, plus interviews with 2 – 3 IT / security staff." },
 ];
@@ -27,7 +27,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "Microsoft 365 Security Review", "serviceType": "Microsoft 365 Security Assessment",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "7000", "highPrice": "18000" },
     "description": "UAE Microsoft 365 security posture review — Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. Measured against CIS Microsoft 365 benchmark.",
     "url": "https://underwings.org/services/cloud-security/microsoft-365-security-review"
   },
@@ -41,7 +40,7 @@ export const prerender = false;
 
 <Layout
   title="Microsoft 365 Security Review UAE | Underwings"
-  description="UAE Microsoft 365 security posture review against CIS Microsoft 365 benchmark. Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. AED 7,000 – 18,000. Led by Azure Security + Security+ practitioner."
+  description="UAE Microsoft 365 security posture review against CIS Microsoft 365 benchmark. Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. Led by Azure Security + Security+ practitioner."
   keywords="Microsoft 365 security review UAE, M365 security audit Dubai, Conditional Access review UAE, Exchange Online security assessment, SharePoint security review UAE"
   wfPage="services-page"
   schema={schema}
@@ -69,7 +68,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 7,000 – 18,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">Azure Security · Security+</span>
             <span class="svc-hero-badge svc-hero-badge-time">1 – 2 weeks</span>
           </div>
@@ -135,25 +133,6 @@ export const prerender = false;
       </div>
     </section>
 
-    <section class="section bg-color-dark">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
-      <div class="container-medium">
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing" style="grid-template-columns:1fr;max-width:540px;">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 7k – 18k</div>
-            <p class="svc-pricing-note">Per engagement. Price driven by tenant size, number of domains, and Defender plan coverage.</p>
-            <ul class="svc-pricing-terms" style="margin-top:0.75rem;">
-              <li><strong>Deposit:</strong> 50% at signing</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Azure bundle:</strong> 10% discount when combined with Azure Cloud Security Assessment</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="section">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
       <div class="container-medium">
@@ -161,7 +140,7 @@ export const prerender = false;
         <div class="svc-team" style="grid-template-columns:1fr;max-width:540px;">
           <div class="svc-team-card">
             <p class="svc-team-role">Lead Reviewer</p>
-            <h3 class="svc-team-name">Vinoth Samiyappa</h3>
+            <h3 class="svc-team-name">Vinoth Sivasamy</h3>
             <p class="svc-team-certs">CCNP · Fortinet · Azure · Six Sigma</p>
             <p class="svc-team-focus"><strong>Focus:</strong> M365 tenant configuration, Exchange / SharePoint / Teams hardening, Conditional Access design.</p>
           </div>
@@ -191,7 +170,7 @@ export const prerender = false;
         <div class="svc-related-grid" style="grid-template-columns:1fr 1fr;">
           <a href="/services/cloud-security/azure-cloud-security-assessment" class="svc-related-card">
             <h4>Azure Cloud Security Assessment</h4>
-            <p>The infrastructure side of Microsoft cloud — bundle for 10% discount.</p>
+            <p>The infrastructure side of Microsoft cloud — a frequent companion engagement.</p>
             <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </a>
           <a href="/services/offensive-security/phishing-simulation" class="svc-related-card">

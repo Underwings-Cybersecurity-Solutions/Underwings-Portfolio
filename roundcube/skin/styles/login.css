@@ -1,0 +1,104 @@
+/* Underwings login — visual styling only, inputs untouched */
+
+/* Page background */
+body.task-login {
+  background: #f7f8fa !important;
+}
+
+/* Center the card vertically and horizontally */
+body.task-login #layout {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+body.task-login h1.voice {
+  position: absolute !important;
+  clip: rect(0,0,0,0) !important;
+}
+
+/* Card */
+body.task-login #layout-content {
+  display: block !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.06) !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  padding: 2.5rem 2rem 2rem !important;
+  margin: 1.5rem !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+  overflow: visible !important;
+}
+
+/* Logo */
+body.task-login #logo {
+  filter: brightness(0) !important;
+  position: static !important;
+  top: auto !important;
+  max-height: 42px !important;
+  margin: 0 auto 1.75rem !important;
+}
+
+/* Form positioning */
+body.task-login #login-form {
+  position: static !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Button — theme green */
+body.task-login #rcmloginsubmit {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(22,163,74,0.2) !important;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s !important;
+}
+
+body.task-login #rcmloginsubmit:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+  box-shadow: 0 2px 8px rgba(22,163,74,0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.task-login #rcmloginsubmit:active {
+  background: #166534 !important;
+  transform: none !important;
+}
+
+/* Footer */
+body.task-login #login-footer {
+  color: #bbb !important;
+  font-size: 0.72rem !important;
+  border-top: 1px solid #f0f0f0 !important;
+  margin-top: 1.5rem !important;
+  padding-top: 1rem !important;
+  background: transparent !important;
+}
+
+/* Error toasts */
+body.task-login #messagestack div {
+  border-radius: 10px !important;
+}
+
+body.task-login #messagestack .alert-danger {
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #dc2626 !important;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  body.task-login #layout-content {
+    margin: 1rem !important;
+    padding: 2rem 1.5rem 1.5rem !important;
+  }
+}

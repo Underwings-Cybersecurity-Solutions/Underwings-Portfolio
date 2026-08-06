@@ -1,0 +1,9 @@
+[Unit]
+Description=Clear docker-internal IPs from Stalwart auto-ban list (keeps mail.underwings.org admin UI reachable)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/deployer/underwings
+ExecStart=/home/deployer/underwings/scripts/stalwart-unban-internal.sh

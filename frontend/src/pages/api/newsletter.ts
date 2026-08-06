@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-import { notifyN8nInbound } from '../../lib/n8n-inbound';
+import { notifyCrmInbound } from '../../lib/crm-inbound';
 
 export const prerender = false;
 
@@ -135,32 +135,28 @@ async function sendWelcomeEmail(email: string): Promise<void> {
   }
 }
 
-// Keila newsletter integration — push subscriber to Keila contacts
-const KEILA_API_URL = import.meta.env.KEILA_API_URL || process.env.KEILA_API_URL;
-const KEILA_API_KEY = import.meta.env.KEILA_API_KEY || process.env.KEILA_API_KEY;
+// Newsletter integration — add subscriber to the Frappe "Underwings Newsletter"
+// Email Group via the crm-bridge (aliased `krayin`). Replaces the old Keila push.
+const NEWSLETTER_URL = import.meta.env.NEWSLETTER_WEBHOOK_URL || process.env.NEWSLETTER_WEBHOOK_URL || 'http://krayin/webhook-newsletter';
+const NEWSLETTER_TOKEN = import.meta.env.KRAYIN_WEBHOOK_TOKEN || process.env.KRAYIN_WEBHOOK_TOKEN;
 
 async function pushToKeila(email: string, source: string): Promise<void> {
-  if (!KEILA_API_URL || !KEILA_API_KEY) return;
+  if (!NEWSLETTER_TOKEN) return;
   try {
-    const res = await fetch(`${KEILA_API_URL}/contacts`, {
+    const res = await fetch(NEWSLETTER_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${KEILA_API_KEY}`,
+        'X-Webhook-Token': NEWSLETTER_TOKEN,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        data: {
-          email,
-          data: { source },
-        },
-      }),
+      body: JSON.stringify({ email, source }),
     });
-    if (!res.ok && res.status !== 409) {
+    if (!res.ok) {
       const text = await res.text();
-      console.error('Keila push non-OK:', res.status, text);
+      console.error('Newsletter push non-OK:', res.status, text);
     }
   } catch (e) {
-    console.error('Keila push error:', e);
+    console.error('Newsletter push error:', e);
   }
 }
 
@@ -216,7 +212,7 @@ export const POST: APIRoute = async ({ request }) => {
         : Promise.resolve({ error: { message: 'No Supabase client' } }),
       pushToKeila(cleanEmail, source),
       sendWelcomeEmail(cleanEmail),
-      notifyN8nInbound({
+      notifyCrmInbound({
         source: 'newsletter',
         person: {
           name: friendlyName,

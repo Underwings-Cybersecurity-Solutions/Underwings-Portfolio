@@ -48,10 +48,6 @@ get_env() {
 BACKUP_GPG_PASSPHRASE="$(get_env BACKUP_GPG_PASSPHRASE)"
 POSTGRES_USER="$(get_env POSTGRES_USER)"
 POSTGRES_PASSWORD="$(get_env POSTGRES_PASSWORD)"
-CALCOM_DB_PASSWORD="$(get_env CALCOM_DB_PASSWORD)"
-DOCUMENSO_DB_PASSWORD="$(get_env DOCUMENSO_DB_PASSWORD)"
-METRICS_DB_PASSWORD="$(get_env METRICS_DB_PASSWORD)"
-N8N_DB_PASSWORD="$(get_env N8N_DB_PASSWORD)"
 SLACK_OPS_WEBHOOK="$(get_env SLACK_OPS_WEBHOOK)"
 
 if [[ -z "${BACKUP_GPG_PASSPHRASE:-}" ]]; then
@@ -101,25 +97,17 @@ backup_mariadb() {
 
 log "===== Nightly backup run ${STAMP} ====="
 
-# Supabase Postgres (multiple DBs in one cluster — back up the whole cluster)
+# Supabase Postgres (multiple DBs in one cluster — back up the whole cluster).
+# The `underwings` DB holds the CRM (crm_deals/contacts/companies/activities/
+# prospects) alongside the CMS and form_submissions.
 backup_postgres underwings-db          postgres   "${POSTGRES_USER:-postgres}"   "${POSTGRES_PASSWORD}"
 backup_postgres underwings-db          underwings "${POSTGRES_USER:-postgres}"   "${POSTGRES_PASSWORD}"
 
-# Cal.com
-backup_postgres underwings-calcom-db   calcom     calcom                          "${CALCOM_DB_PASSWORD}"
-
-# Documenso
-backup_postgres underwings-documenso-db documenso documenso                        "${DOCUMENSO_DB_PASSWORD}"
-
-# Metrics warehouse + Metabase app DB (both inside metrics-db cluster)
-backup_postgres underwings-metrics-db  warehouse  warehouse_admin                  "${METRICS_DB_PASSWORD}"
-backup_postgres underwings-metrics-db  metabase   warehouse_admin                  "${METRICS_DB_PASSWORD}"
-
-# n8n
-backup_postgres underwings-n8n-db      n8n        n8n                              "${N8N_DB_PASSWORD}"
-
-# Krayin (MariaDB)
-backup_mariadb  underwings-krayin-db   krayin     krayin                           "KrCrmUnderwings2026x"
+# NOTE: Cal.com, Documenso, Metabase/warehouse, n8n and Krayin were removed in
+# 2026-06/07. Their entries were left here and failed every single night, so the
+# run always ended "Failures: 6" and always fired the Slack alert — which meant
+# a real backup failure would have looked exactly like the normal state. Removed
+# deliberately; re-add a line only when the service actually exists again.
 
 # ─── Retention ─────────────────────────────────────────────────────────
 log "Pruning backups older than ${RETENTION_DAYS} days…"

@@ -1,0 +1,659 @@
+/* ============================================================
+   UNDERWINGS — Roundcube app dark theme (Thunderbird-inspired)
+   Login styles are in login.css — loaded separately.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================
+   1. APP — GLOBAL BASE
+   ============================================================ */
+
+body:not(.task-login) {
+  background: #141414 !important;
+}
+
+html:not(.dark-mode) body:not(.task-login)::before {
+  display: none !important;
+  background: none !important;
+}
+
+html.dark-mode body:not(.task-login) {
+  font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #141414;
+  color: #d4dde4;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+html.dark-mode:not(.touch) ::-webkit-scrollbar { width: 4px; height: 4px; }
+html.dark-mode:not(.touch) ::-webkit-scrollbar-track { background: transparent; }
+html.dark-mode:not(.touch) ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+html.dark-mode:not(.touch) ::-webkit-scrollbar-thumb:hover { background: rgba(36,215,88,0.5); }
+
+html.dark-mode body:not(.task-login),
+html.dark-mode #layout,
+html.dark-mode #layout-sidebar,
+html.dark-mode #layout-list,
+html.dark-mode #layout-content,
+html.dark-mode #layout > div > .header,
+html.dark-mode #layout > div > .footer {
+  background-color: #141414;
+  border-color: rgba(255,255,255,0.07);
+}
+
+/* ============================================================
+   2. TASK MENU — left icon strip
+   ============================================================ */
+
+html.dark-mode #layout-menu,
+html.dark-mode #taskmenu {
+  background: #111111 !important;
+  border-right: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode #taskmenu a {
+  color: rgba(255,255,255,0.4) !important;
+  border-radius: 8px !important;
+  margin: 2px 5px !important;
+  transition: color 0.12s ease, background 0.12s ease !important;
+}
+
+html.dark-mode #taskmenu a:hover {
+  color: rgba(255,255,255,0.8) !important;
+  background: rgba(255,255,255,0.06) !important;
+}
+
+html.dark-mode #taskmenu a.selected {
+  color: #24d758 !important;
+  background: rgba(36,215,88,0.1) !important;
+}
+
+html.dark-mode #taskmenu .action-buttons a {
+  color: #24d758 !important;
+}
+
+/* Special buttons — about + logout */
+html.dark-mode #layout-menu .special-buttons {
+  background: #111111 !important;
+  border-top: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode #taskmenu a.about {
+  color: rgba(255,255,255,0.3) !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+}
+html.dark-mode #taskmenu a.about:hover {
+  color: rgba(255,255,255,0.65) !important;
+  background: rgba(255,255,255,0.06) !important;
+}
+
+html.dark-mode #taskmenu a.logout {
+  color: rgba(239,99,99,0.7) !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+}
+html.dark-mode #taskmenu a.logout:hover {
+  color: #f87171 !important;
+  background: rgba(239,68,68,0.1) !important;
+}
+
+/* ============================================================
+   3. SIDEBAR — folder list
+   ============================================================ */
+
+html.dark-mode #layout-sidebar {
+  background: #171717 !important;
+  border-right: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode #layout-sidebar > .header {
+  background: #171717 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+  color: rgba(255,255,255,0.3) !important;
+}
+
+html.dark-mode #layout-sidebar > .header a.button {
+  color: rgba(255,255,255,0.35) !important;
+}
+html.dark-mode #layout-sidebar > .header a.button:hover {
+  color: rgba(255,255,255,0.7) !important;
+  background: rgba(255,255,255,0.06) !important;
+}
+
+html.dark-mode .folderlist li,
+html.dark-mode #mailboxlist li {
+  border-color: transparent !important;
+}
+
+html.dark-mode .folderlist li a,
+html.dark-mode #mailboxlist li a {
+  color: rgba(255,255,255,0.58) !important;
+  font-size: 0.82rem !important;
+  font-weight: 400 !important;
+  border-radius: 6px !important;
+  margin: 0 6px !important;
+  padding: 5px 8px !important;
+  transition: color 0.12s ease, background 0.12s ease !important;
+}
+
+html.dark-mode .folderlist li a:hover,
+html.dark-mode #mailboxlist li a:hover {
+  color: rgba(255,255,255,0.85) !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+
+html.dark-mode .listing li.selected > a,
+html.dark-mode .folderlist li.selected > a,
+html.dark-mode #mailboxlist li.selected > a {
+  background: rgba(36,215,88,0.1) !important;
+  color: #24d758 !important;
+  font-weight: 500 !important;
+}
+
+html.dark-mode .folderlist li .unreadcount,
+html.dark-mode #mailboxlist li .unreadcount {
+  background: rgba(36,215,88,0.15) !important;
+  color: #24d758 !important;
+  border-radius: 99px !important;
+  font-size: 0.65rem !important;
+  font-weight: 600 !important;
+  padding: 1px 5px !important;
+  min-width: 16px !important;
+  text-align: center !important;
+}
+
+html.dark-mode .quota-widget { color: rgba(255,255,255,0.3) !important; }
+html.dark-mode .quota-widget .bar {
+  background: rgba(255,255,255,0.07) !important;
+  border-color: transparent !important;
+  border-radius: 99px !important; height: 2px !important;
+}
+html.dark-mode .quota-widget .bar > div {
+  background: #24d758 !important; border-radius: 99px !important;
+}
+
+/* ============================================================
+   4. TOOLBAR
+   ============================================================ */
+
+html.dark-mode #layout > div > .header,
+html.dark-mode .toolbar {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode .menu.toolbar a,
+html.dark-mode .toolbar a.button,
+html.dark-mode .toolbar button {
+  color: rgba(255,255,255,0.5) !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  font-size: 0.8rem !important;
+  transition: color 0.12s ease, background 0.12s ease !important;
+}
+
+html.dark-mode .menu.toolbar a:not(.disabled):hover,
+html.dark-mode .toolbar a.button:not(.disabled):hover {
+  color: rgba(255,255,255,0.9) !important;
+  background: rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode .menu.toolbar a.selected {
+  color: #24d758 !important;
+  background: transparent !important;
+}
+
+html.dark-mode .menu.toolbar a.disabled,
+html.dark-mode .toolbar a.button.disabled {
+  color: rgba(255,255,255,0.2) !important;
+  opacity: 0.5 !important;
+}
+
+html.dark-mode .menu.toolbar .dropbutton a.dropdown {
+  color: rgba(255,255,255,0.3) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+html.dark-mode .searchbar {
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.09) !important;
+  border-radius: 7px !important;
+}
+html.dark-mode .searchbar input,
+html.dark-mode .searchbar form:before,
+html.dark-mode .searchbar a {
+  color: rgba(255,255,255,0.5) !important;
+}
+html.dark-mode .searchbar:focus-within {
+  border-color: rgba(36,215,88,0.3) !important;
+  background: rgba(36,215,88,0.03) !important;
+}
+
+/* ============================================================
+   5. MESSAGE LIST
+   ============================================================ */
+
+html.dark-mode #layout-list {
+  background: #141414 !important;
+  border-right: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode #layout-list > .header {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode .messagelist { color: rgba(255,255,255,0.65) !important; }
+
+html.dark-mode .messagelist tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+  transition: background 0.1s ease !important;
+}
+html.dark-mode .messagelist tbody tr:hover td {
+  background: rgba(255,255,255,0.03) !important;
+}
+
+html.dark-mode .listing tr.selected td {
+  background: rgba(36,215,88,0.08) !important;
+  color: #e2e8f0 !important;
+}
+html.dark-mode .listing li.selected,
+html.dark-mode .listing li.selected > a {
+  background: rgba(36,215,88,0.1) !important;
+  color: #24d758 !important;
+}
+
+html.dark-mode .messagelist tr:not(.flagged):not(.deleted) td.subject span.subject a {
+  color: rgba(255,255,255,0.72) !important;
+  font-size: 0.82rem !important;
+}
+html.dark-mode .messagelist tr.unread:not(.deleted) td.subject span.subject a {
+  color: rgba(255,255,255,0.92) !important;
+  font-weight: 500 !important;
+}
+html.dark-mode .messagelist tr:not(.flagged):not(.deleted) td.subject span.date,
+html.dark-mode .messagelist tr:not(.flagged):not(.deleted) td.subject span.fromto,
+html.dark-mode .messagelist tr:not(.flagged):not(.deleted) td.subject span.size {
+  color: rgba(255,255,255,0.3) !important;
+  font-size: 0.75rem !important;
+}
+html.dark-mode .messagelist tr:not(.flagged):not(.deleted) td.subject span.msgicon.status {
+  color: rgba(255,255,255,0.45) !important;
+}
+html.dark-mode .messagelist tr.unread td.subject span.msgicon.status.unread::before {
+  color: #f59e0b !important;
+}
+html.dark-mode .messagelist tr.flagged:not(.deleted) td,
+html.dark-mode .messagelist tr.flagged:not(.deleted) span.attachment span {
+  color: #f59e0b !important;
+}
+html.dark-mode .messagelist tr.deleted td span,
+html.dark-mode .messagelist tr.deleted td.subject span.subject a {
+  color: rgba(255,255,255,0.22) !important;
+}
+html.dark-mode .messagelist span.attachment span {
+  color: rgba(255,255,255,0.3) !important;
+}
+
+html.dark-mode .menu.pagenav.pagenav-list {
+  background: #1a1a1a !important;
+  border-top: 1px solid rgba(255,255,255,0.07) !important;
+}
+html.dark-mode .menu.pagenav a,
+html.dark-mode .menu.pagenav .pagenav-text {
+  color: rgba(255,255,255,0.4) !important;
+  font-size: 0.78rem !important;
+}
+
+/* ============================================================
+   6. READING PANE
+   ============================================================ */
+
+html.dark-mode #layout-content,
+#layout-content {
+  background: #141414 !important;
+}
+#layout-content .iframe-wrapper,
+#layout-content .iframe-wrapper iframe {
+  background: #141414 !important;
+}
+
+html.dark-mode #layout-content > .header {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+html.dark-mode #message-header {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  padding: 1rem 1.25rem !important;
+}
+html.dark-mode #message-header .subject a,
+html.dark-mode #message-header > .subject {
+  color: rgba(255,255,255,0.92) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+}
+html.dark-mode #message-header .header-headers .header-title {
+  color: rgba(255,255,255,0.4) !important;
+  font-weight: 400 !important;
+  font-size: 0.78rem !important;
+}
+html.dark-mode #message-header .header-links a {
+  color: rgba(255,255,255,0.4) !important;
+  border-radius: 5px !important;
+  transition: color 0.12s !important;
+}
+html.dark-mode #message-header .header-links a:hover {
+  color: rgba(255,255,255,0.8) !important;
+  background: rgba(255,255,255,0.06) !important;
+}
+
+html.dark-mode .message-part { border-color: rgba(255,255,255,0.07) !important; }
+html.dark-mode .message-htmlpart {
+  background: #fff !important;
+  color: #333 !important;
+  border-radius: 8px !important;
+  margin-top: 0.5rem !important;
+}
+html.dark-mode .message-partheaders {
+  background: rgba(255,255,255,0.04) !important;
+  border: 0 !important;
+}
+html.dark-mode .message-partheaders table.headers-table,
+html.dark-mode .message-partheaders table.headers-table * {
+  color: rgba(255,255,255,0.6) !important;
+  font-weight: 400 !important;
+}
+html.dark-mode .message-part blockquote {
+  background: rgba(255,255,255,0.02) !important;
+  border-color: rgba(255,255,255,0.15) !important;
+  color: rgba(255,255,255,0.45) !important;
+}
+html.dark-mode .message-part span.sig { color: rgba(255,255,255,0.3) !important; }
+
+html.dark-mode .attachmentslist {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 8px !important;
+}
+html.dark-mode .attachmentslist a,
+html.dark-mode .attachmentslist li .attachment-name { color: rgba(255,255,255,0.72) !important; }
+html.dark-mode .attachmentslist li .attachment-size { color: rgba(255,255,255,0.35) !important; }
+
+/* ============================================================
+   7. COMPOSE
+   ============================================================ */
+
+html.dark-mode .recipient-input {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+html.dark-mode .recipient-input.focus {
+  border-color: rgba(36,215,88,0.4) !important;
+  background: rgba(36,215,88,0.03) !important;
+}
+html.dark-mode .recipient-input a.button.icon,
+html.dark-mode .recipient-input input { color: rgba(255,255,255,0.7) !important; }
+html.dark-mode .recipient-input .recipient {
+  background: rgba(255,255,255,0.07) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  border-radius: 4px !important;
+  color: rgba(255,255,255,0.8) !important;
+  font-size: 0.8rem !important;
+}
+
+/* ============================================================
+   8. FORMS & INPUTS
+   ============================================================ */
+
+html.dark-mode .form-control,
+html.dark-mode .custom-file-label {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.85) !important;
+  border-radius: 7px !important;
+  font-size: 0.85rem !important;
+}
+html.dark-mode .form-control:focus {
+  background: rgba(36,215,88,0.03) !important;
+  border-color: rgba(36,215,88,0.4) !important;
+  box-shadow: 0 0 0 3px rgba(36,215,88,0.08) !important;
+  color: rgba(255,255,255,0.92) !important;
+}
+html.dark-mode .input-group-text {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.45) !important;
+}
+html.dark-mode .multi-input:not(.is-invalid) > .content {
+  border-color: rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.04) !important;
+}
+html.dark-mode .multi-input:not(.is-invalid) > .content.focused {
+  border-color: rgba(36,215,88,0.4) !important;
+}
+html.dark-mode ::placeholder,
+html.dark-mode ::-webkit-input-placeholder { color: rgba(255,255,255,0.2) !important; }
+
+/* ============================================================
+   9. BUTTONS
+   ============================================================ */
+
+html.dark-mode .btn {
+  border-radius: 7px !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  transition: opacity 0.12s, transform 0.12s, background 0.12s !important;
+}
+html.dark-mode .btn:disabled { opacity: 0.45 !important; }
+
+html.dark-mode .btn-primary {
+  background: linear-gradient(135deg, #24d758, #1db84a) !important;
+  border: none !important;
+  color: #0a1a0f !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 12px rgba(36,215,88,0.2) !important;
+}
+html.dark-mode .btn-primary:hover:not(:disabled) {
+  opacity: 0.88 !important;
+  transform: translateY(-1px) !important;
+}
+
+html.dark-mode .btn-secondary {
+  background: rgba(255,255,255,0.07) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.75) !important;
+}
+html.dark-mode .btn-secondary:hover:not(:disabled) {
+  background: rgba(255,255,255,0.11) !important;
+  color: rgba(255,255,255,0.92) !important;
+}
+
+html.dark-mode .btn-danger {
+  background: rgba(239,68,68,0.15) !important;
+  border: 1px solid rgba(239,68,68,0.25) !important;
+  color: #fca5a5 !important;
+}
+html.dark-mode .btn-danger:hover:not(:disabled) {
+  background: rgba(239,68,68,0.25) !important;
+}
+
+html.dark-mode .floating-action-buttons a.button {
+  background: linear-gradient(135deg, #24d758, #1db84a) !important;
+  box-shadow: 0 4px 18px rgba(36,215,88,0.3) !important;
+  color: #0a1a0f !important;
+}
+
+/* ============================================================
+   10. DIALOGS & POPUPS
+   ============================================================ */
+
+html.dark-mode .ui-widget,
+html.dark-mode .ui-widget-content,
+html.dark-mode .ui-widget-header {
+  background: #1e1e1e !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: rgba(255,255,255,0.85) !important;
+}
+html.dark-mode .ui-dialog {
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6) !important;
+}
+html.dark-mode .ui-dialog .ui-dialog-titlebar {
+  background: rgba(255,255,255,0.03) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  padding: 0.85rem 1.25rem !important;
+}
+html.dark-mode .ui-dialog .ui-dialog-title,
+html.dark-mode .ui-dialog .ui-dialog-titlebar-close {
+  color: rgba(255,255,255,0.85) !important;
+  background: transparent !important;
+  font-weight: 600 !important;
+}
+html.dark-mode .ui-dialog .ui-dialog-buttonpane {
+  background: rgba(255,255,255,0.02) !important;
+  border-top: 1px solid rgba(255,255,255,0.08) !important;
+}
+html.dark-mode .ui-widget-overlay { background: rgba(0,0,0,0.65) !important; }
+
+html.dark-mode .popover,
+html.dark-mode .popupmenu {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+html.dark-mode .popover-body { color: rgba(255,255,255,0.8) !important; }
+html.dark-mode .popover .menu li a,
+html.dark-mode .popupmenu .listing li > a {
+  color: rgba(255,255,255,0.72) !important;
+  border-radius: 6px !important;
+  font-size: 0.82rem !important;
+  transition: background 0.1s, color 0.1s !important;
+}
+html.dark-mode .popover .menu li a:not(.disabled):hover,
+html.dark-mode .popupmenu .listing li > a:not(.disabled):hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: rgba(255,255,255,0.95) !important;
+}
+html.dark-mode .popover .menu li.separator { color: rgba(255,255,255,0.2) !important; background: transparent !important; }
+html.dark-mode .popover .menu ul + li.separator { border-top: 1px solid rgba(255,255,255,0.07) !important; }
+
+/* ============================================================
+   11. SETTINGS & TABLES
+   ============================================================ */
+
+html.dark-mode .table { color: rgba(255,255,255,0.72) !important; }
+html.dark-mode .table td,
+html.dark-mode .table th,
+html.dark-mode .table thead th {
+  border-color: rgba(255,255,255,0.07) !important;
+  font-size: 0.82rem !important;
+}
+html.dark-mode .table-widget { border-color: rgba(255,255,255,0.07) !important; }
+html.dark-mode .table-widget > .footer { border-color: rgba(255,255,255,0.07) !important; }
+html.dark-mode .table-widget table.options-table tr.selected td {
+  background: rgba(36,215,88,0.08) !important;
+  color: rgba(255,255,255,0.85) !important;
+}
+
+html.dark-mode .nav-tabs { border-color: rgba(255,255,255,0.08) !important; }
+html.dark-mode .nav-tabs .nav-link {
+  color: rgba(255,255,255,0.45) !important;
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+  font-size: 0.82rem !important;
+  border-radius: 6px 6px 0 0 !important;
+  transition: color 0.12s !important;
+}
+html.dark-mode .nav-tabs .nav-link:hover {
+  color: rgba(255,255,255,0.75) !important;
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+html.dark-mode .nav-tabs .nav-link.active {
+  background: #1e1e1e !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  border-bottom-color: transparent !important;
+  color: rgba(255,255,255,0.92) !important;
+}
+
+/* ============================================================
+   12. ALERTS / MESSAGES
+   ============================================================ */
+
+html.dark-mode #messagestack div {
+  color: rgba(255,255,255,0.85) !important;
+  border-radius: 8px !important;
+  font-size: 0.82rem !important;
+}
+html.dark-mode .ui.alert.boxinformation,
+html.dark-mode #messagestack .alert-info {
+  background: rgba(59,130,246,0.12) !important;
+  border: 1px solid rgba(59,130,246,0.25) !important;
+  color: #93c5fd !important;
+}
+html.dark-mode .ui.alert.boxerror,
+html.dark-mode #messagestack .alert-danger {
+  background: rgba(239,68,68,0.1) !important;
+  border: 1px solid rgba(239,68,68,0.25) !important;
+  color: #fca5a5 !important;
+}
+html.dark-mode .ui.alert.boxwarning,
+html.dark-mode #messagestack .alert-warning {
+  background: rgba(245,158,11,0.1) !important;
+  border: 1px solid rgba(245,158,11,0.25) !important;
+  color: #fcd34d !important;
+}
+html.dark-mode .ui.alert.boxconfirmation,
+html.dark-mode #messagestack .alert-success {
+  background: rgba(36,215,88,0.08) !important;
+  border: 1px solid rgba(36,215,88,0.2) !important;
+  color: #6ee7a0 !important;
+}
+html.dark-mode #messagestack .loading {
+  background: rgba(255,255,255,0.06) !important;
+  color: rgba(255,255,255,0.7) !important;
+}
+
+/* ============================================================
+   13. MISC
+   ============================================================ */
+
+html.dark-mode #rcmdraglayer {
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.8) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+  border-radius: 8px !important;
+}
+html.dark-mode .listing-info,
+html.dark-mode .listing span.secondary,
+html.dark-mode .listing .nomail {
+  color: rgba(255,255,255,0.3) !important;
+  font-size: 0.82rem !important;
+}
+html.dark-mode img.contactphoto,
+html.dark-mode #contactpic {
+  background: rgba(255,255,255,0.06) !important;
+  border-radius: 50% !important;
+}
+html.dark-mode .iframe-loader { background: rgba(20,20,20,0.9) !important; }
+html.dark-mode .custom-switch .custom-control-label::before {
+  background: rgba(255,255,255,0.15) !important;
+}
+html.dark-mode .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+  background: #24d758 !important;
+}
+
+/* App logo */
+body:not(.task-login) #logo {
+  max-height: 32px !important;
+  width: auto !important;
+}

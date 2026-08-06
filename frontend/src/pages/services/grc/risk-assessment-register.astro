@@ -17,7 +17,7 @@ const faqs = [
   { q: "How long does it take?", a: "2 – 3 weeks for a typical mid-market organisation. Larger or more complex environments (multi-entity, multi-jurisdiction) extend to 4 – 5 weeks. The fieldwork is front-loaded; reporting is typically a third of the timeline." },
   { q: "Who should be involved from our side?", a: "One executive sponsor, IT leadership, HR leadership, legal / compliance, operations leads, and typically 2 – 3 subject-matter experts per major technology or business area. 45 – 60 minute interviews with each." },
   { q: "Does this satisfy audit requirements?", a: "Yes — ISO 27001, SOC 2, NESA, PDPL, and most sector-specific frameworks mandate a documented risk management process. Our register provides methodology, identified risks, assessment scores, treatment decisions, owner accountability, and review cadence — all the elements auditors look for." },
-  { q: "What ongoing maintenance do I need?", a: "We build the register and establish the review cadence. Typical cadence: quarterly review of high and critical risks, annual full review. You own maintenance; we can be engaged on retainer for quarterly refresh if you want ongoing support (retainer offering launches in 2027)." },
+  { q: "What ongoing maintenance do I need?", a: "We build the register and establish the review cadence. Typical cadence: quarterly review of high and critical risks, annual full review. You own maintenance; we can be engaged on retainer for quarterly refresh if you want ongoing support (retainer offering is on our roadmap)." },
   { q: "Do you assess cybersecurity risks only, or broader enterprise risks?", a: "Cybersecurity-focused by default (information assets, systems, data) — that's our expertise. We can include technology-related operational and regulatory risks where they intersect. Broader enterprise risks (financial, strategic, market) are outside our scope and typically handled by a separate enterprise risk function." },
 ];
 
@@ -31,7 +31,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "Risk Assessment & Risk Register Build", "serviceType": "Cybersecurity Risk Assessment",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "14000", "highPrice": "30000" },
     "description": "ISO 27005-aligned cybersecurity risk assessment and risk register build for UAE organisations. Asset identification, threat mapping, treatment decisions, audit-ready documentation.",
     "url": "https://underwings.org/services/grc/risk-assessment-register"
   },
@@ -45,7 +44,7 @@ export const prerender = false;
 
 <Layout
   title="Risk Assessment & Register Build UAE | Underwings"
-  description="ISO 27005-aligned cybersecurity risk assessment and risk register build in UAE. Asset-based risk identification, threat mapping, treatment decisions, audit-ready documentation. AED 14,000 – 30,000."
+  description="ISO 27005-aligned cybersecurity risk assessment and risk register build in UAE. Asset-based risk identification, threat mapping, treatment decisions, audit-ready documentation. Written quote within 48 hours of a scoping call."
   keywords="cybersecurity risk assessment UAE, ISO 27005 risk register, information security risk UAE, risk treatment plan UAE, board risk reporting UAE, enterprise cyber risk Dubai"
   wfPage="services-page"
   schema={schema}
@@ -73,7 +72,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 14,000 – 30,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">GRC Mastery · ISO 27001 LA</span>
             <span class="svc-hero-badge svc-hero-badge-time">2 – 3 weeks</span>
           </div>
@@ -110,7 +108,7 @@ export const prerender = false;
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a generic risk-register template.</strong> Authored to your specific assets and threats.</div></div>
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not an enterprise risk assessment.</strong> Cybersecurity-focused; broader enterprise risk is separate.</div></div>
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a GRC-platform implementation.</strong> Register is delivered as document + spreadsheet. Platform rollout (Vanta, Drata, Sprinto) is separate.</div></div>
-          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not permanent — ongoing maintenance is yours.</strong> We build it; you run it (or engage us on retainer in 2027).</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not permanent — ongoing maintenance is yours.</strong> We build it; you run it (or engage us on a retainer when available).</div></div>
         </div>
       </div>
     </section>
@@ -155,38 +153,6 @@ export const prerender = false;
           <div class="svc-process-row"><div class="svc-process-row-num">03</div><div><div class="svc-process-row-step">Threat &amp; risk identification</div><div class="svc-process-row-duration">4 – 6 days</div></div><div class="svc-process-row-desc">Threat modelling workshops, vulnerability assessment, existing-control mapping, risk identification.</div></div>
           <div class="svc-process-row"><div class="svc-process-row-num">04</div><div><div class="svc-process-row-step">Scoring &amp; treatment</div><div class="svc-process-row-duration">3 – 4 days</div></div><div class="svc-process-row-desc">Likelihood × impact scoring, treatment decision workshops, owner and target-date assignment.</div></div>
           <div class="svc-process-row"><div class="svc-process-row-num">05</div><div><div class="svc-process-row-step">Documentation &amp; handover</div><div class="svc-process-row-duration">3 – 4 days</div></div><div class="svc-process-row-desc">Full register compilation, methodology document, heat map, review cadence, handover workshop delivery.</div></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
-      <div class="container-medium">
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 14k – 30k</div>
-            <p class="svc-pricing-note">Per engagement. Written quote within 48 hours.</p>
-            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
-            <ul class="svc-pricing-drivers">
-              <li>Organisation size &amp; complexity</li>
-              <li>Number of information assets in scope</li>
-              <li>Methodology (qualitative vs. FAIR-style quantitative)</li>
-              <li>Number of stakeholder interviews</li>
-              <li>Regulatory overlay (NESA, PDPL, sector-specific)</li>
-            </ul>
-          </div>
-          <div class="svc-pricing-card">
-            <h4>Commercial terms</h4>
-            <ul class="svc-pricing-terms">
-              <li><strong>Deposit:</strong> 50% at signing</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Quote validity:</strong> 30 days</li>
-              <li><strong>ISO 27001 Implementation bundle:</strong> included as sub-deliverable if bought together</li>
-              <li><strong>Annual refresh:</strong> 30 – 40% of original fee</li>
-            </ul>
-          </div>
         </div>
       </div>
     </section>

@@ -2,100 +2,20 @@
 // ===========================================
 // CATEGORY HUB — Offensive Security
 // PTES / OWASP-aligned. Pre-engagement-first structure.
-// 5 flagship services + Y2/Y3 coming-soon roadmap
+// flagship services
 // ===========================================
 
 import Layout from '../../../layouts/Layout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
-import PricingTiers from '../../../components/PricingTiers.astro';
 import '../../../styles/category-hub.css';
 import '../../../styles/offensive-hub.css';
 
-const tiers = [
-  {
-    name: "Starter",
-    price: "AED 9,000",
-    ideal: "Sub-30-employee UAE companies needing first-time external security validation.",
-    includes: [
-      "Single web app OR small external network up to 20 IPs",
-      "Automated + targeted manual testing",
-      "Executive summary + technical findings report",
-      "60-min remediation walkthrough call",
-    ],
-    notIncluded: [
-      "Retest after fixes",
-      "Internal network or AD",
-    ],
-  },
-  {
-    name: "Essentials",
-    price: "AED 12,000",
-    ideal: "Growing companies with one customer-facing asset to validate.",
-    includes: [
-      "Single web app OR external network up to 50 IPs",
-      "Manual testing of OWASP Top 10 / authenticated flows",
-      "Detailed PoC evidence per finding",
-      "30-day free retest of critical/high",
-      "Live remediation walkthrough",
-    ],
-    notIncluded: [
-      "Internal lateral movement",
-      "Cloud configuration review",
-    ],
-  },
-  {
-    name: "Professional",
-    price: "AED 25,000–45,000",
-    ideal: "Mid-market companies needing multi-asset annual penetration testing.",
-    includes: [
-      "Multi-asset scope: web + external + selected internal",
-      "Manual + automated, business-logic testing",
-      "Active Directory enumeration if internal in scope",
-      "Two free retests of critical/high",
-      "Executive readout + remediation roadmap",
-    ],
-    notIncluded: [
-      "Red-team / adversary emulation",
-      "Source-code review",
-    ],
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "AED 50,000–75,000",
-    ideal: "Multi-site or regulated organisations needing full-scope assurance.",
-    includes: [
-      "Full scope: web + network + AD + cloud configuration",
-      "Lateral movement and privilege-escalation chains",
-      "Custom attack scenarios mapped to your threat model",
-      "Quarterly retest of critical/high for 12 months",
-      "Executive board-readout + technical workshop",
-    ],
-    notIncluded: [
-      "Physical security testing (separate quote)",
-      "OT/ICS environments (separate quote)",
-    ],
-  },
-];
-
 const flagship = [
-  {
-    slug: "ptaas-subscription",
-    title: "PTaaS — Penetration Testing as a Service",
-    tagline: "Continuous OSCP-led testing, live findings portal, on-demand re-tests, included annual deep-dive.",
-    price: "From AED 6,000/month",
-    methodology: "PTES · OWASP · NIST SP 800-115",
-    lead: "Nelson Durairaj",
-    hasPage: true,
-    href: "/services/offensive-security/ptaas-subscription",
-    isRecurring: true,
-  },
   {
     slug: "network-penetration-testing",
     title: "Network Penetration Testing",
     tagline: "External + internal + Active Directory + lateral movement. PTES-aligned, manual, exploit-driven.",
-    price: "AED 15,000 – 48,000",
     methodology: "PTES · NIST SP 800-115",
     lead: "Nelson Durairaj",
     hasPage: true,
@@ -105,7 +25,6 @@ const flagship = [
     slug: "web-application-penetration-testing",
     title: "Web Application Penetration Testing",
     tagline: "OWASP Top 10, API security, authentication flaws, business-logic testing.",
-    price: "AED 12,000 – 32,000",
     methodology: "OWASP WSTG · API Top 10",
     lead: "Nelson Durairaj",
     hasPage: true,
@@ -115,7 +34,6 @@ const flagship = [
     slug: "mobile-application-penetration-testing",
     title: "Mobile Application Penetration Testing",
     tagline: "iOS and Android — static + dynamic, Frida runtime instrumentation, MASVS-mapped.",
-    price: "AED 14,000 – 38,000",
     methodology: "OWASP MASTG · MASVS",
     lead: "Nelson Durairaj",
     hasPage: true,
@@ -126,7 +44,6 @@ const flagship = [
     slug: "phishing-simulation",
     title: "Phishing Simulation & Social Engineering",
     tagline: "Controlled phishing and vishing campaigns with click-rate reporting. Before/after metric for awareness training.",
-    price: "AED 3,500 – 12,000",
     methodology: "PTES Pre-engagement · NIST SP 800-115",
     lead: "Nelson Durairaj",
     hasPage: true,
@@ -136,13 +53,24 @@ const flagship = [
     slug: "vulnerability-assessment",
     title: "Vulnerability Assessment (VA only)",
     tagline: "Scan-and-prioritise service for SMEs not ready for full pen testing. Fast, affordable, actionable.",
-    price: "AED 3,500 – 10,000",
     methodology: "NIST SP 800-115",
     lead: "Nelson Durairaj",
     hasPage: true,
     href: "/services/offensive-security/vulnerability-assessment",
   },
 ];
+
+// PTaaS — folded into this hub as a dedicated section (standalone page retired)
+const ptaas = {
+  features: [
+    { title: "Continuous testing cadence", desc: "Monthly OSCP-led testing sprints across your agreed scope — not a once-a-year snapshot that goes stale." },
+    { title: "Live findings portal", desc: "Findings published as they're validated, with CVSS scores, PoC evidence, and remediation guidance." },
+    { title: "On-demand retests", desc: "Fixed a finding? Request a retest from the portal and get validation within days, not next year's engagement." },
+    { title: "Annual deep-dive included", desc: "A full-scope PTES engagement once per subscription year, with the complete audit-grade report pack." },
+    { title: "Audit-ready evidence", desc: "Rolling penetration-test evidence for ISO 27001 Annex A 8.8, UAE IA, ADHICS, PCI DSS, and SOC 2 — always current." },
+    { title: "Named practitioner team", desc: "Led by Nelson Durairaj (OSCP, eJPT, CEH), supervised by Manoj Prabhakaran (CPTS, CDSA). Same team every sprint." },
+  ],
+};
 
 // PTES + HTB-aligned 8-stage process (client-facing adaptation)
 const stages = [
@@ -178,23 +106,10 @@ const compliance = [
   { framework: "SOC 2 (CC7.1)", required: "Annual pen test", recommended: "External network + web app + API", link: "/services/grc" },
 ];
 
-const comingY2 = [
-  { slug: "third-party-vendor-risk", title: "Third-Party / Vendor Risk Assessment", desc: "Assess the cybersecurity posture of your suppliers and vendors. UAE IA V2 and ISO 27001 both require it — we deliver it via a scalable questionnaire framework." },
-  { slug: "managed-vulnerability-management", title: "Managed Vulnerability Management", desc: "Continuous scanning, prioritisation, and remediation tracking — delivered as a monthly retainer with your named engineer." },
-];
-
-const comingY3 = [
-  { slug: "red-team-exercises", title: "Red Team Exercises", desc: "Full-scope adversary simulation across people, process, and technology. Physical, digital, social engineering. Requires senior CRTO / OSEP hire." },
-  { slug: "soc-mdr", title: "SOC-as-a-Service / MDR", desc: "24/7 monitoring, threat detection, and response. MSSP partnership bridge in Year 2 before own build in Year 3." },
-  { slug: "dfir", title: "Digital Forensics & Incident Response (DFIR)", desc: "Breach investigation, forensic reporting, legal-grade evidence handling. Licensed tools + GCFE / GCFA certified analysts." },
-  { slug: "cyber-threat-intelligence", title: "Cyber Threat Intelligence (CTI)", desc: "Sector-specific threat intel, dark-web brand monitoring, quarterly executive briefings." },
-  { slug: "ot-ics-security", title: "OT / ICS Security (IEC 62443)", desc: "Operational technology security for utilities, energy, manufacturing. Specialist hire required; anchor-client driven." },
-];
-
 // Hub-level FAQ — answer-first, high commercial-intent. Powers FAQPage rich
 // results + AI-answer citations. Additive: does not alter any existing copy.
 const faqs = [
-  { q: "How much does penetration testing cost in the UAE?", a: "Underwings publishes fixed pricing: engagements start at AED 9,000 (Starter — a single web app or external network up to 20 IPs), AED 12,000 for Essentials (manual OWASP Top 10 / authenticated testing with a 30-day free retest), and AED 25,000–45,000 for Professional multi-asset scopes. You receive a written, fixed-scope quote in AED within 48 hours of a scoping call." },
+  { q: "How much does penetration testing cost in the UAE?", a: "Cost depends on scope — the number and type of assets, whether internal networks and Active Directory are included, and the compliance context. After a free 30-minute scoping call, you receive a written, fixed-scope quote within 48 hours. No hourly billing, no scope creep." },
   { q: "What's the difference between a vulnerability assessment and a penetration test?", a: "A vulnerability assessment scans and prioritises known weaknesses — useful as a compliance box-check and triage step. A penetration test is manual: a certified tester actively exploits and chains weaknesses the way a real attacker would, including business-logic flaws scanners can't find. Underwings delivers manual testing aligned to PTES and OWASP, not scanner PDFs." },
   { q: "How long does a penetration test take?", a: "A single web application or small external network is typically 2–3 weeks end-to-end (scoping, testing, reporting, walkthrough). Larger or API-heavy scopes extend to 3–4 weeks. Expedited delivery is available." },
   { q: "Will your penetration test report satisfy ISO 27001, SOC 2, PCI DSS or NESA audits?", a: "Yes. Reports include scope, methodology, dates, named tester credentials, CVSS-scored findings, reproduction steps, remediation guidance, and retest validation — usable as audit evidence for ISO 27001, SOC 2, PCI DSS, HIPAA, NESA, and ADHICS." },
@@ -232,7 +147,7 @@ export const prerender = false;
 
 <Layout
   title="Penetration Testing Services UAE | Underwings"
-  description="UAE penetration testing by OSCP and CPTS-certified practitioners. PTES, OWASP WSTG / MASTG / API, NIST SP 800-115 aligned. Network, web app, mobile, API, phishing, cloud. Transparent pricing. Free first retest."
+  description="UAE penetration testing by OSCP and CPTS-certified practitioners. PTES, OWASP WSTG / MASTG / API, NIST SP 800-115 aligned. Network, web app, mobile, API, phishing, cloud. Free first retest."
   keywords="penetration testing UAE, pen test Dubai, PTES UAE, OWASP pentest UAE, mobile app pentest UAE, network pen test Abu Dhabi, VAPT UAE, cybersecurity startup Dubai"
   wfPage="services-page"
   schema={schema}
@@ -507,7 +422,7 @@ export const prerender = false;
       opacity: 0.6; pointer-events: none;
     }
 
-    /* ── Flagship cards: richer price chip + hover lift ───────── */
+    /* ── Flagship cards: hover lift ───────────────────────────── */
     .flag-card {
       transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 240ms ease;
     }
@@ -516,32 +431,12 @@ export const prerender = false;
       border-color: rgba(36,215,88,0.35);
       box-shadow: 0 22px 50px -28px rgba(36,215,88,0.32);
     }
-    .flag-price::before {
-      content: 'AED '; font-weight: 500; color: rgba(255,255,255,0.55);
-      margin-right: 2px;
-    }
-
     /* ── Compliance table: row accent on hover ────────────────── */
     .compliance-table tbody tr { transition: background 160ms ease; }
     .compliance-table td:first-child { position: relative; }
     .compliance-table tbody tr:hover td:first-child::before {
       content: ''; position: absolute; left: 0; top: 0; bottom: 0;
       width: 2px; background: linear-gradient(180deg, #24d758, #27dab4);
-    }
-
-    /* ── Pricing table: highlight bundle rows ─────────────────── */
-    .price-table tbody tr.price-bundle {
-      background: rgba(36,215,88,0.045);
-    }
-    .price-table tbody tr.price-bundle td:first-child { color: #fff; font-weight: 600; }
-    .price-table tbody tr.price-bundle td:first-child::before {
-      content: 'BUNDLE';
-      display: inline-block; margin-right: 0.5rem;
-      padding: 0.12rem 0.5rem; border-radius: 100px;
-      font-family: 'Geist Mono', ui-monospace, monospace;
-      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
-      color: #0a0a0a; background: linear-gradient(135deg, #24d758, #27dab4);
-      vertical-align: 2px;
     }
 
     /* ── Deliverables: colored number + hover lift ───────────── */
@@ -852,7 +747,7 @@ export const prerender = false;
             <a href="/#contact" class="entry-card entry-card-featured off-reveal" style="transition-delay: 200ms">
               <div class="entry-card-num">C</div>
               <h3 class="entry-card-title">I'm not sure where to start</h3>
-              <p class="entry-card-desc">Tell us a little about your environment and goals. Our practitioners will recommend the right scope, share indicative AED pricing, and send a written brief — no hard sell.</p>
+              <p class="entry-card-desc">Tell us a little about your environment and goals. Our practitioners will recommend the right scope and send a written brief with a fixed-scope quote — no hard sell.</p>
               <div class="entry-card-cta">Talk to us about your scope →</div>
             </a>
           </div>
@@ -928,14 +823,6 @@ export const prerender = false;
       </div>
     </section>
 
-    <PricingTiers
-      serviceSlug="offensive-security"
-      tiers={tiers}
-      eyebrow="Pricing — Four tiers"
-      heading="Pick your scope, lock the fee"
-      sub="From single-asset SME engagements to full-scope multi-environment assurance. Every tier includes manual testing led by an OSCP holder."
-    />
-
     <!-- Flagship services -->
     <section class="section off-section-dotted">
       <div class="container">
@@ -954,12 +841,9 @@ export const prerender = false;
 
           <div class="flag-grid flag-grid-five">
             {flagship.map((svc, i) => (
-              <a href={svc.href} class={`flag-card off-reveal${svc.isRecurring ? ' flag-card-recurring' : ''}`} style={`transition-delay: ${i * 70}ms`} aria-label={`Learn about ${svc.title}`}>
+              <a href={svc.href} class="flag-card off-reveal" style={`transition-delay: ${i * 70}ms`} aria-label={`Learn about ${svc.title}`}>
                 <div class="flag-card-head">
-                  <span class="flag-price">{svc.price}</span>
-                  {svc.isRecurring ? (
-                    <span class="flag-badge flag-badge-recurring">Recurring · NEW</span>
-                  ) : svc.isNew ? (
+                  {svc.isNew ? (
                     <span class="flag-badge flag-badge-new">New</span>
                   ) : (
                     <span class="flag-badge flag-badge-ready">Full page</span>
@@ -1024,53 +908,40 @@ export const prerender = false;
       </div>
     </section>
 
-    <!-- Transparent startup pricing -->
-    <section class="section off-section-dotted">
+    <!-- PTaaS — Penetration Testing as a Service -->
+    <section class="section off-section-dotted" id="ptaas">
       <div class="container-medium">
         <div class="section-wrapper-vertical">
           <div class="heading-horizontal off-reveal">
             <div class="heading-horizontal-inner">
               <div class="heading-horizontal-left-part">
-                <div class="off-section-eyebrow">Pricing</div>
-                <h2 class="heading">Transparent pricing</h2>
+                <div class="off-section-eyebrow">Recurring Service</div>
+                <h2 class="heading">PTaaS — Penetration Testing as a Service</h2>
               </div>
               <div class="heading-horizontal-right-part">
-                <p class="text-medium">We're a new UAE firm. We publish prices to earn your first case study — not to hide behind enterprise-sales opacity.</p>
+                <p class="text-medium">Annual pen tests go stale in a month. PTaaS is a subscription: continuous OSCP-led testing, a live findings portal, and on-demand retests — so your evidence is always current.</p>
               </div>
             </div>
           </div>
 
-          <div class="price-callout off-reveal">
-            <strong>Founding-client offer —</strong> the first three UAE clients per service line get <strong>25% off</strong> in exchange for a named testimonial and case study rights.
-          </div>
+          <ul class="deliverables-grid">
+            {ptaas.features.map((f, i) => (
+              <li class="deliverable-item off-reveal" style={`transition-delay: ${i * 70}ms`}>
+                <div class="deliverable-num">{String(i + 1).padStart(2, '0')}</div>
+                <h4>{f.title}</h4>
+                <p>{f.desc}</p>
+              </li>
+            ))}
+          </ul>
 
-          <div class="price-table-wrap off-reveal">
-            <table class="price-table">
-              <thead>
-                <tr>
-                  <th>Scope</th>
-                  <th>Starting at (AED)</th>
-                  <th>Typical duration</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>VA only (up to 50 IPs)</td><td>5,000</td><td>3 days</td></tr>
-                <tr><td>External network pentest (small)</td><td>20,000</td><td>5 – 7 days</td></tr>
-                <tr><td>Internal network pentest (AD, lateral)</td><td>35,000</td><td>8 – 12 days</td></tr>
-                <tr><td>Web application (1 app, authenticated)</td><td>15,000</td><td>7 – 14 days</td></tr>
-                <tr><td>Mobile app (1 platform, iOS <em>or</em> Android)</td><td>18,000</td><td>7 – 10 days</td></tr>
-                <tr><td>Mobile app (both iOS + Android)</td><td>30,000</td><td>10 – 14 days</td></tr>
-                <tr><td>API pentest (standalone)</td><td>15,000</td><td>5 – 10 days</td></tr>
-                <tr><td>Phishing simulation (up to 200 users)</td><td>8,000</td><td>2 weeks campaign</td></tr>
-                <tr class="price-bundle"><td>Network + Web App</td><td>32,000</td><td>2 – 3 weeks</td></tr>
-                <tr class="price-bundle"><td>Full-stack: Network + Web + Mobile</td><td>55,000</td><td>4 – 5 weeks</td></tr>
-              </tbody>
-            </table>
+          <div class="off-hero-cta-row off-reveal" style="margin-top: 0.5rem;">
+            <a href="/#contact?service=ptaas" class="off-hero-btn off-hero-btn-primary">
+              <span>Discuss a PTaaS subscription</span>
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <path d="M1.5 7.5h12M8 2l5.5 5.5L8 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
           </div>
-
-          <p class="price-footnote">
-            All engagements include: scoping workshop, rules-of-engagement document, CVSS-scored findings report, executive summary, 90-min remediation walkthrough, and <strong>one free retest of critical/high findings within 30 days</strong>. VAT extra. Written quote within 48 hours of scoping call.
-          </p>
         </div>
       </div>
     </section>
@@ -1127,77 +998,7 @@ export const prerender = false;
       </div>
     </section>
 
-    <!-- Coming 2027 -->
-    <section class="section off-section-dotted">
-      <div class="container">
-        <div class="section-wrapper-vertical section-wrapper-vertical-large">
-          <div class="heading-horizontal off-reveal">
-            <div class="heading-horizontal-inner">
-              <div class="heading-horizontal-left-part">
-                <div class="off-section-eyebrow">Roadmap</div>
-                <h2 class="heading">Year 2 — 2027 roadmap</h2>
-              </div>
-              <div class="heading-horizontal-right-part">
-                <p class="text-medium">Planned additions. Join a waitlist and we'll email you 30 days before launch.</p>
-              </div>
-            </div>
-          </div>
 
-          <div class="soon-grid">
-            {comingY2.map((svc, i) => (
-              <div class="soon-card off-reveal" style={`transition-delay: ${i * 80}ms`} data-service-slug={svc.slug}>
-                <div class="soon-card-head">
-                  <span class="soon-badge soon-badge-2027">2027</span>
-                </div>
-                <h3 class="soon-title">{svc.title}</h3>
-                <p class="soon-desc">{svc.desc}</p>
-                <form class="soon-form" data-waitlist-form data-service-slug={svc.slug} data-service-year="2027">
-                  <input type="email" name="email" placeholder="you@company.com" aria-label={`Email for ${svc.title} waitlist`} required />
-                  <button type="submit" class="soon-btn">Add me to 2027 waitlist →</button>
-                  <p class="soon-msg" aria-live="polite"></p>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Coming 2028 -->
-    <section class="section bg-color-dark off-section-dotted">
-      <div class="container">
-        <div class="section-wrapper-vertical section-wrapper-vertical-large">
-          <div class="heading-horizontal off-reveal">
-            <div class="heading-horizontal-inner">
-              <div class="heading-horizontal-left-part">
-                <div class="off-section-eyebrow">Roadmap</div>
-                <h2 class="heading">Year 3 — 2028 roadmap</h2>
-              </div>
-              <div class="heading-horizontal-right-part">
-                <p class="text-medium">Advanced and managed services. The roadmap is real; the certs and hires to deliver them follow in Year 2 – 3.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="soon-grid">
-            {comingY3.map((svc, i) => (
-              <div class="soon-card off-reveal" style={`transition-delay: ${i * 80}ms`} data-service-slug={svc.slug}>
-                <div class="soon-card-head">
-                  <span class="soon-badge soon-badge-2028">2028</span>
-                </div>
-                <h3 class="soon-title">{svc.title}</h3>
-                <p class="soon-desc">{svc.desc}</p>
-                <form class="soon-form" data-waitlist-form data-service-slug={svc.slug} data-service-year="2028">
-                  <input type="email" name="email" placeholder="you@company.com" aria-label={`Email for ${svc.title} waitlist`} required />
-                  <button type="submit" class="soon-btn">Add me to 2028 waitlist →</button>
-                  <p class="soon-msg" aria-live="polite"></p>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- Why UAE -->
     <section class="section off-section-dotted">
@@ -1311,5 +1112,3 @@ export const prerender = false;
 
   <Footer />
 </Layout>
-
-<script is:inline nonce={Astro.locals.nonce || ""} src="/js/waitlist.js" defer></script>

@@ -33,3 +33,14 @@ npm-debug.log*
 
 # Supabase volumes (database data, storage files)
 dockerized/supabase/volumes/
+
+# Plane seeder run-state (created-ID cache)
+scripts/plane/state/
+
+# Runtime data — never commit
+backups/
+stalwart/
+roundcube/db/
+leadgen/state/
+supabase/volumes/
+*.bak-*

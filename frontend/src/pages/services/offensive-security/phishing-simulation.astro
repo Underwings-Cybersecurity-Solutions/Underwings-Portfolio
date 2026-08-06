@@ -14,8 +14,8 @@ import '../../../styles/service-page.css';
 const faqs = [
   { q: "What do you actually send?", a: "Realistic phishing scenarios tailored to your industry, common UAE attack patterns, and lookalike brand themes (DMCC, Emirates, HSBC UAE, Microsoft Teams, DHL, courier tracking, internal IT password-reset templates). We vary the difficulty — easy, medium, hard — and measure click rates per group." },
   { q: "Is this legal / ethical?", a: "Yes — phishing simulations are standard industry practice and explicitly permitted under UAE employment and cyber law when conducted by the employer. You sign a rules-of-engagement document authorising the campaign. Employees aren't individually punished for clicks; results are used for program improvement." },
-  { q: "How many users can you test?", a: "From 10 to 5,000+ per campaign. Pricing scales gently with user count; the core effort is campaign design and reporting, not per-user." },
-  { q: "Do you include vishing (voice phishing)?", a: "Optional add-on — we can include a smaller-scale vishing campaign (10 – 30 calls) to key roles (finance, executive, IT help desk). Useful for measuring resistance to pretext calls. Adds ~AED 3 – 5k depending on scope." },
+  { q: "How many users can you test?", a: "From 10 to 5,000+ per campaign. Effort scales gently with user count; the core work is campaign design and reporting, not per-user." },
+  { q: "Do you include vishing (voice phishing)?", a: "Optional add-on — we can include a smaller-scale vishing campaign (10 – 30 calls) to key roles (finance, executive, IT help desk). Useful for measuring resistance to pretext calls. Scoped and quoted as an add-on during the scoping call." },
 ];
 
 const schema = [
@@ -28,7 +28,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "Phishing Simulation & Social Engineering", "serviceType": "Phishing Simulation",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "3500", "highPrice": "12000" },
     "description": "UAE phishing simulation and vishing campaigns. Realistic scenarios, click-rate metrics, before/after reporting. Pairs with Security Awareness Training.",
     "url": "https://underwings.org/services/offensive-security/phishing-simulation"
   },
@@ -42,7 +41,7 @@ export const prerender = false;
 
 <Layout
   title="Phishing Simulation UAE | Underwings"
-  description="UAE phishing simulation campaigns. Realistic scenarios tailored to UAE threats, click-rate reporting, before/after metrics. Pairs with Security Awareness Training. AED 3,500 – 12,000."
+  description="UAE phishing simulation campaigns. Realistic scenarios tailored to UAE threats, click-rate reporting, before/after metrics. Pairs with Security Awareness Training. Quotes via scoping call."
   keywords="phishing simulation UAE, phishing campaign Dubai, vishing UAE, social engineering assessment UAE, phishing awareness metrics UAE"
   wfPage="services-page"
   schema={schema}
@@ -70,7 +69,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 3,500 – 12,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">CEH · CPTS</span>
             <span class="svc-hero-badge svc-hero-badge-time">2 – 3 weeks</span>
           </div>
@@ -139,21 +137,7 @@ export const prerender = false;
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
       <div class="container-medium">
-        <ServiceScopeHint body="Tell us your headcount and objectives — we'll send a written scoping brief and indicative AED pricing within one working day." />
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing" style="grid-template-columns:1fr;max-width:540px;">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 3.5k – 12k</div>
-            <p class="svc-pricing-note">Per campaign. Price driven by user count, number of scenarios, and vishing add-on.</p>
-            <ul class="svc-pricing-terms" style="margin-top:0.75rem;">
-              <li><strong>Deposit:</strong> 50% at signing</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Quarterly recurring:</strong> 20% discount on 4-campaign agreement</li>
-              <li><strong>Awareness Training bundle:</strong> 10% discount together</li>
-            </ul>
-          </div>
-        </div>
+        <ServiceScopeHint body="Tell us your headcount and objectives — we'll send a written scoping brief and a fixed-scope quote within one working day." />
       </div>
     </section>
 
@@ -211,7 +195,7 @@ export const prerender = false;
       <div class="container-medium">
         <div class="section-wrapper-vertical" style="align-items:center;text-align:center;">
           <h2 class="heading" style="max-width:600px;">What's your actual phishing click rate?</h2>
-          <p class="text-medium" style="max-width:600px;">From AED 3.5k. 2 – 3 weeks from scoping to board-ready results. Written quote in 48 hours.</p>
+          <p class="text-medium" style="max-width:600px;">2 – 3 weeks from scoping to board-ready results. Written, fixed-scope quote within 48 hours of a scoping call.</p>
           <div class="button">
             <a href="/#contact?service=phishing-simulation" class="button-hidden w-button">Book a Scoping Call →</a>
             <div class="button-wrapper"><div class="button-text">Book a Scoping Call →</div></div>

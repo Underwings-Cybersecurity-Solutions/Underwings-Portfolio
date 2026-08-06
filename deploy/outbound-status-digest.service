@@ -1,0 +1,9 @@
+[Unit]
+Description=Underwings outbound live status digest → Slack #sales-pipeline
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/deployer/underwings
+ExecStart=/home/deployer/underwings/scripts/outbound-status-digest.sh

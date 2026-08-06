@@ -1,0 +1,9 @@
+<?php
+// MJML Compose plugin — configuration
+
+// Internal Docker DNS name of the mjml-compiler sidecar service
+$config['mjml_compose_endpoint'] = 'http://mjml:3000/compile';
+
+// Optional shared token (must match SHARED_TOKEN env on the sidecar).
+// Empty string = no auth (safe within the docker network).
+$config['mjml_compose_token'] = '';

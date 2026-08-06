@@ -16,9 +16,9 @@ const faqs = [
   { q: "What's the difference between NESA and ISO 27001?", a: "ISO 27001 is an international voluntary certification covering ISMS management. NESA / UAE IA V2 is a UAE national standard with specific controls designed for critical-infrastructure and government-adjacent entities. Significant overlap with ISO 27001 exists (~50 – 60%), but NESA has UAE-specific controls around cross-border data, national security, and supply-chain assurance that ISO 27001 doesn't explicitly cover." },
   { q: "Do you get us certified?", a: "NESA / UAE IA V2 isn't a certification in the ISO sense — it's compliance assessed by the issuing authority or an authorised auditor against the standard's controls. We deliver the <strong>gap assessment</strong> and remediation roadmap; formal assessment against the standard is conducted by designated auditors. Where applicable we support your authorised-auditor engagement." },
   { q: "How long does the gap assessment take?", a: "3 – 4 weeks end-to-end for a typical mid-market organisation. Larger or multi-entity engagements extend to 5 – 6 weeks. The controls framework is deep — we don't rush coverage." },
-  { q: "Can you combine this with ISO 27001 Gap?", a: "Yes — and many clients do. Running both assessments in parallel saves 15 – 20% versus sequential engagements because interview and documentation work overlaps significantly. Ask us about the combined engagement during scoping." },
+  { q: "Can you combine this with ISO 27001 Gap?", a: "Yes — and many clients do. Running both assessments in parallel is materially more efficient than sequential engagements because interview and documentation work overlaps significantly. Ask us about the combined engagement during scoping — you'll get a written quote within 48 hours of the scoping call." },
   { q: "What evidence do you produce?", a: "A controls-by-controls assessment report with maturity rating and gap severity, a prioritised remediation roadmap, an executive summary, and a mapping document showing where existing ISO 27001 / CIS / NIST controls already satisfy NESA requirements (avoiding duplicate work)." },
-  { q: "Do you cover ADHICS and Dubai ISR too?", a: "ADHICS (Abu Dhabi healthcare) is scoped separately — similar framework, sector-specific controls. Dubai ISR v2 is on our 2027 roadmap (join the waitlist on the GRC category page) and will be added when our Dubai-government engagement pipeline justifies it." },
+  { q: "Do you cover ADHICS and Dubai ISR too?", a: "ADHICS (Abu Dhabi healthcare) is scoped separately — similar framework, sector-specific controls. Dubai ISR v2 is on our roadmap and will be added when our Dubai-government engagement pipeline justifies it." },
 ];
 
 const schema = [
@@ -31,7 +31,6 @@ const schema = [
   { "@context": "https://schema.org", "@type": "Service", "name": "NESA / UAE IA V2 Gap Assessment", "serviceType": "UAE IA V2 Gap Assessment",
     "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
-    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "14000", "highPrice": "35000" },
     "description": "NESA / UAE Information Assurance Standard V2 gap assessment — controls-by-controls review, maturity ratings, prioritised roadmap. GRC Mastery + ISO 27001 LA led.",
     "url": "https://underwings.org/services/grc/nesa-uae-ia"
   },
@@ -45,7 +44,7 @@ export const prerender = false;
 
 <Layout
   title="NESA / UAE IA V2 Gap Assessment | Underwings"
-  description="UAE IA V2 / NESA gap assessment for government-adjacent entities, critical infrastructure, and suppliers. Controls review, maturity rating, prioritised roadmap. AED 14,000 – 35,000."
+  description="UAE IA V2 / NESA gap assessment for government-adjacent entities, critical infrastructure, and suppliers. Controls review, maturity rating, prioritised roadmap. Written quote within 48 hours of a scoping call."
   keywords="NESA gap assessment UAE, UAE IA V2 compliance, NESA consultant UAE, UAE Information Assurance Standard, SIA compliance UAE, critical infrastructure security UAE"
   wfPage="services-page"
   schema={schema}
@@ -73,7 +72,6 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">AED 14,000 – 35,000</span>
             <span class="svc-hero-badge svc-hero-badge-certs">GRC Mastery · ISO 27001 LA</span>
             <span class="svc-hero-badge svc-hero-badge-time">3 – 4 weeks</span>
           </div>
@@ -159,38 +157,6 @@ export const prerender = false;
       </div>
     </section>
 
-    <section class="section">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
-      <div class="container-medium">
-        <h2 class="svc-sec-title">Pricing</h2>
-        <div class="svc-pricing">
-          <div class="svc-pricing-card">
-            <h4>Published range</h4>
-            <div class="svc-pricing-range">AED 14k – 35k</div>
-            <p class="svc-pricing-note">Per engagement. Written quote within 48 hours.</p>
-            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
-            <ul class="svc-pricing-drivers">
-              <li>Organisation scope (single entity vs. multi-entity / group)</li>
-              <li>Number of applicable control families</li>
-              <li>Technical environment complexity</li>
-              <li>Supply-chain and third-party assessment scope</li>
-              <li>Existing ISO 27001 / CIS / NIST maturity (drives mapping workload)</li>
-            </ul>
-          </div>
-          <div class="svc-pricing-card">
-            <h4>Commercial terms</h4>
-            <ul class="svc-pricing-terms">
-              <li><strong>Deposit:</strong> 50% at signing</li>
-              <li><strong>Net terms:</strong> Net-30</li>
-              <li><strong>Quote validity:</strong> 30 days</li>
-              <li><strong>Combined with ISO 27001 Gap:</strong> 15 – 20% discount</li>
-              <li><strong>Deliverable:</strong> PDF + editable DOCX</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
       <div class="container-medium">
@@ -228,7 +194,7 @@ export const prerender = false;
         <div class="svc-related-grid">
           <a href="/services/grc/iso-27001-gap-assessment" class="svc-related-card">
             <h4>ISO 27001 Gap Assessment</h4>
-            <p>Combine with NESA for a 15 – 20% discount vs. sequential engagements.</p>
+            <p>Combine with NESA in a single engagement — more efficient than running sequentially.</p>
             <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </a>
           <a href="/services/grc/risk-assessment-register" class="svc-related-card">

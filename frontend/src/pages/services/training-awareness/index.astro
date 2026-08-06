@@ -7,82 +7,13 @@
 import Layout from '../../../layouts/Layout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
-import PricingTiers from '../../../components/PricingTiers.astro';
 import '../../../styles/category-hub.css';
-
-const tiers = [
-  {
-    name: "Starter",
-    price: "AED 6,000",
-    ideal: "Small UAE companies running their first awareness session.",
-    includes: [
-      "One 2-hour workshop",
-      "Up to 15 staff",
-      "Live attack demos",
-      "Attendance certificate per attendee",
-    ],
-    notIncluded: [
-      "Phishing simulation",
-      "Tabletop exercise",
-    ],
-  },
-  {
-    name: "Essentials",
-    price: "AED 12,000",
-    ideal: "Growing companies running annual training across one team.",
-    includes: [
-      "One 2-hour workshop",
-      "Up to 30 staff",
-      "Live attack demos + Q&A",
-      "Tailored to your sector",
-      "Pre/post knowledge check",
-    ],
-    notIncluded: [
-      "Phishing simulation",
-      "Quarterly drills",
-    ],
-  },
-  {
-    name: "Professional",
-    price: "AED 28,000",
-    ideal: "Mid-market companies wanting a measurable behavior-change program.",
-    includes: [
-      "Workshop (up to 60 staff)",
-      "Tabletop incident response exercise",
-      "One simulated phishing campaign",
-      "Click-rate baseline + post-training comparison",
-      "Executive readout",
-    ],
-    notIncluded: [
-      "Quarterly recurring drills",
-      "Multi-language delivery",
-    ],
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "AED 40,000–55,000",
-    ideal: "Multi-site companies needing an annual program with quarterly drills.",
-    includes: [
-      "Annual program (workshops, multiple cohorts)",
-      "Quarterly tabletop or phishing drill",
-      "Role-specific training (executives, IT, finance)",
-      "Multi-language delivery (EN/AR)",
-      "Annual board-readout report",
-    ],
-    notIncluded: [
-      "Custom e-learning module development",
-      "On-site delivery outside UAE",
-    ],
-  },
-];
 
 const flagship = [
   {
     slug: "security-awareness-training",
     title: "Security Awareness Training — Workshops",
     tagline: "Classroom or virtual workshops on phishing, social engineering, password, data handling. Live attack demos by the same team that runs the pen tests.",
-    price: "AED 3,500 – 12,000",
     certs: ["CEH", "OSCP", "GRC Mastery"],
     lead: "Nelson Durairaj",
     hasPage: true,
@@ -92,7 +23,6 @@ const flagship = [
     slug: "tabletop-incident-response",
     title: "Tabletop Incident Response Exercise",
     tagline: "1-day simulated cyber-incident drill with your team. Test the plan, surface the gaps, produce an improvement report. No tooling needed.",
-    price: "AED 3,500 – 10,000",
     certs: ["CPTS", "ISO 27001 LA"],
     lead: "Manoj Prabhakaran",
     hasPage: true,
@@ -100,12 +30,6 @@ const flagship = [
   },
 ];
 
-const comingY2 = [
-  { slug: "awareness-e-learning-platform", title: "Security Awareness E-Learning Platform", desc: "Our own self-serve LMS with per-seat annual licensing. Micro-lessons, phishing scores, compliance tracking. UAE-local content, Arabic support." },
-  { slug: "role-specific-training-tracks", title: "Role-Specific Training Tracks", desc: "Targeted tracks for developers (secure coding), executives (board-level cyber), and finance teams (wire-fraud and social engineering)." },
-];
-
-const comingY3 = [];
 
 // Mirrors the EXISTING visible FAQ section below (schema only — no content change).
 const faqs = [
@@ -114,7 +38,7 @@ const faqs = [
   { q: "How do you actually measure that behaviour changed?", a: "Three ways: a pre/post quiz for a knowledge baseline; phishing simulation campaigns before and after to measure real click-rate change; and 30/60/90-day follow-up phishing runs to confirm the change holds. Advanced and Custom packages include this measurement loop." },
   { q: "Is the workshop suitable for non-technical staff?", a: "Yes — that's the design. Content is calibrated to the audience: front-line workshops focus on what attackers do day-to-day (phishing emails, fake calls, password reuse), while custom tracks for technical staff or executives go deeper into BEC, wire-fraud red flags, and supply-chain risk." },
   { q: "Will this map to ISO 27001 / NESA / PDPL training requirements?", a: "Yes. Advanced and Custom packages include an evidence pack mapped to ISO 27001 A.6.3, UAE IA V2 HR-3, ADHICS v2, and PDPL awareness clauses. Attendance registers, content outlines and post-quiz scores are formatted for direct submission to your auditor." },
-  { q: "Can we schedule annual training as a retainer?", a: "Yes — most clients on the Custom package convert to an annual retainer covering one main workshop, four quarterly phishing simulations, one tabletop incident-response exercise, and ad-hoc executive briefings. Predictable fixed-fee, billed annually or quarterly in AED." },
+  { q: "Can we schedule annual training as a retainer?", a: "Yes — most clients on the Custom package convert to an annual retainer covering one main workshop, four quarterly phishing simulations, one tabletop incident-response exercise, and ad-hoc executive briefings. Predictable fixed-fee, billed annually or quarterly, with a written quote within 48 hours of a scoping call." },
 ];
 
 const schema = [
@@ -370,7 +294,7 @@ export const prerender = false;
         font-size: 0.85rem; color: rgba(255,255,255,0.6);
         margin-bottom: 1.5rem; line-height: 1.5;
       }
-      .tr-pkg-price { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .tr-pkg-scope { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
       .tr-pkg-from {
         display: block; font-size: 0.7rem; color: rgba(255,255,255,0.45);
         text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.25rem;
@@ -629,7 +553,7 @@ export const prerender = false;
             Pick the package that <span class="text-gradient-clip bg-color-green-gradient">fits your team</span>
           </h2>
           <p class="tr-pkg-sub">
-            Three productised tiers, fixed AED pricing, fixed scope. Or build a custom programme — we'll
+            Three productised tiers with fixed scope. Or build a custom programme — we'll
             scope it to your team size, sector, and compliance pressure.
           </p>
         </div>
@@ -641,10 +565,8 @@ export const prerender = false;
             <div class="tr-pkg-tag">Standard</div>
             <h3 class="tr-pkg-title">Awareness Workshop</h3>
             <p class="tr-pkg-tagline">For 25–50 person teams needing baseline awareness — fast.</p>
-            <div class="tr-pkg-price">
-              <span class="tr-pkg-from">From</span>
-              <span class="tr-pkg-amount">AED 3,500</span>
-              <span class="tr-pkg-period">single session, fixed scope</span>
+            <div class="tr-pkg-scope">
+              <span class="tr-pkg-period">Single session, fixed scope</span>
             </div>
             <ul class="tr-pkg-list">
               <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-6" stroke="#24d758" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> 2-hour live workshop (in-person or virtual)</li>
@@ -665,10 +587,8 @@ export const prerender = false;
             <div class="tr-pkg-tag tr-pkg-tag-featured">Most popular</div>
             <h3 class="tr-pkg-title">Advanced Programme</h3>
             <p class="tr-pkg-tagline">For 50–150 person companies that want measurable behaviour change.</p>
-            <div class="tr-pkg-price">
-              <span class="tr-pkg-from">From</span>
-              <span class="tr-pkg-amount">AED 9,500</span>
-              <span class="tr-pkg-period">workshop + simulation + 90-day metric</span>
+            <div class="tr-pkg-scope">
+              <span class="tr-pkg-period">Workshop + simulation + 90-day metric</span>
             </div>
             <ul class="tr-pkg-list">
               <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-6" stroke="#24d758" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Everything in Standard</li>
@@ -690,10 +610,8 @@ export const prerender = false;
             <div class="tr-pkg-tag">Custom</div>
             <h3 class="tr-pkg-title">Tailored Programme</h3>
             <p class="tr-pkg-tagline">For 150+ users, regulated sectors, or annual retainers.</p>
-            <div class="tr-pkg-price">
-              <span class="tr-pkg-from">From</span>
-              <span class="tr-pkg-amount">AED 18,000</span>
-              <span class="tr-pkg-period">scoped per environment</span>
+            <div class="tr-pkg-scope">
+              <span class="tr-pkg-period">Scoped per environment</span>
             </div>
             <ul class="tr-pkg-list">
               <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-6" stroke="#24d758" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Everything in Advanced</li>
@@ -713,19 +631,11 @@ export const prerender = false;
         </div>
 
         <p class="tr-pkg-disclaimer">
-          Indicative AED pricing for typical engagements. Final quote depends on team size, language,
-          delivery mode, and travel. Written quote within 24 hours of the scoping call.
+          Every programme is scoped to team size, language, delivery mode, and travel.
+          Written quote within 24 hours of the scoping call.
         </p>
       </div>
     </section>
-
-    <PricingTiers
-      serviceSlug="training-awareness"
-      tiers={tiers}
-      eyebrow="Pricing — Four tiers"
-      heading="Pick your scope, lock the fee"
-      sub="From single-workshop sessions to annual programs with quarterly drills."
-    />
 
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
@@ -748,7 +658,6 @@ export const prerender = false;
             {flagship.map((svc) => (
               <a href={svc.href} class="flag-card" aria-label={`Learn about ${svc.title}`}>
                 <div class="flag-card-head">
-                  <span class="flag-price">{svc.price}</span>
                   {svc.hasPage ? (
                     <span class="flag-badge flag-badge-ready">Full page</span>
                   ) : (
@@ -774,42 +683,6 @@ export const prerender = false;
       </div>
     </section>
 
-    <section class="section">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
-        <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
-      </div>
-      <div class="container">
-        <div class="section-wrapper-vertical section-wrapper-vertical-large">
-          <div class="heading-horizontal">
-            <div class="heading-horizontal-inner">
-              <div class="heading-horizontal-left-part">
-                <h2 class="heading">Year 2 — 2027 roadmap</h2>
-              </div>
-              <div class="heading-horizontal-right-part">
-                <p class="text-medium">Productising awareness into a recurring-revenue platform.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="soon-grid">
-            {comingY2.map((svc) => (
-              <div class="soon-card" data-service-slug={svc.slug}>
-                <div class="soon-card-head">
-                  <span class="soon-badge soon-badge-2027">2027</span>
-                </div>
-                <h3 class="soon-title">{svc.title}</h3>
-                <p class="soon-desc">{svc.desc}</p>
-                <form class="soon-form" data-waitlist-form data-service-slug={svc.slug} data-service-year="2027">
-                  <input type="email" name="email" placeholder="you@company.com" aria-label={`Email for ${svc.title} waitlist`} required />
-                  <button type="submit" class="soon-btn">Add me to 2027 waitlist →</button>
-                  <p class="soon-msg" aria-live="polite"></p>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
 
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
@@ -925,9 +798,9 @@ export const prerender = false;
             <div class="tr-faq-a">
               Yes — most clients on the Custom package convert to an annual retainer covering: 1 main
               workshop + 4 quarterly phishing simulations + 1 tabletop IR exercise + ad-hoc executive
-              briefings as needed. Predictable fixed-fee, billed annually or quarterly in AED.
-              Cheaper than rebooking each module separately, and far cheaper than the cost of a
-              successful phish.
+              briefings as needed. Predictable fixed-fee, billed annually or quarterly, with a
+              written quote within 48 hours of a scoping call. Simpler than rebooking each module
+              separately, and far cheaper than the cost of a successful phish.
             </div>
           </details>
         </div>
@@ -959,5 +832,3 @@ export const prerender = false;
 
   <Footer />
 </Layout>
-
-<script is:inline nonce={Astro.locals.nonce || ""} src="/js/waitlist.js" defer></script>

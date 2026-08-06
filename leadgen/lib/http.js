@@ -1,7 +1,7 @@
 'use strict';
 /* http.js — fetch helpers with timeout + light retry. Built-in fetch only. */
 
-const UA = 'UnderwingsLeadGen/1.0 (+https://underwings.org; contact@underwings.org)';
+const UA = 'UnderwingsLeadGen/2.0 (+https://underwings.org)';
 
 async function request(url, opts = {}, { timeoutMs = 45000, retries = 2 } = {}) {
   let lastErr;
@@ -33,8 +33,8 @@ async function request(url, opts = {}, { timeoutMs = 45000, retries = 2 } = {}) 
   throw lastErr;
 }
 
-async function getText(url, opts) { return (await request(url, opts)).text(); }
-async function getJson(url, opts) { return (await request(url, opts)).json(); }
+async function getText(url, opts, reqOpts) { return (await request(url, opts, reqOpts)).text(); }
+async function getJson(url, opts, reqOpts) { return (await request(url, opts, reqOpts)).json(); }
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 module.exports = { request, getText, getJson, sleep, UA };

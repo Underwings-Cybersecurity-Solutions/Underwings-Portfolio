@@ -403,10 +403,14 @@ services:
     networks:
       - underwings-network
 
-  # ---- leadgen: continuous multi-source AI lead generator → Google Sheets ----
-  # Zero-dep Node service. Loops every config.intervalMinutes (default 6h):
-  # gather (OSM/Wikidata/News [+Places/Firecrawl/Hunter if keys]) → Claude score
-  # → website+Hunter contact harvest → OSINT_LEADS tab. Restored 2026-07-13.
+  # ---- leadgen: continuous multi-source AI lead generator → crm_prospects ----
+  # Zero-dep Node service. Loops every config.intervalMinutes (default 12h):
+  # gather (Overpass/Wikidata/News [+Firecrawl/Places/Hunter if keys]) → Claude
+  # score vs the Underwings ICP → website + contact harvest → upsert into
+  # crm_prospects, where the CRM LeadGen view picks them up. Between cycles it
+  # polls crm_leadgen_settings.run_requested_at so the CRM's "Run now" works.
+  # Writes as service_role: it owns every enrichment column, while migration
+  # 011 restricts browser sessions to status/notes. v2 2026-08-02 (was Sheets).
   leadgen:
     image: node:20-alpine
     container_name: underwings-leadgen
@@ -415,15 +419,31 @@ services:
     command: node run.js --loop
     user: "1000:1000"
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ANTHROPIC_API_KEY=${LEADGEN_ANTHROPIC_API_KEY:-${ANTHROPIC_API_KEY}}
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY:-}
-      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY:-}
-      - HUNTER_API_KEY=${HUNTER_API_KEY:-}
+      - FIRECRAWL_API_KEY=${LEADGEN_FIRECRAWL_API_KEY:-${FIRECRAWL_API_KEY:-}}
+      - APOLLO_API_KEY=${LEADGEN_APOLLO_API_KEY:-}
       - KUMA_PUSH_URL=${KUMA_PUSH_URL:-}
-      - GOOGLE_SA_KEY_PATH=/app/sa.json
+      - SUPABASE_URL=http://kong:8000
+      - SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
     volumes:
       - ./leadgen:/app
-      - /home/deployer/.claude/underwings-analytics-4d74c6459289.json:/app/sa.json:ro
+    networks:
+      - underwings-network
+
+  # ---- leadgen-test: one-shot test runner (docker compose run --rm leadgen-test) ----
+  # The host has no node, and the tests must never see real API keys.
+  leadgen-test:
+    image: node:20-alpine
+    container_name: underwings-leadgen-test
+    profiles: ["tools"]
+    working_dir: /app
+    command: node --test test/
+    user: "1000:1000"
+    environment:
+      - NODE_ENV=test
+    volumes:
+      - ./leadgen:/app
     networks:
       - underwings-network
 

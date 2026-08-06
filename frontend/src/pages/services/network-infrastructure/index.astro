@@ -7,84 +7,15 @@
 import Layout from '../../../layouts/Layout.astro';
 import Header from '../../../components/Header.astro';
 import Footer from '../../../components/Footer.astro';
-import PricingTiers from '../../../components/PricingTiers.astro';
 import '../../../styles/category-hub.css';
-
-const tiers = [
-  {
-    name: "Starter",
-    price: "AED 12,000",
-    ideal: "Small UAE companies running a single small FortiGate (or equivalent).",
-    includes: [
-      "Single small FortiGate review",
-      "Basic ruleset audit",
-      "High-priority misconfiguration findings",
-      "Remediation walkthrough call",
-    ],
-    notIncluded: [
-      "Full configuration audit",
-      "Multi-firewall correlation",
-    ],
-  },
-  {
-    name: "Essentials",
-    price: "AED 18,000",
-    ideal: "Single-site companies that need a thorough firewall audit.",
-    includes: [
-      "Single FortiGate review — full configuration audit",
-      "Ruleset hygiene + shadow rule analysis",
-      "Threat-feed and IPS profile review",
-      "VPN and remote-access posture",
-      "Prioritised remediation report",
-    ],
-    notIncluded: [
-      "Network segmentation review",
-      "Multi-site / DC-to-branch design",
-    ],
-  },
-  {
-    name: "Professional",
-    price: "AED 35,000–55,000",
-    ideal: "Mid-market companies with multiple firewalls and VLAN-based segmentation.",
-    includes: [
-      "Multi-firewall correlation (up to 4 devices)",
-      "Network segmentation review (VLAN, zones, micro-seg)",
-      "East-west traffic analysis",
-      "SD-WAN posture (if deployed)",
-      "Architecture diagram + recommendation pack",
-    ],
-    notIncluded: [
-      "Multi-site / DC + branch architecture review",
-      "OT/ICS network segmentation",
-    ],
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    price: "AED 55,000–80,000",
-    ideal: "Multi-site organisations with DC, branch, and cloud edge.",
-    includes: [
-      "Multi-site architecture review (DC + cloud + branch)",
-      "Hybrid edge + SD-WAN + cloud security gateway",
-      "Zero-trust segmentation roadmap",
-      "Disaster-recovery and failover validation",
-      "Quarterly architecture re-review for 12 months",
-    ],
-    notIncluded: [
-      "OT/ICS environments (separate quote)",
-      "Hardware procurement & installation",
-    ],
-  },
-];
 
 const flagship = [
   {
     slug: "firewall-network-security-review",
     title: "Firewall & Network Security Review",
     tagline: "FortiGate configs, firewall rules, network segmentation, routing security — reviewed by the rare CCNP + Fortinet + OSCP combination.",
-    price: "AED 8,500 – 21,000",
     certs: ["Fortinet", "CCNP", "OSCP"],
-    lead: "Vinoth Samiyappa",
+    lead: "Vinoth Sivasamy",
     hasPage: true,
     href: "/services/network-infrastructure/firewall-network-security-review",
   },
@@ -92,20 +23,13 @@ const flagship = [
     slug: "security-architecture-review",
     title: "Security Architecture Review",
     tagline: "Network zones, VPN, DMZ, access control, segmentation. Risk-rated findings and a target-state architecture you can actually implement.",
-    price: "AED 11,000 – 24,000",
     certs: ["CCNP", "Security+", "Fortinet"],
-    lead: "Vinoth Samiyappa",
+    lead: "Vinoth Sivasamy",
     hasPage: true,
     href: "/services/network-infrastructure/security-architecture-review",
   },
 ];
 
-const comingY2 = [
-  { slug: "zero-trust-architecture-design", title: "Zero Trust Architecture Design", desc: "End-to-end ZTNA design — identity-driven, least-privilege, segmentation-first. For clients ready to replace VPN and flat networks." },
-  { slug: "network-segmentation-implementation", title: "Network Segmentation Implementation", desc: "Hands-on segmentation delivery — VLAN redesign, microsegmentation, PCI zone carve-out. Built with your network team, documented for your auditor." },
-];
-
-const comingY3 = [];
 
 // Mirrors the EXISTING visible FAQ section below (schema only — no content change).
 const faqs = [
@@ -530,14 +454,6 @@ export const prerender = false;
     })();
     </script>
 
-    <PricingTiers
-      serviceSlug="network-infrastructure"
-      tiers={tiers}
-      eyebrow="Pricing — Four tiers"
-      heading="Pick your scope, lock the fee"
-      sub="From single-firewall audits for SMEs to multi-site DC + branch architecture reviews."
-    />
-
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
         <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
@@ -550,7 +466,7 @@ export const prerender = false;
                 <h2 class="heading">Flagship services — available now</h2>
               </div>
               <div class="heading-horizontal-right-part">
-                <p class="text-medium">Led by Vinoth Samiyappa — CCNP + Fortinet + Azure + Six Sigma. Hands-on network engineering meets security assessment.</p>
+                <p class="text-medium">Led by Vinoth Sivasamy — CCNP + Fortinet + Azure + Six Sigma. Hands-on network engineering meets security assessment.</p>
               </div>
             </div>
           </div>
@@ -559,7 +475,6 @@ export const prerender = false;
             {flagship.map((svc) => (
               <a href={svc.href} class="flag-card" aria-label={`Learn about ${svc.title}`}>
                 <div class="flag-card-head">
-                  <span class="flag-price">{svc.price}</span>
                   {svc.hasPage ? (
                     <span class="flag-badge flag-badge-ready">Full page</span>
                   ) : (
@@ -585,42 +500,6 @@ export const prerender = false;
       </div>
     </section>
 
-    <section class="section">
-      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
-        <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
-      </div>
-      <div class="container">
-        <div class="section-wrapper-vertical section-wrapper-vertical-large">
-          <div class="heading-horizontal">
-            <div class="heading-horizontal-inner">
-              <div class="heading-horizontal-left-part">
-                <h2 class="heading">Year 2 — 2027 roadmap</h2>
-              </div>
-              <div class="heading-horizontal-right-part">
-                <p class="text-medium">Implementation services that build on Year-1 assessment work.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="soon-grid">
-            {comingY2.map((svc) => (
-              <div class="soon-card" data-service-slug={svc.slug}>
-                <div class="soon-card-head">
-                  <span class="soon-badge soon-badge-2027">2027</span>
-                </div>
-                <h3 class="soon-title">{svc.title}</h3>
-                <p class="soon-desc">{svc.desc}</p>
-                <form class="soon-form" data-waitlist-form data-service-slug={svc.slug} data-service-year="2027">
-                  <input type="email" name="email" placeholder="you@company.com" aria-label={`Email for ${svc.title} waitlist`} required />
-                  <button type="submit" class="soon-btn">Add me to 2027 waitlist →</button>
-                  <p class="soon-msg" aria-live="polite"></p>
-                </form>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
 
     <section class="section bg-color-dark">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
@@ -769,5 +648,3 @@ export const prerender = false;
 
   <Footer />
 </Layout>
-
-<script is:inline nonce={Astro.locals.nonce || ""} src="/js/waitlist.js" defer></script>
