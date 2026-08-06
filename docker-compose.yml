@@ -404,7 +404,7 @@ services:
       - underwings-network
 
   # ---- leadgen: continuous multi-source AI lead generator → crm_prospects ----
-  # Zero-dep Node service. Loops every config.intervalMinutes (default 12h):
+  # Zero-dep Node service. Loops every config.intervalMinutes (default 24h):
   # gather (Overpass/Wikidata/News [+Firecrawl/Places/Hunter if keys]) → Claude
   # score vs the Underwings ICP → website + contact harvest → upsert into
   # crm_prospects, where the CRM LeadGen view picks them up. Between cycles it

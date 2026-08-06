@@ -8,6 +8,7 @@
  * Order matters: the free, highest-precision UAE sources run first, so if a
  * paid source is capped or dark the cycle still has material to score.
  */
+const cfg = require('../config');
 const { overpass } = require('./overpass');
 const { wikidata } = require('./wikidata');
 const { wikipedia } = require('./wikipedia');
@@ -33,8 +34,14 @@ const DEFAULT_SOURCES = [
 ];
 
 async function gatherAll(env, cycle, registry = DEFAULT_SOURCES) {
+  const disabled = new Set(cfg.disabledSources || []);
   const results = {};
   for (const [name, fn] of registry) {
+    if (disabled.has(name)) {
+      console.log(`  source ${name}: disabled (config.disabledSources)`);
+      results[name] = [];
+      continue;
+    }
     const t = Date.now();
     const rows = await Promise.resolve()
       .then(() => fn(env, cycle))

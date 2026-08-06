@@ -131,7 +131,20 @@ async function harvestAll(leads, env) {
         l.sizeBand = apollo.sizeBandOf(org.employees);
         if (!l.country && org.country) l.country = org.country;
         if (!l.location) l.location = [org.city, org.country].filter(Boolean).join(', ');
+        // the company page is the manual-outreach fallback when no named
+        // person is found, so it lands on the prospect row (person LinkedIn
+        // lives on the contact row)
+        if (org.linkedin) l.companyLinkedin = org.linkedin;
       }
+    }
+    // 1.7 Hard ICP size gate. The ICP prose asks the scorer to reject these,
+    //     but a gate the model can't ignore is what keeps the pipeline honest:
+    //     excluded bands are stored as 'disqualified' (visible, not silently
+    //     dropped) and spend no Apollo people credits.
+    if (l.sizeBand && (cfg.excludeSizeBands || []).includes(l.sizeBand)) {
+      l.disqualified = `out of ICP — size band '${l.sizeBand}'`;
+      if (l.email) withEmail++;
+      continue;
     }
     // 2. Apollo → named person; person email wins over role email. Search and
     //    reveal are budgeted separately so a search that finds no one never
@@ -213,10 +226,41 @@ function pickRefreshables(records, { reverifyAfterDays, maxRows, today }) {
   return { reverify, recontact };
 }
 
+/** Rows that predate org enrichment (or whose call 422'd on credits) carry no
+ * size_band, and the ICP is size-banded now — fill a few per cycle, oldest
+ * first. Organisation enrichment works on every Apollo plan tier, so this
+ * must run BEFORE the people-plan early-returns in refreshExisting. */
+async function backfillFirmographics(records, apolloKey) {
+  const missing = records
+    .filter((r) => !r.sizeBand && r.website)
+    .slice(0, cfg.refresh.maxRowsPerCycle);
+  if (!missing.length) return;
+  let filled = 0;
+  for (const r of missing) {
+    if (apollo.orgCreditsBlocked() ||
+        budget.remaining('apollo-org', cfg.apollo.orgCap) <= 0) break;
+    const domain = domainOf(r.website);
+    if (!domain) continue;
+    budget.spend('apollo-org', 1);
+    const org = await apollo.enrichOrg(domain, apolloKey);
+    if (!org) continue;
+    const patch = {};
+    const band = apollo.sizeBandOf(org.employees);
+    if (band) patch.size_band = band;
+    if (org.linkedin) patch.linkedin_url = org.linkedin;
+    if (!r.industry && org.industry) patch.industry = org.industry;
+    if (Object.keys(patch).length &&
+        await store.updateEnrichment(r.id, patch)) filled++;
+  }
+  console.log(`Refresh: firmographics backfilled on ${filled}/${missing.length} rows`);
+}
+
 /** The "keep updated" pass: re-verify stale emails, retry missing contacts. */
 async function refreshExisting(env, db_) {
   const apolloKey = env.APOLLO_API_KEY;
   if (!apolloKey) { console.log('Refresh: skipped — no APOLLO_API_KEY'); return; }
+  const records = db_ ? db_.leads : (await store.load()).leads;
+  await backfillFirmographics(records, apolloKey);
   if (apollo.planBlocked()) {
     console.log('Refresh: skipped — Apollo people endpoints not in this plan'); return;
   }
@@ -224,7 +268,6 @@ async function refreshExisting(env, db_) {
       budget.remaining('apollo-search', cfg.apollo.searchCap) <= 0) {
     console.log('Refresh: skipped — Apollo budget exhausted'); return;
   }
-  const records = db_ ? db_.leads : (await store.load()).leads;
   const { reverify, recontact } = pickRefreshables(records, {
     reverifyAfterDays: cfg.refresh.reverifyAfterDays,
     maxRows: cfg.refresh.maxRowsPerCycle,
@@ -276,7 +319,8 @@ async function refreshExisting(env, db_) {
  * cycle to bound Claude spend. */
 async function backfillOutreach(apiKey, db_) {
   const missing = (db_.leads || [])
-    .filter((r) => !r.hasDraft && r.company)
+    .filter((r) => !r.hasDraft && r.company &&
+                   !['disqualified', 'suppressed'].includes(r.status))
     .slice(0, cfg.outreach.backfillPerCycle);
   if (!missing.length) return;
   const drafted = await outreach.draftAll(apiKey, missing);
@@ -388,8 +432,10 @@ async function runOnce(opts = {}) {
     // the named person. A failed batch leaves those leads draft-less and the
     // backfill pass retries them next cycle.
     console.log('Drafting cold emails…');
-    const drafted = await outreach.draftAll(apiKey, leads);
-    console.log(`  ${drafted}/${leads.length} drafts written`);
+    // no draft for size-gated leads — they are stored for audit, not outreach
+    const draftable = leads.filter((l) => !l.disqualified);
+    const drafted = await outreach.draftAll(apiKey, draftable);
+    console.log(`  ${drafted}/${draftable.length} drafts written`);
 
     if (opts.dry) {
       console.log(`--dry: would add ${leads.length} prospects:`);

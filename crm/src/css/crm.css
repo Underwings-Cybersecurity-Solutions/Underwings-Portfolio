@@ -443,9 +443,11 @@ select { appearance:none; cursor:pointer;
 .lg-toolbar { margin-top:var(--sp-1); }
 .lg-filter { display:inline-flex; align-items:center; gap:.4rem; font-size:.72rem; color:var(--muted); }
 .lg-filter select { padding:.3rem 1.6rem .3rem .55rem; font-size:.78rem; }
+/* follow-up queue chip — a mode, so it must read as "on" */
+#crm-lg-followup[aria-pressed="true"] { color:var(--brand); border-color:var(--brand); background:var(--brand-tint); }
 
 .lg-table { border:1px solid var(--line); border-radius:var(--r); overflow-x:auto; background:var(--surface); box-shadow:var(--shadow-sm); }
-.lg-table .dtable { min-width:1000px; }   /* five touch boxes + notes need the room */
+.lg-table .dtable { min-width:1080px; }   /* five touch boxes + size + notes need the room */
 .lg-table td { vertical-align:middle; }
 
 .lg-co { display:block; padding:0; border:none; background:none; cursor:pointer;

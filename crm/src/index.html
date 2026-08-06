@@ -187,7 +187,7 @@
             <span class="eyebrow" id="crm-lg-eyebrow">Lead generation</span>
             <h2 id="crm-lg-title">Prospects worth a first move</h2>
           </div>
-          <p class="muted view-head-sub" id="crm-lg-sub">Scored against the Underwings ICP every 12 hours. Promote the ones you'll pursue.</p>
+          <p class="muted view-head-sub" id="crm-lg-sub">Scored against the Underwings ICP every day. Promote the ones you'll pursue.</p>
         </div>
 
         <!-- rendered by crmRenderLeadgenStats -->
@@ -215,6 +215,25 @@
               <option value="global">Global</option>
             </select>
           </label>
+          <label class="lg-filter">
+            <span>Size</span>
+            <select id="crm-lg-size" aria-label="Filter by company size">
+              <option value="">Any size</option>
+            </select>
+          </label>
+          <label class="lg-filter">
+            <span>Reach</span>
+            <select id="crm-lg-reach" aria-label="Filter by reachability">
+              <option value="">All</option>
+              <option value="email">Has email</option>
+            </select>
+          </label>
+          <!-- status=contacted and no touch for 7+ days; forces the Status
+               dropdown while active (crmLeadgenQuery) -->
+          <button id="crm-lg-followup" class="btn btn-ghost btn-sm" aria-pressed="false"
+                  title="Contacted 7+ days ago with no reply — due a follow-up">
+            <span aria-hidden="true">↩</span> Follow-up due
+          </button>
           <div class="toolbar-spacer"></div>
           <span id="crm-lg-count" class="toolbar-hint muted" aria-live="polite"></span>
           <button id="crm-lg-run" class="btn btn-ghost btn-sm" hidden>
@@ -233,7 +252,7 @@
             <thead>
               <tr>
                 <th>Company</th><th>Service</th><th class="ta-r">Fit</th>
-                <th>Where</th><th>Contact</th><th>Outreach</th><th>Notes</th><th></th>
+                <th>Where</th><th>Size</th><th>Contact</th><th>Outreach</th><th>Notes</th><th></th>
               </tr>
             </thead>
             <tbody id="crm-lg-rows"></tbody>

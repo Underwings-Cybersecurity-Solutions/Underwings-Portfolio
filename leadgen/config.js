@@ -12,12 +12,22 @@ module.exports = {
   // ---- Who we're looking for (Claude scores against this) ----
   icp: {
     description:
-      'UAE-based small-to-mid-market organisations (roughly 30-1000 staff) in ' +
-      'regulated or data-sensitive sectors — banking, finance, insurance, ' +
-      'healthcare and clinics, legal, real estate, logistics and freight, ' +
-      'education, retail/e-commerce, technology and IT services, and ' +
-      'government-adjacent entities — that carry a security or compliance ' +
-      'obligation but are unlikely to have a mature in-house security team. ' +
+      'UAE-based mid-range organisations — the sweet spot is 30-250 staff, ' +
+      'acceptable up to 500 — in regulated or data-sensitive sectors: ' +
+      'banking, finance, insurance, healthcare and clinics, legal, real ' +
+      'estate, logistics and freight, education, retail/e-commerce, ' +
+      'technology and IT services, and government-adjacent entities. The ' +
+      'ideal buyer carries a security or compliance obligation, has NO ' +
+      'mature in-house security team, and has a single reachable decision ' +
+      'maker (owner, GM, IT manager) who can sign off in weeks — Underwings ' +
+      'is a five-person consultancy and cannot fight enterprise procurement. ' +
+      'Large enterprises (1000+ staff: major banks, airlines, telecoms, ' +
+      'government bodies, famous groups) are OUT of profile — score them 3 ' +
+      'or below no matter how strong their compliance obligation is; they ' +
+      'buy from big firms through procurement, not from startups. Companies ' +
+      'under 30 staff are in profile ONLY with an explicit compliance ' +
+      'trigger (a tender demanding ISO 27001, ADHICS/NESA/PDPL applicability, ' +
+      'a breach in the news); otherwise score them 4-5. ' +
       'Strong signals: an ISO 27001 / NESA / ADHICS / PDPL obligation or ' +
       'deadline, a recent breach or outage, a tender or RFP mentioning ' +
       'information security, rapid headcount or branch growth, a new UAE ' +
@@ -34,6 +44,13 @@ module.exports = {
   },
 
   // ---- Discovery sources ----
+
+  // Sources listed here are skipped entirely by gatherAll. Wikidata and the
+  // Wikipedia company categories were retired 2026-08-06: a company notable
+  // enough for an encyclopedia entry is almost always 1000+ staff — between
+  // them they produced 60 prospects including most of the enterprise band,
+  // which the ICP now excludes. Re-enable by removing from this list.
+  disabledSources: ['wikidata', 'wikipedia'],
 
   // 1. OpenStreetMap Overpass (free, no key). Geography-bounded and
   // sector-tagged, which is exactly our ICP shape. Categories rotate per
@@ -199,13 +216,18 @@ module.exports = {
   firecrawl: { monthlyCap: 300 },   // of the shared 3000/mo plan
 
   // ---- Run behaviour ----
-  scoreThreshold: 6,        // write only leads with icp_score >= this
-  // 80, up from the initial 50 (2026-08-02, "more leads"): the only cost of
-  // this knob is Haiku scoring — website discovery and Apollo stay bounded by
-  // their own monthly caps, so a bigger scored pool raises throughput without
-  // raising the paid-API ceiling.
-  maxCandidatesPerRun: 80,
-  intervalMinutes: 720,     // 12h loop cadence
+  // Retuned 2026-08-06 for a 5-person team with ~2h/day of sales capacity:
+  // ~10 workable prospects a day beat 160 unreachable ones. Threshold up
+  // (quality bar), candidate pool halved (less Haiku spend on leads nobody
+  // will work), cadence once a day.
+  scoreThreshold: 7,        // write only leads with icp_score >= this
+  maxCandidatesPerRun: 40,
+  intervalMinutes: 1440,    // 24h loop cadence
+  // Size bands that never enter the pipeline as workable leads, regardless of
+  // score. Prose in the ICP can be ignored by the scorer; this cannot: run.js
+  // stores excluded bands as status 'disqualified' and spends no people
+  // credits on them. Values must match the crm_prospects size_band CHECK.
+  excludeSizeBands: ['enterprise'],
   runNowPollSeconds: 60,    // poll crm_leadgen_settings.run_requested_at this often
   claudeModel: 'claude-haiku-4-5-20251001',
   claudeBatchSize: 8,

@@ -80,18 +80,22 @@ function toProspectRow(lead) {
     website: website || null,
     industry: lead.industry || null,
     size_band: lead.sizeBand || null,
+    linkedin_url: lead.companyLinkedin || null,
     emirate: lead.emirate || emirateOf(lead.location || lead.country),
     country: lead.country || null,
     geo_bucket: bucketOf(lead.country || 'United Arab Emirates'),
     service: lead.service || null,
     kind: lead.kind === 'partner' ? 'partner' : 'customer',
     ai_score: typeof lead.icp_score === 'number' ? lead.icp_score : null,
-    why: lead.why || null,
+    why: lead.disqualified || lead.why || null,
     signal: lead.signal || null,
     source: lead.source || null,
     dedupe_key: idOf(lead),
     enrichment_status: 'enriched',
-    status: 'new',
+    // The harvest gate (run.js) marks excluded size bands: stored visible as
+    // 'disqualified' rather than silently dropped, so the exclusion is
+    // auditable in the CRM.
+    status: lead.disqualified ? 'disqualified' : 'new',
     verified_at: lead.emailStatus && lead.emailStatus !== 'unverified'
       ? new Date().toISOString() : null,
     last_seen_at: new Date().toISOString(),
@@ -188,6 +192,7 @@ function toRecord(row, contact = {}) {
     prospectId: row.id,
     company: row.company_name || '',
     kind: row.kind || 'customer',
+    sizeBand: row.size_band || '',
     country: row.country || '',
     geoBucket: row.geo_bucket || '',
     service: row.service || '',
@@ -275,7 +280,8 @@ const SALES_FIELDS = ['status', 'notes', 'outreach_subject', 'outreach_body',
   'touch_call', 'touch_mail', 'touch_msg', 'touch_li', 'touch_follow'];
 const ENRICHMENT_FIELDS = ['website', 'domain', 'industry', 'emirate', 'country',
   'geo_bucket', 'service', 'ai_score', 'why', 'signal', 'enrichment_status',
-  'gap_score', 'talking_points', 'verified_at', 'last_seen_at'];
+  'gap_score', 'talking_points', 'verified_at', 'last_seen_at',
+  'size_band', 'linkedin_url'];
 
 function pick(fields, allowed) {
   const out = {};

@@ -182,6 +182,9 @@ let crmState = {
   prospects: [],          // loaded LeadGen page — the ⌘K palette searches these
   lg: {                   // LeadGen view: filters are server-side, not client-side
     service: '', status: '', geo: '',
+    size: '',             // size_band value, or 'none' = unclassified (NULL)
+    reach: '',            // 'email' = has at least one contact with an email
+    followup: false,      // contacted 7+ days ago, no touch since — due a nudge
     kind: 'customer',     // 'customer' = LeadGen tab, 'partner' = Partners tab
     offset: 0, total: 0, stats: null, loading: false,
   },
@@ -981,6 +984,19 @@ const LG_TOUCHES = [
   { col: 'touch_follow', label: 'Follow', title: 'Follow-up done' },
 ];
 
+// mirrors the crm_prospects size_band CHECK (migration 006); 'none' is the
+// UI-only value for NULL — most pre-Apollo rows until the backfill lands
+const LG_SIZES = [
+  { value: 'sub30',      label: 'Sub-30' },
+  { value: 'sme',        label: 'SME (30–250)' },
+  { value: 'midmarket',  label: 'Mid-market (250–1000)' },
+  { value: 'enterprise', label: 'Enterprise (1000+)' },
+  { value: 'none',       label: 'Unclassified' },
+];
+const LG_SIZE_LABELS = { sub30: 'Sub-30', sme: 'SME', midmarket: 'Mid-market',
+  enterprise: 'Enterprise' };
+const LG_FOLLOWUP_DAYS = 7;
+
 function clampScore(n) { n = Number(n) || 0; return Math.max(0, Math.min(100, n)); }
 
 /** Fit is scored 1-10; the meter wants a percentage. */
@@ -991,13 +1007,26 @@ function crmWireLeadgen() {
   for (const s of LG_SERVICES) svc.insertAdjacentHTML('beforeend', `<option value="${escAttr(s)}">${esc(s)}</option>`);
   const st = document.getElementById('crm-lg-status');
   for (const s of LG_STATUSES) st.insertAdjacentHTML('beforeend', `<option value="${escAttr(s)}">${esc(LG_STATUS_LABELS[s])}</option>`);
+  const sz = document.getElementById('crm-lg-size');
+  for (const s of LG_SIZES) sz.insertAdjacentHTML('beforeend', `<option value="${escAttr(s.value)}">${esc(s.label)}</option>`);
 
-  for (const [id, key] of [['crm-lg-service', 'service'], ['crm-lg-status', 'status'], ['crm-lg-geo', 'geo']]) {
+  for (const [id, key] of [['crm-lg-service', 'service'], ['crm-lg-status', 'status'],
+                           ['crm-lg-geo', 'geo'], ['crm-lg-size', 'size'],
+                           ['crm-lg-reach', 'reach']]) {
     document.getElementById(id).addEventListener('change', (e) => {
       crmState.lg[key] = e.target.value;
       crmLoadLeadgen({ reset: true });
     });
   }
+  // toggle chip, not a select: "what's due a nudge" is a mode you flip into.
+  // While active it forces status=contacted, so grey the dropdown out.
+  document.getElementById('crm-lg-followup').addEventListener('click', (e) => {
+    const on = !crmState.lg.followup;
+    crmState.lg.followup = on;
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    document.getElementById('crm-lg-status').disabled = on;
+    crmLoadLeadgen({ reset: true });
+  });
   document.getElementById('crm-lg-more').addEventListener('click', () => crmLoadLeadgen({ reset: false }));
   document.getElementById('crm-lg-export').addEventListener('click', crmExport);
   document.getElementById('crm-lg-run').addEventListener('click', crmLeadgenRunNow);
@@ -1036,19 +1065,34 @@ function crmApplyLeadgenCopy() {
     partner ? 'Firms worth partnering with' : 'Prospects worth a first move';
   document.getElementById('crm-lg-sub').textContent = partner
     ? 'MSPs, integrators, auditors and advisers whose clients need security work. Approach them as channel partners, not prospects.'
-    : 'Scored against the Underwings ICP every 12 hours. Promote the ones you\'ll pursue.';
+    : 'Scored against the Underwings ICP every day. Promote the ones you\'ll pursue.';
 }
 
 /** Build the PostgREST query for the current filters. Shared by the table and
  * the CSV export so what you download is what you are looking at. */
 function crmLeadgenQuery(select = '*') {
+  const { service, status, geo, size, reach, followup } = crmState.lg;
+  // "has an email" is a fact about the child table: an inner-join embed keeps
+  // only prospects with ≥1 contact row carrying an email. The embed rides on
+  // the select, so it must be decided before .select() is called.
+  if (reach === 'email') select += ', reach:crm_prospect_contacts!inner(email)';
   let q = supabase.from('crm_prospects').select(select, { count: 'exact' })
     .eq('kind', crmState.lg.kind);
-  const { service, status, geo } = crmState.lg;
-  if (status) q = q.eq('status', status);
-  else q = q.neq('status', 'suppressed');   // "All open" hides suppressed
+  if (reach === 'email') q = q.not('reach.email', 'is', null);
+  if (followup) {
+    // due a nudge: contacted, and the last recorded touch is 7+ days old.
+    // NULL last_outreach_at means contacted-but-never-stamped — due too.
+    const cutoff = new Date(Date.now() - LG_FOLLOWUP_DAYS * 864e5).toISOString();
+    q = q.eq('status', 'contacted')
+         .or(`last_outreach_at.lt.${cutoff},last_outreach_at.is.null`);
+  } else if (status) q = q.eq('status', status);
+  // "All open" hides the two terminal states: suppressed (sales verdict) and
+  // disqualified (the pipeline's size gate) — both stay reachable via Status
+  else q = q.not('status', 'in', '("suppressed","disqualified")');
   if (service) q = q.eq('service', service);
   if (geo) q = q.eq('geo_bucket', geo);
+  if (size === 'none') q = q.is('size_band', null);
+  else if (size) q = q.eq('size_band', size);
   if (crmState.search) {
     const s = crmState.search.replace(/[%,()]/g, '');
     if (s) q = q.or(`company_name.ilike.%${s}%,domain.ilike.%${s}%,industry.ilike.%${s}%`);
@@ -1124,15 +1168,17 @@ function crmRenderLeadgenCount() {
 
 function crmRenderLeadgenSkeleton() {
   document.getElementById('crm-lg-rows').innerHTML = Array.from({ length: 6 }).map(() => `
-    <tr><td colspan="8"><span class="skeleton skeleton-line w-60"></span></td></tr>`).join('');
+    <tr><td colspan="9"><span class="skeleton skeleton-line w-60"></span></td></tr>`).join('');
 }
 
 function crmRenderLeadgenEmpty() {
   document.getElementById('crm-lg-rows').innerHTML = `
-    <tr><td colspan="8">
+    <tr><td colspan="9">
       <div class="empty">
         <span class="empty-ico" aria-hidden="true">◇</span>
-        <p>No prospects match these filters. The leadgen pipeline adds new ones every 12 hours.</p>
+        <p>${crmState.lg.followup
+          ? 'Nothing is due a follow-up — every contacted prospect was touched within the last week.'
+          : 'No prospects match these filters. The leadgen pipeline adds new ones every day.'}</p>
       </div>
     </td></tr>`;
   document.getElementById('crm-lg-more').hidden = true;
@@ -1159,6 +1205,9 @@ function crmRenderLeadgen(rows) {
         <span class="lg-fit"><i class="lg-fit-bar" style="--v:${fitPct(p.ai_score)}%"></i><span class="mono">${p.ai_score ?? '—'}</span></span>
       </td>
       <td>${esc(where)}</td>
+      <td>${p.size_band
+        ? `<span class="pill pill--muted">${esc(LG_SIZE_LABELS[p.size_band] || p.size_band)}</span>`
+        : '<span class="muted">—</span>'}</td>
       <td class="lg-contact" data-lg-open="${escAttr(p.id)}"><span class="muted">View</span></td>
       <td class="lg-touches">${touches}</td>
       <td><input class="lg-notes" type="text" placeholder="Add a note…" aria-label="Notes for ${escAttr(p.company_name)}"
@@ -1292,11 +1341,30 @@ function crmOutreachBody(p, contactName) {
     `Regards,\n[YOUR NAME]\n[TITLE] | Underwings Cybersecurity Solutions\n+971 505670394 | https://underwings.org`;
 }
 
+/** Short nudge for the follow-up queue. Deliberately not AI-drafted: a
+ * follow-up's job is to be brief and easy to answer, and the low-pressure
+ * out ("a one-line not-now") is what gets replies from busy owners. */
+function crmFollowupBody(p) {
+  return 'Hello,\n\n' +
+    `Floating my earlier note back to the top of your inbox — security work rarely makes the list until an audit, a client questionnaire or an incident forces it, and by then it's urgent.\n\n` +
+    `If a 15-minute look at where ${p.company_name} stands would be useful, pick any slot: https://calendly.com/underwings1415/30min\n\n` +
+    `And if now isn't the time, a one-line "not now" is genuinely helpful too.\n\n` +
+    'Regards,\n[YOUR NAME]\n[TITLE] | Underwings Cybersecurity Solutions\n+971 505670394 | https://underwings.org';
+}
+
 async function crmCopyOutreach(id) {
   const p = crmState.prospects.find((r) => r.id === id);
   if (!p) return;
-  const ok = await crmCopyText(crmOutreachBody(p));
-  toast(ok ? `Cold email for ${p.company_name} copied — edit before sending.` : 'Copy failed — open the prospect and copy from there.', ok ? 'success' : 'error');
+  // In follow-up mode the ✉ copies the nudge, not the original cold email.
+  // Tick the Follow box after sending — that's what re-stamps the clock
+  // (migration 019 trigger) and drops the row out of this queue.
+  const followup = crmState.lg.followup;
+  const ok = await crmCopyText(followup ? crmFollowupBody(p) : crmOutreachBody(p));
+  toast(ok
+    ? (followup
+        ? `Follow-up for ${p.company_name} copied — send it, then tick Follow.`
+        : `Cold email for ${p.company_name} copied — edit before sending.`)
+    : 'Copy failed — open the prospect and copy from there.', ok ? 'success' : 'error');
 }
 
 async function crmSaveOutreach(id, subject, body) {
@@ -1382,8 +1450,13 @@ async function crmOpenProspect(id) {
         <dl class="lg-facts">
           <dt>Service</dt><dd>${esc(p.service || '—')}</dd>
           <dt>Industry</dt><dd>${esc(p.industry || '—')}</dd>
+          <dt>Size</dt><dd>${esc(p.size_band ? (LG_SIZE_LABELS[p.size_band] || p.size_band) : '—')}</dd>
+          <dt>Company LinkedIn</dt><dd>${p.linkedin_url
+            ? `<a href="${escAttr(p.linkedin_url)}" rel="noopener noreferrer" target="_blank">Open ↗</a>`
+            : '—'}</dd>
           <dt>Source</dt><dd>${esc(p.source || '—')}</dd>
           <dt>Found</dt><dd>${esc(formatDate(p.created_at))}</dd>
+          <dt>Last touch</dt><dd>${esc(p.last_outreach_at ? formatDate(p.last_outreach_at) : 'never')}</dd>
         </dl>
       </section>
       ${p.why || p.signal || talk.length ? `
