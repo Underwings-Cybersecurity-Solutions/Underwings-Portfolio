@@ -105,6 +105,11 @@ check_url "Admin"         "https://underwings.org/admin/"        "200"
 check_url "Plane PM"      "https://plan.underwings.org"          "200"
 check_url "Uptime Kuma"   "https://status.underwings.org"        "302"
 
+# Assert on a content marker, not a bare 200 — a misconfigured vhost or a
+# fallback page would still answer 200. "Ask about training" is the CTA, so if
+# it is missing the page is not doing its one job.
+check_url_body "Academy"  "https://academy.mycosmicstar.com/"    "Ask about training"
+
 # ── CRM (crm.underwings.org) ────────────────
 # 1. the SPA container is actually serving (not just any 200 from try_files)
 check_url_body "CRM app"   "https://crm.underwings.org/healthz" "underwings-crm ok"
