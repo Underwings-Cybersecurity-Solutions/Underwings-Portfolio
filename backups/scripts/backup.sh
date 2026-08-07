@@ -156,10 +156,12 @@ echo "  → Stalwart mail data..."
 if [ "$SKIP_BULK" -eq 1 ]; then
   echo "    ! Skipped this run (low disk)."
 else
-  # LOG and LOG.old.* are RocksDB's *debug* logs, not mail. There was 173 MB of
-  # them going back to March (one 82 MB file from 2026-07-04) and every byte was
-  # re-tarred nightly. RocksDB never reads them back, so excluding them loses
-  # nothing on restore.
+  # LOG and LOG.old.* are RocksDB's *debug* logs, not mail — 181 MB of them going
+  # back to March, re-tarred nightly, and never read back on restore.
+  # Worth keeping in perspective: that is only ~7 MB once gzipped (debug text
+  # compresses ~25x), so this is housekeeping, not the fix. What actually bounds
+  # the disk is the retention and the size cap above. Its real value is that the
+  # LOG set grows without limit and would otherwise be carried forever.
   tar czf - -C /home/deployer/underwings/stalwart \
       --exclude='data/LOG' --exclude='data/LOG.old.*' \
       data/ config/ 2>/dev/null \
