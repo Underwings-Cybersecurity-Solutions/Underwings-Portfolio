@@ -108,7 +108,13 @@ check_url "Uptime Kuma"   "https://status.underwings.org"        "302"
 # Assert on a content marker, not a bare 200 — a misconfigured vhost or a
 # fallback page would still answer 200. "Ask about training" is the CTA, so if
 # it is missing the page is not doing its one job.
-check_url_body "Academy"  "https://academy.mycosmicstar.com/"    "Ask about training"
+# "View course" renders once per course row, so it is present only when the
+# catalog actually fetched courses from the database. It replaced the holding
+# page's "Ask about training", which now appears ONLY in the empty state — a
+# marker that would have gone green precisely when the catalog was broken.
+# Do not swap this for brand or nav text: a page whose data fetch failed still
+# renders the header, the footer and the wordmark.
+check_url_body "Academy"  "https://academy.mycosmicstar.com/"    "View course"
 
 # ── CRM (crm.underwings.org) ────────────────
 # 1. the SPA container is actually serving (not just any 200 from try_files)
