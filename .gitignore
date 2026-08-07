@@ -38,7 +38,16 @@ dockerized/supabase/volumes/
 scripts/plane/state/
 
 # Runtime data — never commit
-backups/
+# The backup/monitoring SCRIPTS are infrastructure, not runtime data. A plain
+# `backups/` rule swallowed them whole, so the scripts protecting every service
+# on this box had no version history at all. Note this must exclude the CONTENTS
+# (`backups/*`), not the directory: git will not descend into a directory
+# excluded with a trailing slash, so a later `!backups/scripts/` can never
+# re-include anything. The multi-GB encrypted tars stay excluded.
+backups/*
+!backups/scripts/
+backups/scripts/*
+!backups/scripts/*.sh
 stalwart/
 roundcube/db/
 leadgen/state/
