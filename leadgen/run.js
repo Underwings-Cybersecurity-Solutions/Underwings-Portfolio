@@ -29,10 +29,12 @@ const { domainOf, normCompany } = require('./lib/parse');
 const D = require('./lib/dates');
 const store = require('./lib/store-pg');
 const db = require('./lib/supabase');
+const mx = require('./lib/mx');
 const { sleep } = require('./lib/http');
 
 const SEEN_PATH = path.join(__dirname, 'state', 'seen.json');
 const CYCLE_PATH = path.join(__dirname, 'state', 'cycle.json');
+const MX_PATH = path.join(__dirname, 'state', 'mx.json');
 
 // legal-suffix-aware, shared with store-pg so the key we dedupe on is the
 // key we write (lib/parse.normCompany)
@@ -255,6 +257,19 @@ async function backfillFirmographics(records, apolloKey) {
   console.log(`Refresh: firmographics backfilled on ${filled}/${missing.length} rows`);
 }
 
+/** Free deliverability floor (lib/mx.js): DNS-check a slice of contact
+ * domains per cycle; contacts on domains with no mail route go 'invalid'
+ * before anyone mails them. Costs nothing, so it never competes with the
+ * Apollo budgets — a failure here must not sink the cycle. */
+async function mxSweep() {
+  try {
+    const s = await mx.sweep({ db, cachePath: MX_PATH, maxDomains: cfg.mx.domainsPerCycle,
+      recheckDays: cfg.mx.recheckDays, concurrency: cfg.mx.concurrency });
+    console.log(`MX: ${s.checked}/${s.due} due domains checked — ` +
+      `${s.dead} dead (${s.invalidated} contacts invalidated), ${s.unknown} DNS-unknown`);
+  } catch (e) { console.warn(`MX: pass failed — ${e.message}`); }
+}
+
 /** The "keep updated" pass: re-verify stale emails, retry missing contacts. */
 async function refreshExisting(env, db_) {
   const apolloKey = env.APOLLO_API_KEY;
@@ -421,6 +436,7 @@ async function runOnce(opts = {}) {
     if (!leads.length) {
       if (!opts.dry) {
         saveSeen(seen);
+        await mxSweep();
         await refreshExisting(process.env, existing);
         await backfillOutreach(apiKey, existing);
         await budget.flush();
@@ -456,6 +472,7 @@ async function runOnce(opts = {}) {
     const added = await store.upsertLeads(leads);
     saveSeen(seen);
     console.log(`✅ Added ${added}/${leads.length} prospects to the CRM (${Date.now() - t0}ms)`);
+    await mxSweep();
     await refreshExisting(process.env, existing);
     await backfillOutreach(apiKey, existing);
     await budget.flush();

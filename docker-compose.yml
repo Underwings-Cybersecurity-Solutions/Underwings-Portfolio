@@ -150,6 +150,8 @@ services:
       - PUBLIC_TURNSTILE_SITE_KEY=${TURNSTILE_SITE_KEY}
       - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
+      # Brevo delivery webhook auth (/api/brevo-events → crm_email_event RPC)
+      - BREVO_WEBHOOK_TOKEN=${BREVO_WEBHOOK_TOKEN}
       # SMTP for welcome / contact emails (auth fix — full email username required by Stalwart)
       - SMTP_HOST=stalwart
       - SMTP_USER=newsletter@underwings.org

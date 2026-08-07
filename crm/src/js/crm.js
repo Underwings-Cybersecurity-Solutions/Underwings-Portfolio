@@ -1091,11 +1091,17 @@ function crmLeadgenQuery(select = '*') {
   const { service, status, geo, size, reach, followup } = crmState.lg;
   // "has an email" is a fact about the child table: an inner-join embed keeps
   // only prospects with ≥1 contact row carrying an email. The embed rides on
-  // the select, so it must be decided before .select() is called.
-  if (reach === 'email') select += ', reach:crm_prospect_contacts!inner(email)';
+  // the select, so it must be decided before .select() is called. Known-dead
+  // addresses (bounced, or on a domain with no mail route — the MX pass)
+  // don't count as reachable: a prospect whose every email is 'invalid'
+  // drops out of this filter.
+  if (reach === 'email') select += ', reach:crm_prospect_contacts!inner(email,email_status)';
   let q = supabase.from('crm_prospects').select(select, { count: 'exact' })
     .eq('kind', crmState.lg.kind);
-  if (reach === 'email') q = q.not('reach.email', 'is', null);
+  if (reach === 'email') {
+    q = q.not('reach.email', 'is', null)
+         .or('email_status.neq.invalid,email_status.is.null', { referencedTable: 'reach' });
+  }
   if (followup) {
     // due a nudge: contacted, and the last recorded touch is 7+ days old.
     // NULL last_outreach_at means contacted-but-never-stamped — due too.

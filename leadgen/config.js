@@ -235,6 +235,15 @@ module.exports = {
     reverifyAfterDays: 30,
     maxRowsPerCycle: 25,
   },
+  // Free MX pass (lib/mx.js): a domain with no mail route means every
+  // contact behind it is dead — caught by DNS before Brevo counts a bounce
+  // against sender reputation. Per-cycle cap keeps DNS traffic polite; the
+  // ~5.5k-domain blead backlog was cleared once by verify-mx-sweep.js.
+  mx: {
+    domainsPerCycle: 150,
+    recheckDays: 60,
+    concurrency: 10,
+  },
   outreach: {
     backfillPerCycle: 40,   // draft-less existing rows re-drafted per cycle
   },
