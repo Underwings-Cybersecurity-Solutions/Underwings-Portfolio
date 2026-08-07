@@ -56,8 +56,11 @@ function contactEmailStatus(lead) {
 }
 
 /** Where the contact actually came from — matches the source CHECK
- * (migration 012 added 'apollo'; 'hunter' remains for pre-switch rows). */
+ * (migration 012 added 'apollo'; 020 added 'import'; 'hunter' remains for
+ * pre-switch rows). An explicit contactSource wins: import-blead.js supplies
+ * named people that Apollo never saw, and labelling them 'apollo' would lie. */
 function contactSource(lead) {
+  if (lead.contactSource) return lead.contactSource;
   if (lead.contactName) return 'apollo';   // only Apollo yields a named person
   if (lead.email) return 'scrape';
   return 'search';
@@ -85,7 +88,7 @@ function toProspectRow(lead) {
     country: lead.country || null,
     geo_bucket: bucketOf(lead.country || 'United Arab Emirates'),
     service: lead.service || null,
-    kind: lead.kind === 'partner' ? 'partner' : 'customer',
+    kind: ['partner', 'blead'].includes(lead.kind) ? lead.kind : 'customer',
     ai_score: typeof lead.icp_score === 'number' ? lead.icp_score : null,
     why: lead.disqualified || lead.why || null,
     signal: lead.signal || null,
@@ -162,7 +165,7 @@ function toContactRows(lead, prospectId, maxRows = cfg.contacts.maxPerProspect) 
       email_status: role ? 'role' : 'low',
       phone: null,
       linkedin_url: null,
-      source: 'scrape',
+      source: lead.contactSource || 'scrape',
       confidence: role ? 20 : 10,
     });
   }
@@ -178,7 +181,8 @@ function toContactRows(lead, prospectId, maxRows = cfg.contacts.maxPerProspect) 
   for (const phone of extraPhones) {
     rows.push({
       prospect_id: prospectId, name: null, job_title: null, email: null,
-      email_status: null, phone, linkedin_url: null, source: 'scrape',
+      email_status: null, phone, linkedin_url: null,
+      source: lead.contactSource || 'scrape',
       confidence: 5,
     });
   }

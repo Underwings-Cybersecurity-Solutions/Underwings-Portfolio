@@ -259,7 +259,11 @@ async function backfillFirmographics(records, apolloKey) {
 async function refreshExisting(env, db_) {
   const apolloKey = env.APOLLO_API_KEY;
   if (!apolloKey) { console.log('Refresh: skipped — no APOLLO_API_KEY'); return; }
-  const records = db_ ? db_.leads : (await store.load()).leads;
+  let records = db_ ? db_.leads : (await store.load()).leads;
+  // Imported bleads (thousands of rows) queue BEHIND pipeline prospects for
+  // every Apollo budget — the core funnel keeps priority, bleads fill spare
+  // cap. Stable sort, so created_at order survives within each group.
+  records = [...records].sort((a, b) => (a.kind === 'blead') - (b.kind === 'blead'));
   await backfillFirmographics(records, apolloKey);
   if (apollo.planBlocked()) {
     console.log('Refresh: skipped — Apollo people endpoints not in this plan'); return;
@@ -319,7 +323,9 @@ async function refreshExisting(env, db_) {
  * cycle to bound Claude spend. */
 async function backfillOutreach(apiKey, db_) {
   const missing = (db_.leads || [])
-    .filter((r) => !r.hasDraft && r.company &&
+    // bleads are excluded: thousands of imported rows would monopolise this
+    // cap forever — the CRM's client-side fallback template covers them
+    .filter((r) => !r.hasDraft && r.company && r.kind !== 'blead' &&
                    !['disqualified', 'suppressed'].includes(r.status))
     .slice(0, cfg.outreach.backfillPerCycle);
   if (!missing.length) return;

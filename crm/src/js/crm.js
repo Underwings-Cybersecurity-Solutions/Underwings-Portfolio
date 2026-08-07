@@ -413,7 +413,7 @@ async function crmBoot() {
     clearTimeout(_searchT);
     _searchT = setTimeout(() => {
       if (crmState.view === 'pipeline') crmLoadBoard();
-      else if (crmState.view === 'leadgen' || crmState.view === 'partners') crmLoadLeadgen({ reset: true });
+      else if (LG_VIEW_KIND[crmState.view]) crmLoadLeadgen({ reset: true });
       else if (crmState.view === 'webleads') crmRenderWebleads();
     }, 250);
   });
@@ -484,8 +484,8 @@ function crmSwitchView(view) {
     p.hidden = !active;
   });
   if (view === 'pipeline') crmLoadBoard();
-  else if (view === 'leadgen' || view === 'partners') {
-    crmState.lg.kind = view === 'partners' ? 'partner' : 'customer';
+  else if (LG_VIEW_KIND[view]) {
+    crmState.lg.kind = LG_VIEW_KIND[view];
     crmApplyLeadgenCopy();
     crmLoadLeadgen({ reset: true });
   } else if (view === 'webleads') crmLoadWebleads();
@@ -960,6 +960,10 @@ async function crmAddActivity(id) {
 // the grant agree by construction rather than by discipline.
 // ===========================================
 const LG_PAGE_SIZE = 100;
+// Three tracks share this panel; the nav view name picks the kind column.
+// blead = bulk-imported outbound lists (leadgen/import-blead.js), heuristic-
+// scored rather than Claude-scored, but worked through the same filters.
+const LG_VIEW_KIND = { leadgen: 'customer', partners: 'partner', blead: 'blead' };
 const LG_SERVICES = ['GRC / ISO 27001', 'PTaaS / Pen Testing', 'Cloud Security',
   'Network & Infrastructure', 'Training & Awareness'];
 // mirrors the crm_prospects status CHECK; 'promoted' is set by the RPC, not by hand
@@ -1058,14 +1062,27 @@ function crmWireLeadgen() {
 /** The two tracks share one panel, so the copy has to say which one you are
  * looking at — partners are collaborators, not people to sell to. */
 function crmApplyLeadgenCopy() {
-  const partner = crmState.lg.kind === 'partner';
-  document.getElementById('crm-lg-eyebrow').textContent =
-    partner ? 'Collaboration' : 'Lead generation';
-  document.getElementById('crm-lg-title').textContent =
-    partner ? 'Firms worth partnering with' : 'Prospects worth a first move';
-  document.getElementById('crm-lg-sub').textContent = partner
-    ? 'MSPs, integrators, auditors and advisers whose clients need security work. Approach them as channel partners, not prospects.'
-    : 'Scored against the Underwings ICP every day. Promote the ones you\'ll pursue.';
+  const kind = crmState.lg.kind;
+  const copy = {
+    partner: {
+      eyebrow: 'Collaboration',
+      title: 'Firms worth partnering with',
+      sub: 'MSPs, integrators, auditors and advisers whose clients need security work. Approach them as channel partners, not prospects.',
+    },
+    blead: {
+      eyebrow: 'Imported list',
+      title: 'Bulk-imported companies to work',
+      sub: 'Imported outbound lists, heuristically ranked — highest scores have a named contact and a corporate inbox. Same filters, same play.',
+    },
+    customer: {
+      eyebrow: 'Lead generation',
+      title: 'Prospects worth a first move',
+      sub: 'Scored against the Underwings ICP every day. Promote the ones you\'ll pursue.',
+    },
+  }[kind] || {};
+  document.getElementById('crm-lg-eyebrow').textContent = copy.eyebrow || '';
+  document.getElementById('crm-lg-title').textContent = copy.title || '';
+  document.getElementById('crm-lg-sub').textContent = copy.sub || '';
 }
 
 /** Build the PostgREST query for the current filters. Shared by the table and
@@ -1432,7 +1449,7 @@ async function crmOpenProspect(id) {
     body.innerHTML = `
       <header class="drawer-head">
         <div class="drawer-eyebrow">
-          <span class="eyebrow">${p.kind === 'partner' ? 'Channel partner' : 'LeadGen prospect'}</span>
+          <span class="eyebrow">${p.kind === 'partner' ? 'Channel partner' : p.kind === 'blead' ? 'Imported prospect' : 'LeadGen prospect'}</span>
           <span class="pill ${statusPill}">${esc(LG_STATUS_LABELS[p.status] || p.status || '—')}</span>
         </div>
         <h2 class="drawer-title">${esc(p.company_name)}</h2>
@@ -1953,7 +1970,7 @@ function csvFlatten(row) {
 async function crmExport() {
   try {
     let data, error;
-    if (crmState.view === 'leadgen' || crmState.view === 'partners') {
+    if (LG_VIEW_KIND[crmState.view]) {
       // export exactly what the current filters show, not the whole table
       ({ data, error } = await crmLeadgenQuery().range(0, 4999));
     } else {
@@ -1970,8 +1987,7 @@ async function crmExport() {
     const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    const what = crmState.view === 'partners' ? 'partners'
-      : crmState.view === 'leadgen' ? 'leadgen' : crmState.motion;
+    const what = LG_VIEW_KIND[crmState.view] ? crmState.view : crmState.motion;
     a.download = `underwings-crm-${what}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
@@ -2041,6 +2057,7 @@ function crmCmdkBuild(query) {
     { icon: '▚', label: 'Go to Pipeline', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('pipeline'); } },
     { icon: '◇', label: 'Go to LeadGen', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('leadgen'); } },
     { icon: '⋈', label: 'Go to Partners', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('partners'); } },
+    { icon: '▤', label: 'Go to BLead', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('blead'); } },
     { icon: '▷', label: 'Run LeadGen now', kind: 'Action', admin: true, run: () => { crmCloseCmdk(); crmLeadgenRunNow(); } },
     { icon: '▤', label: 'Go to Reports', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('reports'); } },
     { icon: '↧', label: 'Export current view (CSV)', kind: 'Action', run: () => { crmCloseCmdk(); crmExport(); } },
@@ -2118,7 +2135,8 @@ function crmFocusProspect(id) {
   // a partner lives in the Partners tab; switching to LeadGen would load a
   // page that can never contain it, and the poll below would just time out
   const row = crmState.prospects.find((p) => p.id === id);
-  crmSwitchView(row && row.kind === 'partner' ? 'partners' : 'leadgen');
+  crmSwitchView(row && row.kind === 'partner' ? 'partners'
+    : row && row.kind === 'blead' ? 'blead' : 'leadgen');
   const sel = (window.CSS && CSS.escape) ? CSS.escape(id) : id;
   let tries = 0;
   const tick = () => {

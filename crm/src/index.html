@@ -112,6 +112,9 @@
         <button class="viewnav-btn" data-crm-view="partners">
           <span class="viewnav-ico">⋈</span> Partners
         </button>
+        <button class="viewnav-btn" data-crm-view="blead">
+          <span class="viewnav-ico">▤</span> BLead
+        </button>
         <button class="viewnav-btn" data-crm-view="webleads">
           <span class="viewnav-ico">◈</span> Web Leads
         </button>
@@ -178,10 +181,11 @@
       <!-- Fed by the underwings-leadgen pipeline, which writes crm_prospects as
            service_role. Browser sessions may only write status + notes (column
            grants, migration 011) — the controls below mirror that exactly. -->
-      <!-- One panel serves both tracks: LeadGen (kind=customer) and Partners
-           (kind=partner) are the same table over the same columns, so the
-           view attribute lists both and crmState.lg.kind picks the rows. -->
-      <section class="view" data-crm-view-panel="leadgen partners" aria-label="LeadGen" hidden>
+      <!-- One panel serves all three tracks: LeadGen (kind=customer), Partners
+           (kind=partner) and BLead (kind=blead, bulk-imported lists) are the
+           same table over the same columns, so the view attribute lists them
+           all and crmState.lg.kind picks the rows. -->
+      <section class="view" data-crm-view-panel="leadgen partners blead" aria-label="LeadGen" hidden>
         <div class="view-head">
           <div>
             <span class="eyebrow" id="crm-lg-eyebrow">Lead generation</span>
