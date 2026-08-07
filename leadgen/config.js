@@ -118,6 +118,17 @@ module.exports = {
     minIntervalMs: 7000,
   },
 
+  // 2c. ADGM FSRA public register (free, no key) — every financial firm the
+  // regulator has licensed, with address and often a direct email/phone. An
+  // FSRA licence is a standing compliance obligation, so these arrive
+  // pre-qualified for the GRC service line. ~480 firms; the whole register
+  // sweeps in ~5 cycles and re-sweeps are deduped away.
+  adgm: {
+    perPage: 50,
+    pagesPerCycle: 2,     // 100 firms/cycle
+    minIntervalMs: 3000,
+  },
+
   // 3. Google News RSS (free) — breach + compliance trigger events.
   googleNews: {
     queries: [

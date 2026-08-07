@@ -17,8 +17,8 @@ test('gatherAll isolates a throwing source and keeps the rest', async () => {
 
 test('DEFAULT_SOURCES wires every source, free ones first and crt.sh last', () => {
   assert.deepStrictEqual(DEFAULT_SOURCES.map(([n]) => n),
-    ['overpass', 'wikidata', 'wikipedia', 'github', 'google-news', 'websearch',
-     'exhibitors', 'google-places', 'ctlogs']);
+    ['overpass', 'adgm', 'wikidata', 'wikipedia', 'github', 'google-news',
+     'websearch', 'exhibitors', 'google-places', 'ctlogs']);
   // ctlogs spends ~60s per pattern; it must never delay a source that yields
   // named companies
   assert.strictEqual(DEFAULT_SOURCES[DEFAULT_SOURCES.length - 1][0], 'ctlogs');

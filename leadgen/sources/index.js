@@ -10,6 +10,7 @@
  */
 const cfg = require('../config');
 const { overpass } = require('./overpass');
+const { adgm } = require('./adgm');
 const { wikidata } = require('./wikidata');
 const { wikipedia } = require('./wikipedia');
 const { github } = require('./github');
@@ -21,6 +22,9 @@ const { places } = require('./places');
 
 const DEFAULT_SOURCES = [
   ['overpass', (env, cycle) => overpass(env, cycle)],
+  // government register with direct contacts — free and high precision, so
+  // it runs before the noisier discovery sources
+  ['adgm', (env, cycle) => adgm(env, cycle)],
   ['wikidata', () => wikidata()],
   ['wikipedia', (env, cycle) => wikipedia(env, cycle)],
   ['github', (env, cycle) => github(env, cycle)],
