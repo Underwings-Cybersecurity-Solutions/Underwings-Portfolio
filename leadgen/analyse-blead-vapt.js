@@ -41,6 +41,14 @@ const PLACES_FLOOR = 500;
 // "Construction Technology", "Water technology" and friends deliberately fail
 // this and fall through to Claude.
 const TIER1 = /^(software|saas|fintech|e-?commerce|information technology|it services|information systems)\b/i;
+
+// A foreign ccTLD is strong negative evidence — the imported lists carry
+// vendors and counterparties from Oman, Qatar, Pakistan, the UK etc. that a
+// UAE pen-test campaign cannot sell to. (.io/.ai/.me stay: UAE startups use
+// them.) Applied BEFORE both tiers, so a foreign row never reaches Claude
+// and can never tier-1 its way in on an industry label.
+const FOREIGN_TLD =
+  /\.(om|qa|sa|kw|bh|eg|jo|lb|pk|in|lk|uk|us|de|fr|es|it|nl|ch|se|tr|ru|cn|jp|kr|sg|hk|my|id|th|au|nz|ca|br|mx|za|ng|ke)$|\.co\.uk$|\.(com|net|org|gov|edu)\.(om|qa|sa|kw|bh|eg|pk|in|au|my|sg|tr)$/i;
 // Anything with these anywhere is at least worth asking Claude about even
 // when the label leads with something else ("Environmental … / Software").
 const TIER2_HINT = /software|saas|fintech|e-?comm|payment|app|digital|technology|it\b|data|platform|online|web|cyber|telecom/i;
@@ -72,11 +80,21 @@ function classifyPrompt(batch) {
   const lines = batch.map((r, i) =>
     `[${i}] ${r.company_name} | ${r.domain || '-'} | ${r.industry || '-'}`).join('\n');
   return (
-    `You are triaging a bulk list of UAE companies for a penetration-testing ` +
-    `sales campaign. For each line (company | domain | industry), decide if ` +
-    `the company plausibly OPERATES CUSTOMER-FACING SOFTWARE — a software / ` +
-    `SaaS / fintech / payments / e-commerce / app / online-platform business, ` +
-    `or an IT company shipping products. These buy penetration tests.\n` +
+    `You are triaging a bulk list of companies for a UAE penetration-testing ` +
+    `sales campaign run by a five-person consultancy. For each line ` +
+    `(company | domain | industry), decide if the company is a SELLABLE ` +
+    `VAPT TARGET: a UAE-based SME or mid-market business that OPERATES ` +
+    `CUSTOMER-FACING SOFTWARE — software / SaaS / fintech / payments / ` +
+    `e-commerce / app / online-platform businesses, or IT companies shipping ` +
+    `products. These buy penetration tests from small firms.\n` +
+    `FALSE for all of these, no matter how technical they are:\n` +
+    `- Global technology vendors and platforms (SAP, Oracle, Samsung, ` +
+    `OpenAI scale) — they SELL software; a five-person UAE consultancy ` +
+    `cannot sell pen tests to them.\n` +
+    `- Major banks, telecom operators, airlines, government bodies and other ` +
+    `1000+ staff enterprises — procurement-gated, out of profile.\n` +
+    `- Companies without UAE operations: foreign country domains or a ` +
+    `clearly foreign HQ.\n` +
     `BE CONSERVATIVE: construction, environmental consultancy, manufacturing, ` +
     `trading, hospitality and generic services are NOT relevant, even when ` +
     `the name contains generic words like "systems", "solutions" or "tech". ` +
@@ -196,11 +214,14 @@ async function main() {
 
   const matches = [];   // { row, tier, reason }
   const forClaude = [];
+  let foreign = 0;
   for (const r of rows) {
+    if (FOREIGN_TLD.test(r.domain || '')) { foreign += 1; continue; }
     if (TIER1.test(r.industry || '')) {
       matches.push({ row: r, tier: 1, reason: `industry: ${r.industry}` });
     } else forClaude.push(r);
   }
+  console.log(`Foreign-domain rows skipped: ${foreign}`);
   console.log(`Tier 1 (deterministic): ${matches.length} matches; ${forClaude.length} to classify`);
 
   let batches = 0;
@@ -253,5 +274,5 @@ if (require.main === module) {
 }
 
 module.exports = {   // pure pieces, exported for tests
-  TIER1, TIER2_HINT, TOOL, classifyPrompt, inList, sameCompany,
+  TIER1, TIER2_HINT, FOREIGN_TLD, TOOL, classifyPrompt, inList, sameCompany,
 };

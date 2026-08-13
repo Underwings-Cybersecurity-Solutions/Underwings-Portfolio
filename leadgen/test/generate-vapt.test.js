@@ -112,6 +112,26 @@ test('classifier prompt is conservative and carries the rows', () => {
   for (const k of ['index', 'vapt_relevant', 'reason']) assert.ok(req.includes(k));
 });
 
+test('classifier prompt excludes vendors, enterprises and non-UAE companies', () => {
+  const p = abv.classifyPrompt([{ company_name: 'X', domain: '', industry: '' }]);
+  assert.match(p, /Global technology vendors/);
+  assert.match(p, /procurement-gated, out of profile/);
+  assert.match(p, /without UAE operations/);
+});
+
+test('foreign ccTLDs are skipped before either tier; UAE startup TLDs stay', () => {
+  assert.ok(abv.FOREIGN_TLD.test('omantel.net.om'));
+  assert.ok(abv.FOREIGN_TLD.test('csrforum.pk'));
+  assert.ok(abv.FOREIGN_TLD.test('tye4eewmail.co.uk'));
+  assert.ok(abv.FOREIGN_TLD.test('acme.in'));
+  assert.ok(abv.FOREIGN_TLD.test('x.com.sa'));
+  assert.ok(!abv.FOREIGN_TLD.test('bitweb.ae'));
+  assert.ok(!abv.FOREIGN_TLD.test('paytabs.com'));
+  assert.ok(!abv.FOREIGN_TLD.test('omniconn.ai'));
+  assert.ok(!abv.FOREIGN_TLD.test('confluencetech.me'));
+  assert.ok(!abv.FOREIGN_TLD.test('fairlygreen.io'));
+});
+
 test('inList quotes dedupe keys for PostgREST in.()', () => {
   assert.strictEqual(abv.inList(['d:x.ae', 'c:acme llc']),
     'in.("d:x.ae","c:acme llc")');
