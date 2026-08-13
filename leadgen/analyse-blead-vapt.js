@@ -49,7 +49,7 @@ const PLACES_FLOOR = 500;
 const VENDOR_DOMAINS = [
   'sap.com', 'ariba.com', 'oracle.com', 'oraclecloud.com', 'samsung.com',
   'openai.com', 'anthropic.com', 'lusha.com', 'gep.com', 'cognizant.com',
-  'wetransfer.com', 'attio.com', 'zoho.com', 'zohocdn.com', 'microsoft.com',
+  'wetransfer.com', 'attio.com', 'zoho.com', 'zohocdn.com', 'zohocalendar.com', 'microsoft.com',
   'google.com', 'amazon.com', 'aws.amazon.com', 'salesforce.com', 'adobe.com',
   'birchstreet.net', 'crif.com',
 ];
