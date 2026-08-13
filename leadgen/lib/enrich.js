@@ -37,7 +37,11 @@ const TOOL = {
   },
 };
 
-function buildPrompt(batch) {
+// An alternate ICP (generate-vapt.js passes one) swaps the buyer definition
+// and can suppress the partner track entirely: the default tie-break routes
+// dev shops and IT firms to kind='partner', which is exactly wrong when those
+// ARE the buyers being hunted.
+function buildPrompt(batch, icp = cfg.icp) {
   const lines = batch.map((c, i) =>
     `[${i}] company="${c.company || '(unknown — infer from signal)'}" ` +
     `website="${c.website || ''}" location="${c.location || ''}" ` +
@@ -45,18 +49,45 @@ function buildPrompt(batch) {
     (c.signal ? ` signal="${c.signal}"` : '')
   ).join('\n');
 
-  return (
-    `You are a lead-qualification analyst for Underwings, a UAE cybersecurity ` +
-    `and compliance consultancy. Underwings delivers ISO 27001 implementation ` +
-    `and audit readiness, NESA / UAE IA and ADHICS compliance, UAE PDPL ` +
-    `advisory, penetration testing (PTaaS), cloud security reviews (Azure and ` +
-    `Microsoft 365), network and firewall reviews, and security awareness ` +
-    `training.\n\n` +
-    `Ideal Customer Profile:\n${cfg.icp.description}\n\n` +
-    `Allowed sectors (pick the single best fit): ${cfg.icp.sectors.join('; ')}.\n\n` +
-    `Allowed service lines (pick the single best fit): ${cfg.icp.services.join('; ')}.\n\n` +
-    `Assess each candidate below. Rules:\n` +
-    `- Score 1-10 for ICP fit, and USE THE WHOLE RANGE. Anchors:\n` +
+  const kindRules = icp.customerOnly
+    ? (
+      `Customer or partner — set 'kind':\n` +
+      `- ALWAYS set kind='customer' for this run. Every organisation here is ` +
+      `assessed as a potential BUYER, including IT services companies, ` +
+      `software houses and integrators — for this campaign they are the ` +
+      `buyers, not channels. Do not use kind='partner'.\n` +
+      `- A pure cybersecurity firm that does exactly what Underwings does ` +
+      `(penetration testing, ISO 27001 consulting, SOC services) is a direct ` +
+      `competitor, not a buyer: keep=true but score it 1-2.\n\n`
+    )
+    : (
+      `Customer or partner — set 'kind':\n` +
+      `- kind='customer' (the default): an organisation that would BUY these ` +
+      `services. Score it on buying fit.\n` +
+      `- kind='partner': a firm Underwings would COLLABORATE with rather than ` +
+      `sell to — IT managed-service providers, system integrators, cloud and ` +
+      `software resellers, audit and accounting firms, law firms doing data ` +
+      `protection work, insurers and brokers writing cyber cover, staffing and ` +
+      `training companies, and other consultancies whose clients need security ` +
+      `work they don't perform themselves. These were previously discarded as ` +
+      `"competitors"; they are referral and white-label channels, so keep them ` +
+      `and score them on how much security work their client base would ` +
+      `generate.\n` +
+      `- TIE-BREAK: many firms could both buy AND refer — an IT services ` +
+      `company, an integrator, an accounting firm. Prefer kind='partner' for ` +
+      `these. One sale is worth less than a channel that sends work ` +
+      `repeatedly, and a partner conversation can still end in them buying.\n` +
+      `- A pure cybersecurity firm that does exactly what Underwings does ` +
+      `(penetration testing, ISO 27001 consulting, SOC services) is a direct ` +
+      `competitor: kind='partner' with a LOW score, unless it is clearly ` +
+      `specialised somewhere Underwings is not.\n` +
+      `- For a partner, 'service' is the Underwings line the collaboration ` +
+      `would revolve around.\n\n`
+    );
+
+  // Score anchors are part of the ICP: the VAPT track anchors on software
+  // estate + mandates, the default on compliance obligations.
+  const anchors = icp.anchors || (
     `    10 — UAE organisation with a LIVE trigger (breach in the news, a ` +
     `dated compliance deadline, a security tender) and no in-house security ` +
     `team.\n` +
@@ -65,7 +96,22 @@ function buildPrompt(batch) {
     `    6-7 — UAE and plausibly in scope, but no trigger and no confirmed ` +
     `obligation. This is the DEFAULT; do not inflate it.\n` +
     `    4-5 — UAE but weak fit: tiny, unregulated, or likely already covered.\n` +
-    `    1-3 — no UAE operations, or not a buyer at all.\n` +
+    `    1-3 — no UAE operations, or not a buyer at all.\n`
+  );
+
+  return (
+    `You are a lead-qualification analyst for Underwings, a UAE cybersecurity ` +
+    `and compliance consultancy. Underwings delivers ISO 27001 implementation ` +
+    `and audit readiness, NESA / UAE IA and ADHICS compliance, UAE PDPL ` +
+    `advisory, penetration testing (PTaaS), cloud security reviews (Azure and ` +
+    `Microsoft 365), network and firewall reviews, and security awareness ` +
+    `training.\n\n` +
+    `Ideal Customer Profile:\n${icp.description}\n\n` +
+    `Allowed sectors (pick the single best fit): ${icp.sectors.join('; ')}.\n\n` +
+    `Allowed service lines (pick the single best fit): ${icp.services.join('; ')}.\n\n` +
+    `Assess each candidate below. Rules:\n` +
+    `- Score 1-10 for ICP fit, and USE THE WHOLE RANGE. Anchors:\n` +
+    anchors +
     `  Reserve 9 and 10 for evidence you can point at in the fields given. If ` +
     `most of a batch lands on the same number you are not discriminating.\n` +
     `- Weight UAE presence heavily: an organisation with no UAE operations ` +
@@ -80,28 +126,7 @@ function buildPrompt(batch) {
     `- If a candidate is just a news signal, infer the organisation it refers to.\n` +
     `- keep=false ONLY for individuals, job listings, non-businesses and ` +
     `obvious noise.\n\n` +
-    `Customer or partner — set 'kind':\n` +
-    `- kind='customer' (the default): an organisation that would BUY these ` +
-    `services. Score it on buying fit.\n` +
-    `- kind='partner': a firm Underwings would COLLABORATE with rather than ` +
-    `sell to — IT managed-service providers, system integrators, cloud and ` +
-    `software resellers, audit and accounting firms, law firms doing data ` +
-    `protection work, insurers and brokers writing cyber cover, staffing and ` +
-    `training companies, and other consultancies whose clients need security ` +
-    `work they don't perform themselves. These were previously discarded as ` +
-    `"competitors"; they are referral and white-label channels, so keep them ` +
-    `and score them on how much security work their client base would ` +
-    `generate.\n` +
-    `- TIE-BREAK: many firms could both buy AND refer — an IT services ` +
-    `company, an integrator, an accounting firm. Prefer kind='partner' for ` +
-    `these. One sale is worth less than a channel that sends work ` +
-    `repeatedly, and a partner conversation can still end in them buying.\n` +
-    `- A pure cybersecurity firm that does exactly what Underwings does ` +
-    `(penetration testing, ISO 27001 consulting, SOC services) is a direct ` +
-    `competitor: kind='partner' with a LOW score, unless it is clearly ` +
-    `specialised somewhere Underwings is not.\n` +
-    `- For a partner, 'service' is the Underwings line the collaboration ` +
-    `would revolve around.\n\n` +
+    kindRules +
     `Candidates:\n${lines}`
   );
 }
@@ -143,7 +168,7 @@ function isNamedCompany(name) {
  *   assessed — every candidate that came back with an assessment at all
  * run.js only remembers `assessed` in seen.json, so a candidate lost to a
  * transient API failure is retried next cycle instead of being blacklisted. */
-function mergeAssessments(batch, assessments) {
+function mergeAssessments(batch, assessments, icp = cfg.icp) {
   const byIndex = new Map((assessments || []).map((a) => [a.index, a]));
   const leads = [];
   const assessed = [];
@@ -162,17 +187,19 @@ function mergeAssessments(batch, assessments) {
       country,
       geoBucket: bucketOf(country),
       emirate: a.emirate || '',
-      industry: cfg.icp.sectors.includes(a.industry) ? a.industry : (c.industry || ''),
-      service: cfg.icp.services.includes(a.service) ? a.service : '',
+      industry: icp.sectors.includes(a.industry) ? a.industry : (c.industry || ''),
+      service: icp.services.includes(a.service) ? a.service : '',
       icp_score: typeof a.icp_score === 'number' ? a.icp_score : 0,
       why: a.why || '',
-      kind: a.kind === 'partner' ? 'partner' : 'customer',   // unknown ⇒ customer
+      // customerOnly runs assess buyers exclusively — a stray 'partner' from
+      // the model must not leak rows out of the campaign's kind
+      kind: !icp.customerOnly && a.kind === 'partner' ? 'partner' : 'customer',
     });
   });
   return { leads, assessed };
 }
 
-async function callClaude(apiKey, batch) {
+async function callClaude(apiKey, batch, icp = cfg.icp) {
   const res = await request('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -182,7 +209,7 @@ async function callClaude(apiKey, batch) {
     body: JSON.stringify({
       model: cfg.claudeModel, max_tokens: 2048,
       tools: [TOOL], tool_choice: { type: 'tool', name: 'record_assessments' },
-      messages: [{ role: 'user', content: buildPrompt(batch) }],
+      messages: [{ role: 'user', content: buildPrompt(batch, icp) }],
     }),
   }, { timeoutMs: 60000, retries: 2 });
   const j = await res.json();
@@ -190,8 +217,10 @@ async function callClaude(apiKey, batch) {
   return tu?.input?.leads || [];
 }
 
-/** Score every candidate. Returns { leads, assessed, failedBatches }. */
-async function enrich(apiKey, candidates) {
+/** Score every candidate. Returns { leads, assessed, failedBatches }.
+ * Pass an alternate `icp` to run a campaign-specific assessment (see the
+ * buildPrompt note); omitted, cfg.icp applies. */
+async function enrich(apiKey, candidates, icp = cfg.icp) {
   const leads = [];
   const assessed = [];
   let failedBatches = 0;
@@ -199,12 +228,12 @@ async function enrich(apiKey, candidates) {
     const batch = candidates.slice(i, i + cfg.claudeBatchSize);
     let assessments = [];
     try {
-      assessments = await callClaude(apiKey, batch);
+      assessments = await callClaude(apiKey, batch, icp);
     } catch (e) {
       failedBatches += 1;
       console.warn(`  [claude] batch ${i} failed: ${e.message}`);
     }
-    const merged = mergeAssessments(batch, assessments);
+    const merged = mergeAssessments(batch, assessments, icp);
     leads.push(...merged.leads);
     assessed.push(...merged.assessed);
     await sleep(300); // gentle pacing

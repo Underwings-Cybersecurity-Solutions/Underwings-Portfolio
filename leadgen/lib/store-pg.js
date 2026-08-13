@@ -29,6 +29,11 @@ const { bucketOf } = require('./region');
 const norm = normCompany;   // legal-suffix aware — see lib/parse.js
 const PAGE = 1000;
 
+// Every kind the crm_prospects CHECK accepts (migration 022). Anything else
+// coerces to 'customer' — importers that stamp their own kind (blead, vapt)
+// MUST appear here or their rows silently land in the LeadGen tab.
+const KINDS = ['customer', 'partner', 'blead', 'vapt'];
+
 /** `d:<domain>` when the lead has a resolvable website, else `c:<norm(company)>`. */
 function idOf(lead) {
   const d = domainOf(lead && lead.website);
@@ -88,7 +93,7 @@ function toProspectRow(lead) {
     country: lead.country || null,
     geo_bucket: bucketOf(lead.country || 'United Arab Emirates'),
     service: lead.service || null,
-    kind: ['partner', 'blead'].includes(lead.kind) ? lead.kind : 'customer',
+    kind: KINDS.includes(lead.kind) ? lead.kind : 'customer',
     ai_score: typeof lead.icp_score === 'number' ? lead.icp_score : null,
     why: lead.disqualified || lead.why || null,
     signal: lead.signal || null,
@@ -365,5 +370,5 @@ module.exports = {
   setContactStatus, setOutreachDraft, idOf,
   // exported for tests
   toProspectRow, toContactRow, toContactRows, toRecord, contactEmailStatus,
-  contactSource, emirateOf, SALES_FIELDS, ENRICHMENT_FIELDS,
+  contactSource, emirateOf, SALES_FIELDS, ENRICHMENT_FIELDS, KINDS,
 };

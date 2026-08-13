@@ -503,8 +503,8 @@ function crmSwitchView(view) {
 // flat tab did — this module owns only open/close, the active-child label on
 // the trigger, and the counts.
 // ===========================================
-const LEADS_VIEWS = ['leadgen', 'partners', 'blead', 'webleads'];
-const LEADS_LABEL = { leadgen: 'LeadGen', partners: 'Partners', blead: 'BLead', webleads: 'Web Leads' };
+const LEADS_VIEWS = ['leadgen', 'partners', 'blead', 'vapt', 'webleads'];
+const LEADS_LABEL = { leadgen: 'LeadGen', partners: 'Partners', blead: 'BLead', vapt: 'VAPT', webleads: 'Web Leads' };
 
 function crmLeadsMenuEls() {
   return {
@@ -602,7 +602,7 @@ function crmWireLeadsMenu() {
 // the view merges the two tables. A failed count is non-fatal: the menu keeps
 // its labels and simply shows no number.
 let crmNavCountsAt = 0;
-const LG_KIND_VIEW = { customer: 'leadgen', partner: 'partners', blead: 'blead' };
+const LG_KIND_VIEW = { customer: 'leadgen', partner: 'partners', blead: 'blead', vapt: 'vapt' };
 
 async function crmLoadNavCounts({ force = false } = {}) {
   if (!force && Date.now() - crmNavCountsAt < 30000) return;
@@ -1112,7 +1112,7 @@ const LG_PAGE_SIZE = 100;
 // Three tracks share this panel; the nav view name picks the kind column.
 // blead = bulk-imported outbound lists (leadgen/import-blead.js), heuristic-
 // scored rather than Claude-scored, but worked through the same filters.
-const LG_VIEW_KIND = { leadgen: 'customer', partners: 'partner', blead: 'blead' };
+const LG_VIEW_KIND = { leadgen: 'customer', partners: 'partner', blead: 'blead', vapt: 'vapt' };
 const LG_SERVICES = ['GRC / ISO 27001', 'PTaaS / Pen Testing', 'Cloud Security',
   'Network & Infrastructure', 'Training & Awareness'];
 // mirrors the crm_prospects status CHECK; 'promoted' is set by the RPC, not by hand
@@ -1222,6 +1222,11 @@ function crmApplyLeadgenCopy() {
       eyebrow: 'Imported list',
       title: 'Bulk-imported companies to work',
       sub: 'Imported outbound lists, heuristically ranked — highest scores have a named contact and a corporate inbox. Same filters, same play.',
+    },
+    vapt: {
+      eyebrow: 'VAPT pipeline',
+      title: 'UAE pen-testing buyers',
+      sub: 'UAE companies that operate customer-facing software — fintech, e-commerce, SaaS, apps. Phone-first where a number exists; the LinkedIn link is there for the manual touch.',
     },
     customer: {
       eyebrow: 'Lead generation',
@@ -1500,10 +1505,16 @@ function crmOutreachBody(p, contactName) {
   const sector = (p.industry || '').trim().toLowerCase();
   const services = p.kind === 'partner'
     ? 'white-label security and compliance delivery for their clients'
-    : (p.service || 'cybersecurity and compliance');
+    : p.kind === 'vapt'
+      ? 'penetration testing — web, mobile and cloud'
+      : (p.service || 'cybersecurity and compliance');
   const block = p.kind === 'partner'
     ? `Security and compliance requirements keep landing on firms like ${p.company_name}'s clients — work that sits outside what most teams deliver day to day. Handled on referral or white-label terms, it becomes revenue instead of something you turn away.`
-    : `${sector ? sector.charAt(0).toUpperCase() + sector.slice(1) : 'UAE'} organisations are under growing audit and regulatory pressure — ISO 27001, UAE PDPL and sector frameworks — usually with a lean IT team carrying it. The gap tends to surface only when an audit, a client questionnaire, or an incident forces it.`;
+    : p.kind === 'vapt'
+      // VAPT rows are software-operating companies — the hook is their app
+      // estate, not audit pressure. Same skeleton, pen-test-first angle.
+      ? `Companies running customer-facing platforms in the UAE — payments, portals, apps — are exactly what attackers probe first, and what regulators and enterprise clients now expect to see tested. A scoped penetration test answers both without slowing your team down.`
+      : `${sector ? sector.charAt(0).toUpperCase() + sector.slice(1) : 'UAE'} organisations are under growing audit and regulatory pressure — ISO 27001, UAE PDPL and sector frameworks — usually with a lean IT team carrying it. The gap tends to surface only when an audit, a client questionnaire, or an incident forces it.`;
   return `${first ? `Hi ${first},` : 'Hello,'}\n\n` +
     `Quick note from Underwings Cybersecurity Solutions. We work with ${sector || 'UAE'} organisations on ${services}.\n\n` +
     `${block}\n\n` +
@@ -1604,7 +1615,7 @@ async function crmOpenProspect(id) {
     body.innerHTML = `
       <header class="drawer-head">
         <div class="drawer-eyebrow">
-          <span class="eyebrow">${p.kind === 'partner' ? 'Channel partner' : p.kind === 'blead' ? 'Imported prospect' : 'LeadGen prospect'}</span>
+          <span class="eyebrow">${{ partner: 'Channel partner', blead: 'Imported prospect', vapt: 'VAPT prospect' }[p.kind] || 'LeadGen prospect'}</span>
           <span class="pill ${statusPill}">${esc(LG_STATUS_LABELS[p.status] || p.status || '—')}</span>
         </div>
         <h2 class="drawer-title">${esc(p.company_name)}</h2>
@@ -2214,6 +2225,7 @@ function crmCmdkBuild(query) {
     { icon: '◇', label: 'Go to LeadGen', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('leadgen'); } },
     { icon: '⋈', label: 'Go to Partners', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('partners'); } },
     { icon: '▤', label: 'Go to BLead', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('blead'); } },
+    { icon: '⌖', label: 'Go to VAPT Leads', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('vapt'); } },
     { icon: '◈', label: 'Go to Web Leads', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('webleads'); } },
     { icon: '▷', label: 'Run LeadGen now', kind: 'Action', admin: true, run: () => { crmCloseCmdk(); crmLeadgenRunNow(); } },
     { icon: '▤', label: 'Go to Reports', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('reports'); } },

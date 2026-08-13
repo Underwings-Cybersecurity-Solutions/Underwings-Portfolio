@@ -275,10 +275,12 @@ async function refreshExisting(env, db_) {
   const apolloKey = env.APOLLO_API_KEY;
   if (!apolloKey) { console.log('Refresh: skipped — no APOLLO_API_KEY'); return; }
   let records = db_ ? db_.leads : (await store.load()).leads;
-  // Imported bleads (thousands of rows) queue BEHIND pipeline prospects for
-  // every Apollo budget — the core funnel keeps priority, bleads fill spare
-  // cap. Stable sort, so created_at order survives within each group.
-  records = [...records].sort((a, b) => (a.kind === 'blead') - (b.kind === 'blead'));
+  // Bulk-produced rows (bleads, vapt lists — thousands of rows) queue BEHIND
+  // pipeline prospects for every Apollo budget — the core funnel keeps
+  // priority, bulk rows fill spare cap. Stable sort, so created_at order
+  // survives within each group.
+  const bulk = (r) => ['blead', 'vapt'].includes(r.kind);
+  records = [...records].sort((a, b) => bulk(a) - bulk(b));
   await backfillFirmographics(records, apolloKey);
   if (apollo.planBlocked()) {
     console.log('Refresh: skipped — Apollo people endpoints not in this plan'); return;
@@ -338,9 +340,10 @@ async function refreshExisting(env, db_) {
  * cycle to bound Claude spend. */
 async function backfillOutreach(apiKey, db_) {
   const missing = (db_.leads || [])
-    // bleads are excluded: thousands of imported rows would monopolise this
-    // cap forever — the CRM's client-side fallback template covers them
-    .filter((r) => !r.hasDraft && r.company && r.kind !== 'blead' &&
+    // bleads and vapt lists are excluded: thousands of bulk rows would
+    // monopolise this cap forever — the CRM's client-side fallback template
+    // covers them
+    .filter((r) => !r.hasDraft && r.company && !['blead', 'vapt'].includes(r.kind) &&
                    !['disqualified', 'suppressed'].includes(r.status))
     .slice(0, cfg.outreach.backfillPerCycle);
   if (!missing.length) return;
