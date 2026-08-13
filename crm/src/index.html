@@ -106,18 +106,47 @@
         <button class="viewnav-btn is-active" data-crm-view="pipeline" aria-current="page">
           <span class="viewnav-ico">▚</span> Pipeline
         </button>
-        <button class="viewnav-btn" data-crm-view="leadgen">
-          <span class="viewnav-ico">◇</span> LeadGen
-        </button>
-        <button class="viewnav-btn" data-crm-view="partners">
-          <span class="viewnav-ico">⋈</span> Partners
-        </button>
-        <button class="viewnav-btn" data-crm-view="blead">
-          <span class="viewnav-ico">▤</span> BLead
-        </button>
-        <button class="viewnav-btn" data-crm-view="webleads">
-          <span class="viewnav-ico">◈</span> Web Leads
-        </button>
+        <!-- The four lead sources differ only in provenance, so they live behind
+             one trigger. Items keep data-crm-view, so the delegated .viewnav
+             click handler routes them exactly like a flat tab. -->
+        <div class="viewnav-menu" id="crm-leads-menu">
+          <button type="button" class="viewnav-btn viewnav-trigger" id="crm-leads-trigger"
+                  aria-haspopup="menu" aria-expanded="false" aria-controls="crm-leads-list">
+            <span class="viewnav-ico">◇</span>
+            <span class="viewnav-trigger-label">Leads</span>
+            <span class="viewnav-caret" aria-hidden="true">▾</span>
+          </button>
+          <ul class="viewnav-list" id="crm-leads-list" role="menu" aria-label="Lead sources" hidden>
+            <li role="none">
+              <button type="button" class="viewnav-item" role="menuitem" data-crm-view="leadgen">
+                <span class="viewnav-ico">◇</span>
+                <span class="viewnav-item-label">LeadGen</span>
+                <span class="viewnav-count" data-crm-count="leadgen"></span>
+              </button>
+            </li>
+            <li role="none">
+              <button type="button" class="viewnav-item" role="menuitem" data-crm-view="partners">
+                <span class="viewnav-ico">⋈</span>
+                <span class="viewnav-item-label">Partners</span>
+                <span class="viewnav-count" data-crm-count="partners"></span>
+              </button>
+            </li>
+            <li role="none">
+              <button type="button" class="viewnav-item" role="menuitem" data-crm-view="blead">
+                <span class="viewnav-ico">▤</span>
+                <span class="viewnav-item-label">BLead</span>
+                <span class="viewnav-count" data-crm-count="blead"></span>
+              </button>
+            </li>
+            <li role="none">
+              <button type="button" class="viewnav-item" role="menuitem" data-crm-view="webleads">
+                <span class="viewnav-ico">◈</span>
+                <span class="viewnav-item-label">Web Leads</span>
+                <span class="viewnav-count" data-crm-count="webleads"></span>
+              </button>
+            </li>
+          </ul>
+        </div>
         <button class="viewnav-btn" data-crm-view="reports">
           <span class="viewnav-ico">▟</span> Reports
         </button>

@@ -274,6 +274,44 @@ select { appearance:none; cursor:pointer;
 .viewnav-ico { font-size:.78em; color:var(--brand); }
 .viewnav-btn:not(.is-active) .viewnav-ico { color:var(--faint); }
 
+/* --- Leads dropdown -------------------------------------------------- */
+.viewnav-menu { position:relative; display:flex; }
+.viewnav-trigger { gap:.35rem; }
+/* the suffix names the active child — it stays quieter than "Leads" so the
+   trigger reads as one label with a location, not two equal words */
+.viewnav-trigger-sub { color:var(--muted); font-weight:400; }
+.viewnav-caret {
+  font-size:.6em; color:var(--faint); margin-left:.05rem;
+  transition:transform var(--dur-fast) var(--ease);
+}
+.viewnav-trigger[aria-expanded="true"] .viewnav-caret { transform:rotate(180deg); }
+.viewnav-trigger[aria-expanded="true"] { color:var(--text); background:var(--surface-2); }
+
+.viewnav-list {
+  position:absolute; top:calc(100% + 4px); left:0; z-index:60;
+  min-width:15rem; margin:0; padding:.25rem; list-style:none;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--shadow-lg);
+}
+.viewnav-list[hidden] { display:none; }
+.viewnav-item {
+  display:flex; align-items:center; gap:.5rem; width:100%;
+  padding:.4rem .55rem; border:none; border-radius:var(--r-sm);
+  background:transparent; color:var(--muted);
+  font-size:.82rem; font-weight:500; text-align:left; cursor:pointer;
+  transition:color var(--dur-fast), background var(--dur-fast);
+}
+.viewnav-item:hover, .viewnav-item:focus-visible { color:var(--text); background:var(--surface-2); }
+.viewnav-item.is-active { color:var(--text); background:var(--surface-2); }
+.viewnav-item.is-active .viewnav-ico { color:var(--brand); }
+.viewnav-item:not(.is-active) .viewnav-ico { color:var(--faint); }
+.viewnav-item-label { flex:1; }
+.viewnav-count {
+  font-variant-numeric:tabular-nums; font-size:.75rem; color:var(--faint);
+}
+.viewnav-count:empty { display:none; }
+.viewnav-item.is-active .viewnav-count { color:var(--muted); }
+
 .topbar-tools { display:flex; align-items:center; gap:var(--sp-2); margin-left:auto; }
 .search {
   position:relative; display:flex; align-items:center;
@@ -754,6 +792,11 @@ select { appearance:none; cursor:pointer;
   .topbar { flex-wrap:wrap; gap:.6rem; padding:.55rem var(--sp-3); }
   .viewnav { order:3; width:100%; justify-content:space-between; }
   .viewnav-btn { flex:1; justify-content:center; }
+  /* the trigger inherits flex:1 from .viewnav-btn; the panel drops full-width
+     under the whole bar instead of a floating card that would overhang */
+  .viewnav-menu { flex:1; }
+  .viewnav-trigger { width:100%; justify-content:center; }
+  .viewnav-list { left:0; right:0; min-width:0; }
   .topbar-tools { width:100%; margin-left:0; }
   .search { flex:1; }
   .search input { width:100%; }

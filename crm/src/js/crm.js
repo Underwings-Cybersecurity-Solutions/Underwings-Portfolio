@@ -448,6 +448,8 @@ async function crmBoot() {
 
   crmWireLeadgen();
   crmWireWebleads();
+  crmWireLeadsMenu();
+  crmLoadNavCounts({ force: true });
 
   document.querySelectorAll('[data-crm-close]').forEach((el) => el.addEventListener('click', () => {
     const drawer = el.closest('.drawer');
@@ -477,6 +479,7 @@ function crmSwitchView(view) {
     b.classList.toggle('is-active', active);
     if (active) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
+  crmSyncLeadsMenu(view);
   document.querySelectorAll('[data-crm-view-panel]').forEach((p) => {
     // a panel may serve more than one view (leadgen + partners share one)
     const active = p.dataset.crmViewPanel.split(/\s+/).includes(view);
@@ -490,6 +493,152 @@ function crmSwitchView(view) {
     crmLoadLeadgen({ reset: true });
   } else if (view === 'webleads') crmLoadWebleads();
   else if (view === 'reports') crmLoadReports();
+}
+
+// ===========================================
+// LEADS NAV MENU
+// The four lead sources differ only in provenance, so they sit behind one
+// trigger instead of four flat tabs. The items keep data-crm-view, so the
+// delegated .viewnav click handler in crmBoot still routes them exactly like a
+// flat tab did — this module owns only open/close, the active-child label on
+// the trigger, and the counts.
+// ===========================================
+const LEADS_VIEWS = ['leadgen', 'partners', 'blead', 'webleads'];
+const LEADS_LABEL = { leadgen: 'LeadGen', partners: 'Partners', blead: 'BLead', webleads: 'Web Leads' };
+
+function crmLeadsMenuEls() {
+  return {
+    wrap: document.getElementById('crm-leads-menu'),
+    trigger: document.getElementById('crm-leads-trigger'),
+    list: document.getElementById('crm-leads-list'),
+  };
+}
+
+function crmLeadsMenuIsOpen() {
+  const { list } = crmLeadsMenuEls();
+  return !!list && !list.hidden;
+}
+
+function crmLeadsMenuOpen(open) {
+  const { trigger, list } = crmLeadsMenuEls();
+  if (!trigger || !list) return;
+  list.hidden = !open;
+  trigger.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  crmLoadNavCounts();
+  const items = [...list.querySelectorAll('.viewnav-item')];
+  const target = items.find((i) => i.classList.contains('is-active')) || items[0];
+  if (target) target.focus();
+}
+
+// Keeps the trigger honest about where you are: "Leads" on its own, or
+// "Leads · BLead" once one of the four is showing.
+function crmSyncLeadsMenu(view) {
+  const { trigger, list } = crmLeadsMenuEls();
+  if (!trigger || !list) return;
+  const inLeads = LEADS_VIEWS.includes(view);
+  trigger.classList.toggle('is-active', inLeads);
+  const label = trigger.querySelector('.viewnav-trigger-label');
+  if (label) {
+    label.innerHTML = inLeads
+      ? `Leads <span class="viewnav-trigger-sub">· ${LEADS_LABEL[view]}</span>`
+      : 'Leads';
+  }
+  list.querySelectorAll('.viewnav-item').forEach((it) => {
+    const active = it.dataset.crmView === view;
+    it.classList.toggle('is-active', active);
+    if (active) it.setAttribute('aria-current', 'page'); else it.removeAttribute('aria-current');
+  });
+}
+
+function crmWireLeadsMenu() {
+  const { wrap, trigger, list } = crmLeadsMenuEls();
+  if (!wrap || !trigger || !list) return;
+
+  trigger.addEventListener('click', () => crmLeadsMenuOpen(!crmLeadsMenuIsOpen()));
+  // the .viewnav delegate does the routing; we only collapse behind it
+  list.addEventListener('click', (e) => {
+    if (e.target.closest('[data-crm-view]')) crmLeadsMenuOpen(false);
+  });
+
+  // Escape is caught on the wrapper, not the document, so closing the menu
+  // never also closes a drawer sitting behind it (the app-level Escape handler
+  // in crmBoot runs modal -> drawer and can't tell the difference).
+  wrap.addEventListener('keydown', (e) => {
+    const open = crmLeadsMenuIsOpen();
+    const items = [...list.querySelectorAll('.viewnav-item')];
+    const i = items.indexOf(document.activeElement);
+
+    if (e.key === 'Escape') {
+      if (!open) return;
+      e.preventDefault(); e.stopPropagation();
+      crmLeadsMenuOpen(false); trigger.focus(); return;
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!open) { crmLeadsMenuOpen(true); return; }
+      const down = e.key === 'ArrowDown';
+      const next = i === -1
+        ? (down ? 0 : items.length - 1)
+        : (down ? (i + 1) % items.length : (i - 1 + items.length) % items.length);
+      if (items[next]) items[next].focus();
+      return;
+    }
+    if (!open) return;
+    if (e.key === 'Home') { e.preventDefault(); if (items[0]) items[0].focus(); }
+    else if (e.key === 'End') { e.preventDefault(); const l = items[items.length - 1]; if (l) l.focus(); }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (crmLeadsMenuIsOpen() && !wrap.contains(e.target)) crmLeadsMenuOpen(false);
+  });
+}
+
+// Every count means the same thing: rows still worth acting on.
+// The three prospect kinds come from ONE query — v_crm_leadgen_stats returns a
+// row per kind (migration 014) and its `total` already excludes 'suppressed',
+// so subtracting disqualified reproduces the "All open" default of
+// crmLeadgenQuery exactly. Web Leads is two head-counts, summed the same way
+// the view merges the two tables. A failed count is non-fatal: the menu keeps
+// its labels and simply shows no number.
+let crmNavCountsAt = 0;
+const LG_KIND_VIEW = { customer: 'leadgen', partner: 'partners', blead: 'blead' };
+
+async function crmLoadNavCounts({ force = false } = {}) {
+  if (!force && Date.now() - crmNavCountsAt < 30000) return;
+  crmNavCountsAt = Date.now();
+
+  const set = (view, n) => {
+    const el = document.querySelector(`[data-crm-count="${view}"]`);
+    if (el) el.textContent = Number(n).toLocaleString();
+  };
+
+  try {
+    const { data, error } = await supabase.from('v_crm_leadgen_stats').select('kind,total,by_status');
+    if (error) throw error;
+    for (const r of data || []) {
+      const view = LG_KIND_VIEW[r.kind];
+      if (!view) continue;
+      const dq = Number((r.by_status || {}).disqualified || 0);
+      set(view, Math.max(0, Number(r.total || 0) - dq));
+    }
+  } catch (e) {
+    console.warn('[crm] nav counts (prospects)', e.message || e);
+  }
+
+  try {
+    // lead_status is NOT NULL with a 'new' default on both tables, so a plain
+    // neq is enough — no NULL branch needed.
+    const openCount = (t) => supabase.from(t)
+      .select('id', { count: 'exact', head: true })
+      .neq('lead_status', 'closed');
+    const [forms, subs] = await Promise.all([openCount('form_submissions'), openCount('subscribers')]);
+    if (forms.error) throw forms.error;
+    if (subs.error) throw subs.error;
+    set('webleads', (forms.count || 0) + (subs.count || 0));
+  } catch (e) {
+    console.warn('[crm] nav counts (web leads)', e.message || e);
+  }
 }
 
 function crmInjectMotionToggle() {
@@ -1807,6 +1956,7 @@ async function crmPromoteProspect(id) {
     if (error) throw error;
     toast(data && data.created === false ? 'Already in the pipeline.' : 'Promoted to pipeline', 'success');
     crmLoadLeadgen({ reset: true });
+    crmLoadNavCounts({ force: true });   // a promote moves a row out of "open"
   } catch (e) {
     toast('Promote failed: ' + (e.message || 'Unknown error'), 'error');
   }
@@ -2064,6 +2214,7 @@ function crmCmdkBuild(query) {
     { icon: '◇', label: 'Go to LeadGen', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('leadgen'); } },
     { icon: '⋈', label: 'Go to Partners', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('partners'); } },
     { icon: '▤', label: 'Go to BLead', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('blead'); } },
+    { icon: '◈', label: 'Go to Web Leads', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('webleads'); } },
     { icon: '▷', label: 'Run LeadGen now', kind: 'Action', admin: true, run: () => { crmCloseCmdk(); crmLeadgenRunNow(); } },
     { icon: '▤', label: 'Go to Reports', kind: 'Go', run: () => { crmCloseCmdk(); crmSwitchView('reports'); } },
     { icon: '↧', label: 'Export current view (CSV)', kind: 'Action', run: () => { crmCloseCmdk(); crmExport(); } },
