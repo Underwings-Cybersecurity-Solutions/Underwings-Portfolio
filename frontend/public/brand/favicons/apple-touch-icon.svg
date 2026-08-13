@@ -1,17 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
-  <defs>
-    <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#27dab4"/>
-      <stop offset="100%" stop-color="#24d758"/>
-    </linearGradient>
-  </defs>
-  <rect width="180" height="180" rx="36" fill="#111"/>
-  <g transform="translate(30, 35)">
-    <path d="M60 55 Q30 40 10 70 Q0 90 20 115 Q45 95 60 110 Q45 85 60 55" fill="url(#wg)" opacity="0.95"/>
-    <path d="M60 55 Q40 25 15 40 Q0 60 10 80 Q35 60 60 55" fill="url(#wg)" opacity="0.7"/>
-    <path d="M60 55 Q90 40 110 70 Q120 90 100 115 Q75 95 60 110 Q75 85 60 55" fill="url(#wg)" opacity="0.95"/>
-    <path d="M60 55 Q80 25 105 40 Q120 60 110 80 Q85 60 60 55" fill="url(#wg)" opacity="0.7"/>
-    <circle cx="60" cy="75" r="10" fill="url(#wg)"/>
-    <circle cx="60" cy="75" r="5" fill="#111"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#111"/>
+  <g transform="translate(7.04, 2.56) scale(0.78)">
+    <defs>
+      <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#27dab4"/>
+        <stop offset="100%" stop-color="#24d758"/>
+      </linearGradient>
+    </defs>
+    <g transform="translate(7, 12)">
+      <path d="M25 20 Q12 14 5 26 Q2 34 8 42 Q18 35 25 40 Q18 30 25 20" fill="url(#wg)" opacity="0.95"/>
+      <path d="M25 20 Q16 10 6 15 Q0 22 5 32 Q14 22 25 20" fill="url(#wg)" opacity="0.7"/>
+      <path d="M25 20 Q38 14 45 26 Q48 34 42 42 Q32 35 25 40 Q32 30 25 20" fill="url(#wg)" opacity="0.95"/>
+      <path d="M25 20 Q34 10 44 15 Q50 22 45 32 Q36 22 25 20" fill="url(#wg)" opacity="0.7"/>
+      <circle cx="25" cy="28" r="4" fill="url(#wg)"/>
+      <circle cx="25" cy="28" r="2" fill="#111"/>
+    </g>
   </g>
 </svg>

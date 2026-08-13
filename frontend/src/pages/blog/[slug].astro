@@ -48,7 +48,7 @@ const wordCount = (post.content || '').split(/\s+/).length;
 const readingTime = Math.max(1, Math.round(wordCount / 230));
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://underwings.org';
-const fallbackOgImage = `${siteUrl}/brand/og/og-default.png`;
+const fallbackOgImage = `${siteUrl}/brand/og/og-default.png?v=2`;
 const articleImage = post.featured_image ? `${siteUrl}${post.featured_image}` : fallbackOgImage;
 const articlePublished = post.published_at || post.created_at || new Date().toISOString();
 const articleModified = post.updated_at || articlePublished;
@@ -76,7 +76,7 @@ const articleSchema = {
     "@type": "Organization",
     "@id": `${siteUrl}/#organization`,
     "name": "Underwings Cybersecurity Solutions",
-    "logo": { "@type": "ImageObject", "url": `${siteUrl}/brand/logos/underwings-icon-green.png` }
+    "logo": { "@type": "ImageObject", "url": `${siteUrl}/brand/logos/underwings-icon-green.png?v=2` }
   },
   "mainEntityOfPage": `${siteUrl}/blog/${slug}`,
   "url": `${siteUrl}/blog/${slug}`

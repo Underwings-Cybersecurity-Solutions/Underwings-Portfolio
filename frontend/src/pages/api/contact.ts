@@ -48,7 +48,7 @@ function buildContactReplyHTML(name: string, company?: string, service?: string,
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%">
 
   <!-- Logo -->
-  <tr><td align="center" style="padding:0 0 32px"><a href="https://underwings.org"><img src="https://underwings.org/brand/logos/underwings-lockup-dark.png" alt="Underwings" style="height:38px;width:auto;background:#fff;padding:16px 32px;border-radius:12px"></a></td></tr>
+  <tr><td align="center" style="padding:0 0 32px"><a href="https://underwings.org"><img src="https://underwings.org/brand/logos/underwings-lockup-dark.png?v=2" alt="Underwings" style="height:38px;width:auto;background:#fff;padding:16px 32px;border-radius:12px"></a></td></tr>
 
   <!-- Main Card -->
   <tr><td style="background:#111;border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden">
