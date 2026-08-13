@@ -37,10 +37,26 @@ const SERVICE = 'PTaaS / Pen Testing';
 const REPORT = path.join(__dirname, 'state', 'blead-vapt-analysis.json');
 const PLACES_FLOOR = 500;
 
-// Tier 1 — only labels that cannot mean anything but a software/tech company.
-// "Construction Technology", "Water technology" and friends deliberately fail
-// this and fall through to Claude.
-const TIER1 = /^(software|saas|fintech|e-?commerce|information technology|it services|information systems)\b/i;
+// There is deliberately NO deterministic "obviously tech → move" fast path:
+// the first dry-runs proved the imported lists carry foreign vendors WITH
+// clean tech labels (Cognizant, WeTransfer, Attio, an oraclecloud.com
+// subdomain), so an industry label alone must never bypass the UAE/vendor
+// rules. Everything goes through Claude; determinism is used only to EXCLUDE.
+
+// Global vendors observed in these lists — companies that SELL software at a
+// scale no five-person UAE consultancy sells pen tests to. Matched on the
+// registrable domain, so subdomains (ocs.oraclecloud.com) are caught too.
+const VENDOR_DOMAINS = [
+  'sap.com', 'ariba.com', 'oracle.com', 'oraclecloud.com', 'samsung.com',
+  'openai.com', 'anthropic.com', 'lusha.com', 'gep.com', 'cognizant.com',
+  'wetransfer.com', 'attio.com', 'zoho.com', 'zohocdn.com', 'microsoft.com',
+  'google.com', 'amazon.com', 'aws.amazon.com', 'salesforce.com', 'adobe.com',
+  'birchstreet.net', 'crif.com',
+];
+function isVendorDomain(domain) {
+  const d = String(domain || '').toLowerCase();
+  return VENDOR_DOMAINS.some((v) => d === v || d.endsWith('.' + v));
+}
 
 // A foreign ccTLD is strong negative evidence — the imported lists carry
 // vendors and counterparties from Oman, Qatar, Pakistan, the UK etc. that a
@@ -214,15 +230,14 @@ async function main() {
 
   const matches = [];   // { row, tier, reason }
   const forClaude = [];
-  let foreign = 0;
+  let foreign = 0, vendors = 0;
   for (const r of rows) {
     if (FOREIGN_TLD.test(r.domain || '')) { foreign += 1; continue; }
-    if (TIER1.test(r.industry || '')) {
-      matches.push({ row: r, tier: 1, reason: `industry: ${r.industry}` });
-    } else forClaude.push(r);
+    if (isVendorDomain(r.domain)) { vendors += 1; continue; }
+    forClaude.push(r);
   }
-  console.log(`Foreign-domain rows skipped: ${foreign}`);
-  console.log(`Tier 1 (deterministic): ${matches.length} matches; ${forClaude.length} to classify`);
+  console.log(`Skipped deterministically: ${foreign} foreign-domain, ${vendors} global-vendor`);
+  console.log(`To classify: ${forClaude.length}`);
 
   let batches = 0;
   for (let i = 0; i < forClaude.length; i += BATCH) {
@@ -274,5 +289,6 @@ if (require.main === module) {
 }
 
 module.exports = {   // pure pieces, exported for tests
-  TIER1, TIER2_HINT, FOREIGN_TLD, TOOL, classifyPrompt, inList, sameCompany,
+  TIER2_HINT, FOREIGN_TLD, VENDOR_DOMAINS, isVendorDomain, TOOL,
+  classifyPrompt, inList, sameCompany,
 };

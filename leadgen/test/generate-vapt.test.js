@@ -92,13 +92,14 @@ test('the Places matrix is software-buyer queries across the emirates', () => {
 
 // ---- blead analysis pieces -------------------------------------------------
 
-test('tier-1 regex takes pure tech labels, leaves ambiguous ones to Claude', () => {
-  assert.ok(abv.TIER1.test('Software / SaaS'));
-  assert.ok(abv.TIER1.test('Information Technology'));
-  assert.ok(abv.TIER1.test('Fintech'));
-  assert.ok(!abv.TIER1.test('Construction Technology / Engineering'));
-  assert.ok(!abv.TIER1.test('Water technology, environmental monitoring equipment'));
-  assert.ok(!abv.TIER1.test(''));
+test('global vendor domains are excluded deterministically, subdomains included', () => {
+  assert.ok(abv.isVendorDomain('lusha.com'));
+  assert.ok(abv.isVendorDomain('ocs.oraclecloud.com'));   // the tier-1 leak that forced this
+  assert.ok(abv.isVendorDomain('zohocdn.com'));
+  assert.ok(abv.isVendorDomain('cognizant.com'));
+  assert.ok(!abv.isVendorDomain('pais.ae'));
+  assert.ok(!abv.isVendorDomain('focussoftnet.com'));
+  assert.ok(!abv.isVendorDomain(''));
 });
 
 test('classifier prompt is conservative and carries the rows', () => {

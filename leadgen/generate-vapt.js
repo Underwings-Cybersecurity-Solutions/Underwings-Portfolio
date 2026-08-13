@@ -221,10 +221,14 @@ async function gather(env) {
     console.log(`  [places] ${bySource['google-places'].length} candidates`);
   } else console.log('  [places] skipped — no GOOGLE_PLACES_API_KEY');
 
-  // Full sweeps via the sources' own cycle rotation: github covers its 8
-  // locations in 4 cycles, adgm its ~10 register pages in 5.
+  // Partial sweeps via the sources' own cycle rotation. GitHub is capped at
+  // 2 cycles (4 of 8 locations): the unauthenticated CORE api allows only
+  // 60 req/hour per IP and every org needs a /users detail call — the first
+  // full-sweep attempt 403'd more than half its orgs and starved the daily
+  // loop's quota. Reruns rotate through the rest. ADGM's ~10 register pages
+  // sweep in 5.
   const gh = [];
-  for (let c = 0; c < 4; c++) gh.push(...await github(env, c));
+  for (let c = 0; c < 2; c++) gh.push(...await github(env, c));
   // GitHub AUP: org discovery only — published org emails stay out of a
   // bulk-mail list, so the address is dropped here and the company's own
   // website supplies contacts instead.
@@ -317,10 +321,18 @@ async function main() {
     if (l.website) {
       try {
         const c = await harvestContacts(l.website, l.phone);
-        if (c.best) { l.email = c.best; l.emailStatus = 'unverified'; }
+        // Same-domain only when the company HAS a domain: scraping minified
+        // pages harvests third-party artifacts ("fonts.gst@ic.com" off a bank
+        // site), and a cross-domain address on a domained company is far more
+        // likely junk than a real outsourced mailbox. Domainless companies
+        // keep whatever the scrape found — it's all they have.
+        const own = (e) => !l.domain || String(e).split('@')[1] === l.domain;
+        const emails = c.emails.filter(own);
+        const best = own(c.best) ? c.best : bestEmail(emails, l.domain);
+        if (best) { l.email = best; l.emailStatus = 'unverified'; }
         if (!l.phone && c.phones.length) l.phone = c.phones[0];
-        l.emails = c.emails; l.phones = c.phones;
-        if (!l.email && !c.emails.length && l.phone && l.phoneFromPlaces) l.contactSource = 'places';
+        l.emails = emails; l.phones = c.phones;
+        if (!l.email && !emails.length && l.phone && l.phoneFromPlaces) l.contactSource = 'places';
       } catch (e) { console.warn(`  [scrape:${l.company}] ${e.message}`); }
     } else if (l.phone && l.phoneFromPlaces) l.contactSource = 'places';
     if (l.sizeBand === 'enterprise') l.disqualified = 'enterprise (LinkedIn size)';
@@ -354,6 +366,12 @@ async function main() {
     killed += had - ((l.emails || []).length + (l.email ? 1 : 0));
   }
   console.log(`MX gate: ${domains.size} domains checked, ${killed} dead addresses dropped`);
+
+  // Reachability floor: a row with no email AND no phone cannot be worked —
+  // in a hand-built list it is noise wearing a score.
+  const unreachable = leads.filter((l) => !l.email && !(l.emails || []).length && !l.phone).length;
+  leads = leads.filter((l) => l.email || (l.emails || []).length || l.phone);
+  console.log(`Reachability floor: ${unreachable} contactless rows dropped`);
 
   report(leads);
 
