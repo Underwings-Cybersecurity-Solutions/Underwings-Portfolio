@@ -9,8 +9,12 @@ const siteUrl = import.meta.env.PUBLIC_SITE_URL || "https://underwings.org";
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "Organization",
+  // Same @id as the English Organization node so both language variants
+  // consolidate into ONE entity rather than competing as two companies.
+  "@type": ["Organization", "ProfessionalService"],
+  "@id": `${siteUrl}/#organization`,
   "name": "أندروينغز لحلول الأمن السيبراني",
+  "alternateName": "Underwings Cybersecurity Solutions",
   "url": siteUrl,
   "logo": `${siteUrl}/brand/logos/underwings-icon-green.png`,
   "description": "شركة ناشئة في مجال الأمن السيبراني تقدم خدمات اختبار الاختراق، تطبيق معيار ISO 27001، التدريب على الوعي الأمني، وبيع البرمجيات الأمنية في الإمارات العربية المتحدة.",
@@ -28,7 +32,8 @@ const schema = {
     "availableLanguage": ["Arabic", "English"]
   },
   "sameAs": [
-    "https://www.linkedin.com/company/underwings-cybersecurity"
+    "https://www.linkedin.com/company/underwings-cybersecurity",
+    "https://www.instagram.com/underwings.uae"
   ]
 };
 ---
@@ -36,18 +41,35 @@ const schema = {
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <!-- Google Analytics -->
-  <script is:inline nonce={Astro.locals.nonce || ""} async src="https://www.googletagmanager.com/gtag/js?id=G-YZG3QCH600"></script>
+  <!-- Google Analytics — Consent Mode v2.
+       This page does not use Layout.astro, so it carries its own copy of the
+       consent gate. Keep it identical in behaviour to Layout.astro: analytics
+       storage stays denied until the visitor accepts. -->
   <script is:inline nonce={Astro.locals.nonce || ""}>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+
+    var uwConsent = null;
+    try { uwConsent = localStorage.getItem('uw-cookie-consent'); } catch (e) {}
+
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage': uwConsent === 'accepted' ? 'granted' : 'denied',
+      'functionality_storage': 'granted',
+      'security_storage': 'granted',
+      'wait_for_update': 500
+    });
+
     gtag('js', new Date());
-    gtag('config', 'G-YZG3QCH600');
+    gtag('config', 'G-YZG3QCH600', { 'send_page_view': uwConsent === 'accepted' });
   </script>
+  <script is:inline nonce={Astro.locals.nonce || ""} async src="https://www.googletagmanager.com/gtag/js?id=G-YZG3QCH600"></script>
 
   <meta charset="utf-8">
   <title>أندروينغز - حلول الأمن السيبراني | الإمارات العربية المتحدة</title>
-  <meta name="description" content="أندروينغز - شركة رائدة في الأمن السيبراني تقدم خدمات اختبار الاختراق (VAPT)، تطبيق معيار ISO 27001، التدريب الأمني، وبيع البرمجيات الأمنية في الإمارات العربية المتحدة. فريق معتمد OSCP و CPTS.">
+  <meta name="description" content="خدمات الأمن السيبراني في الإمارات: اختبار الاختراق، تطبيق ISO 27001، والتدريب الأمني — ينفذها ممارسون معتمدون OSCP و ISO 27001 Lead Auditor.">
   <meta property="og:title" content="أندروينغز - حلول الأمن السيبراني | الإمارات العربية المتحدة">
   <meta property="og:description" content="شركة ناشئة في الأمن السيبراني تقدم خدمات اختبار الاختراق، ISO 27001، التدريب الأمني، وبيع البرمجيات الأمنية في الإمارات العربية المتحدة.">
   <meta property="og:type" content="website">
