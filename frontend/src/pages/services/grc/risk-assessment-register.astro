@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Risk Assessment & Risk Register Build
 // Category: GRC (Y1 Flagship)
@@ -29,7 +30,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Risk Assessment & Risk Register Build", "item": "https://underwings.org/services/grc/risk-assessment-register" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Risk Assessment & Risk Register Build", "serviceType": "Cybersecurity Risk Assessment",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "14000", "highPrice": "30000" },
     "description": "ISO 27005-aligned cybersecurity risk assessment and risk register build for UAE organisations. Asset identification, threat mapping, treatment decisions, audit-ready documentation.",
@@ -45,7 +46,7 @@ export const prerender = false;
 
 <Layout
   title="Risk Assessment & Register Build UAE | Underwings"
-  description="ISO 27005-aligned cybersecurity risk assessment and risk register build in UAE. Asset-based risk identification, threat mapping, treatment decisions, audit-ready documentation. AED 14,000 – 30,000."
+  description="ISO 27005-aligned risk assessment and register build for UAE organisations. Asset-based identification, threat mapping, audit-ready documentation."
   keywords="cybersecurity risk assessment UAE, ISO 27005 risk register, information security risk UAE, risk treatment plan UAE, board risk reporting UAE, enterprise cyber risk Dubai"
   wfPage="services-page"
   schema={schema}

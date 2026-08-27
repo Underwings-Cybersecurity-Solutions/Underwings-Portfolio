@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — UAE PDPL Compliance Advisory
 // Category: GRC (Y1 Flagship — urgent demand)
@@ -29,7 +30,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "UAE PDPL Compliance Advisory", "item": "https://underwings.org/services/grc/uae-pdpl-advisory" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "UAE PDPL Compliance Advisory", "serviceType": "Data Protection Advisory",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "11000", "highPrice": "24000" },
     "description": "UAE Personal Data Protection Law (PDPL) compliance advisory — data mapping, privacy notices, consent, breach notification, DPIA, cross-border transfers.",
@@ -45,7 +46,7 @@ export const prerender = false;
 
 <Layout
   title="UAE PDPL Compliance Advisory | Underwings"
-  description="UAE Personal Data Protection Law (PDPL) compliance advisory. Data mapping, privacy notices, consent workflows, breach notification, DPIA, cross-border transfers. Led by GRC Mastery + ISO 27001 LA. AED 11,000 – 24,000."
+  description="UAE PDPL compliance advisory — data mapping, privacy notices, consent workflows, breach notification, DPIA and cross-border transfers."
   keywords="UAE PDPL advisory, UAE data protection law consultant, PDPL compliance Dubai, privacy notice UAE, DPIA UAE, data protection officer UAE, cross border data transfer UAE"
   wfPage="services-page"
   schema={schema}

@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Microsoft 365 Security Review (LIGHTER TEMPLATE)
 // Category: Cloud Security (Y1 Flagship)
@@ -25,7 +26,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Microsoft 365 Security Review", "item": "https://underwings.org/services/cloud-security/microsoft-365-security-review" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Microsoft 365 Security Review", "serviceType": "Microsoft 365 Security Assessment",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "7000", "highPrice": "18000" },
     "description": "UAE Microsoft 365 security posture review — Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. Measured against CIS Microsoft 365 benchmark.",
@@ -41,7 +42,7 @@ export const prerender = false;
 
 <Layout
   title="Microsoft 365 Security Review UAE | Underwings"
-  description="UAE Microsoft 365 security posture review against CIS Microsoft 365 benchmark. Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. AED 7,000 – 18,000. Led by Azure Security + Security+ practitioner."
+  description="Microsoft 365 security review against the CIS benchmark — Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. UAE-delivered, from AED 7,000."
   keywords="Microsoft 365 security review UAE, M365 security audit Dubai, Conditional Access review UAE, Exchange Online security assessment, SharePoint security review UAE"
   wfPage="services-page"
   schema={schema}

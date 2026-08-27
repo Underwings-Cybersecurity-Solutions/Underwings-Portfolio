@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — ADHICS v2 Compliance (Abu Dhabi Healthcare)
 // Category: GRC (Y1 Flagship — UAE differentiator, healthcare vertical)
@@ -29,7 +30,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "ADHICS v2 Compliance", "item": "https://underwings.org/services/grc/adhics-compliance" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "ADHICS v2 Compliance & Gap Assessment", "serviceType": "ADHICS Healthcare Compliance",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "audience": { "@type": "Audience", "audienceType": "Abu Dhabi healthcare providers, payers, and health-IT entities" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "16000", "highPrice": "42000" },
@@ -46,7 +47,7 @@ export const prerender = false;
 
 <Layout
   title="ADHICS v2 Compliance UAE — Abu Dhabi Healthcare | Underwings"
-  description="ADHICS v2 gap assessment & compliance for Abu Dhabi healthcare providers, payers, and health-IT entities. DoH-aligned controls review, remediation roadmap, Malaffi-readiness. AED 16,000 – 42,000."
+  description="ADHICS v2 gap assessment for Abu Dhabi healthcare providers and payers. DoH-aligned controls review, remediation roadmap, Malaffi readiness."
   keywords="ADHICS compliance, ADHICS v2, Abu Dhabi healthcare cybersecurity, DoH ADHICS, ADHICS gap assessment UAE, Malaffi security compliance, healthcare data protection Abu Dhabi"
   wfPage="services-page"
   schema={schema}

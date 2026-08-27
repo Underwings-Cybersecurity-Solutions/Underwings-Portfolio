@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Mobile Application Penetration Testing
 // Category: Offensive Security (Y1 Flagship)
@@ -31,7 +32,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Mobile Application Penetration Testing", "item": "https://underwings.org/services/offensive-security/mobile-application-penetration-testing" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Mobile Application Penetration Testing", "serviceType": "Mobile Application Penetration Testing",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('nelson-durairaj')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "14000", "highPrice": "38000" },
     "description": "Manual iOS and Android mobile application penetration testing in UAE — OWASP MASTG and MASVS aligned. Static + dynamic analysis, runtime instrumentation, network, storage, and platform-attack coverage.",
@@ -47,7 +48,7 @@ export const prerender = false;
 
 <Layout
   title="Mobile App Penetration Testing UAE | Underwings"
-  description="UAE mobile application penetration testing (iOS and Android) by OSCP/CPTS-certified practitioners. OWASP MASTG, MASVS, static + dynamic analysis, runtime instrumentation. AED 14,000 – 38,000."
+  description="iOS and Android penetration testing by OSCP/CPTS practitioners, aligned to OWASP MASTG and MASVS. Static, dynamic and runtime analysis."
   keywords="mobile penetration testing UAE, iOS pentest Dubai, Android pentest UAE, OWASP MASTG UAE, mobile app security Abu Dhabi, MASVS audit UAE"
   wfPage="services-page"
   schema={schema}

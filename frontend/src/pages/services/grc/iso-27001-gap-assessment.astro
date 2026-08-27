@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — ISO 27001 Gap Assessment
 // Category: GRC (Y1 Flagship — Gateway service to Implementation)
@@ -29,7 +30,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "ISO 27001 Gap Assessment", "item": "https://underwings.org/services/grc/iso-27001-gap-assessment" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "ISO 27001 Gap Assessment", "serviceType": "ISO 27001 Gap Assessment",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "14000", "highPrice": "28000" },
     "description": "ISO 27001:2022 gap assessment in UAE — current-state assessment against all 93 Annex A controls and prioritised remediation roadmap. Led by ISO 27001 Lead Auditor.",
@@ -45,7 +46,7 @@ export const prerender = false;
 
 <Layout
   title="ISO 27001 Gap Assessment UAE | Underwings"
-  description="UAE ISO 27001:2022 gap assessment. All 93 Annex A controls reviewed. Prioritised 90-day / 6-month / 12-month remediation roadmap. Led by ISO 27001 Lead Auditor. AED 14,000 – 28,000."
+  description="ISO 27001:2022 gap assessment across all 93 Annex A controls with a prioritised remediation roadmap. Led by a Lead Auditor, from AED 14,000."
   keywords="ISO 27001 gap assessment UAE, ISO 27001 readiness review Dubai, ISMS gap analysis UAE, ISO 27001 consultant UAE, ISO 27001 Lead Auditor Abu Dhabi"
   wfPage="services-page"
   schema={schema}

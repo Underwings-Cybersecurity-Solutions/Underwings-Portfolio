@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — ISO 27001 Implementation & Certification Support
 // Category: GRC (Y1 Flagship, Phase 3 Anchor — highest GRC revenue)
@@ -29,7 +30,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "ISO 27001 Implementation & Certification Support", "item": "https://underwings.org/services/grc/iso-27001-implementation" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "ISO 27001 Implementation & Certification Support", "serviceType": "ISO 27001 Implementation",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "36000", "highPrice": "88000" },
     "description": "End-to-end ISO 27001:2022 ISMS implementation and certification-body audit support in UAE. Led by ISO 27001 Lead Auditor.",
@@ -45,7 +46,7 @@ export const prerender = false;
 
 <Layout
   title="ISO 27001:2022 Implementation UAE | Underwings"
-  description="ISO 27001:2022 ISMS implementation and certification-body audit support in UAE. Led by an ISO 27001 Lead Auditor. Policies, risk register, Statement of Applicability, internal audit, audit-readiness. 4 – 6 months. AED 36,000 – 88,000."
+  description="ISO 27001:2022 ISMS implementation and audit support in the UAE. Policies, risk register, SoA, internal audit — 4–6 months, Lead Auditor led."
   keywords="ISO 27001 implementation UAE, ISO 27001 consultant UAE, ISMS implementation Dubai, ISO 27001 certification UAE, ISO 27001 Lead Auditor Abu Dhabi, ISO 27001 2022 UAE"
   wfPage="services-page"
   schema={schema}

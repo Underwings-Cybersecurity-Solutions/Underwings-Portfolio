@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Continuous Compliance Subscription
 // Category: GRC (recurring service — flagship retention mechanism)
@@ -30,7 +31,7 @@ const schema = [
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Continuous Compliance Subscription",
     "serviceType": "Compliance Maintenance Subscription",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "4000", "highPrice": "8000" },
     "description": "Monthly compliance maintenance for ISO 27001, ADHICS, NESA, and PDPL certified UAE organisations. Quarterly internal audits, evidence management, control monitoring, audit liaison.",
@@ -46,7 +47,7 @@ export const prerender = false;
 
 <Layout
   title="Continuous Compliance UAE — ISO 27001 / PDPL | Underwings"
-  description="Monthly compliance subscription for ISO 27001, ADHICS, NESA, and PDPL-certified UAE organisations. Quarterly internal audits, evidence management, audit liaison. AED 4,000–8,000/month."
+  description="Monthly compliance maintenance for certified UAE organisations — quarterly internal audits, evidence management, audit liaison. From AED 4,000/month."
   keywords="continuous compliance UAE, ISO 27001 maintenance Dubai, ADHICS retainer, ISMS subscription UAE, compliance retainer Abu Dhabi, ISO surveillance audit support"
   wfPage="services-page"
   schema={schema}

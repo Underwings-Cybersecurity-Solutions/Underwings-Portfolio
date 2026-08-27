@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — PTaaS (Penetration Testing as a Service)
 // Category: Offensive Security (recurring service — continuous testing)
@@ -30,7 +31,7 @@ const schema = [
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "PTaaS — Penetration Testing as a Service",
     "serviceType": "Continuous Penetration Testing Subscription",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('nelson-durairaj')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "6000", "highPrice": "14000" },
     "description": "UAE Penetration Testing as a Service — continuous OSCP-led testing, live findings portal, on-demand re-tests, included annual deep-dive. AED 6,000–14,000/month.",
@@ -74,7 +75,7 @@ export const prerender = false;
 
 <Layout
   title="PTaaS UAE — Penetration Testing as a Service | Underwings"
-  description="Continuous, OSCP-led penetration testing for UAE companies. Live findings portal, on-demand re-tests on every change, included annual deep-dive. AED 6,000–14,000/month."
+  description="Continuous OSCP-led penetration testing for UAE companies — live findings portal, on-demand retests, annual deep-dive. From AED 6,000/month."
   keywords="PTaaS UAE, penetration testing as a service Dubai, continuous pentest UAE, OSCP managed pentest, on-demand pentest Abu Dhabi, pentest subscription"
   wfPage="services-page"
   schema={schema}

@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Web Application Penetration Testing
 // Category: Offensive Security (Y1 Flagship — high-volume service)
@@ -30,7 +31,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Web Application Penetration Testing", "item": "https://underwings.org/services/offensive-security/web-application-penetration-testing" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Web Application Penetration Testing", "serviceType": "Web Application Penetration Testing",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('nelson-durairaj')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "12000", "highPrice": "32000" },
     "description": "Manual web application and API penetration testing in UAE — OWASP Top 10, API security, authentication flaws, business-logic testing. Led by OSCP/CPTS-certified practitioners.",
@@ -46,7 +47,7 @@ export const prerender = false;
 
 <Layout
   title="Web App Penetration Testing UAE — OWASP | Underwings"
-  description="UAE web application penetration testing by OSCP/CPTS-certified practitioners. OWASP Top 10, API security, authentication bypass, business-logic testing. Manual, not vuln-scan PDFs. AED 12,000 – 32,000."
+  description="UAE web app penetration testing by OSCP/CPTS practitioners — OWASP Top 10, API security, auth bypass, business logic. Manual, not scan PDFs."
   keywords="web application penetration testing UAE, API penetration testing Dubai, OWASP Top 10 pentest UAE, WAPT Abu Dhabi, web app security audit UAE, business logic testing"
   wfPage="services-page"
   schema={schema}

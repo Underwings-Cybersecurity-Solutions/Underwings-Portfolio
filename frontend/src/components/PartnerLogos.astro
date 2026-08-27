@@ -2,8 +2,14 @@
 // ===========================================
 // PARTNER LOGOS GRID
 // Underwings Cybersecurity Solutions
-// Fetches from Supabase, falls back to hardcoded
 // ===========================================
+//
+// Renders nothing when the partners table has no visible rows, so callers can
+// drop it in without guarding. Pages that wrap it in a titled section should
+// still call getPartners() themselves to decide whether to render the heading
+// — see index.astro.
+
+import { getPartners } from '../lib/partners';
 
 export interface Props {
   size?: 'small' | 'large';
@@ -11,54 +17,26 @@ export interface Props {
 }
 
 const { size = 'small', linkTo = '#' } = Astro.props;
+
+// Logos are bounded by BOTH axes, not height alone: a wide horizontal
+// lockup (e.g. Sophos, ~10.5:1) sized purely by height would run 3x the
+// width of the others. The width cap keeps every mark at a comparable
+// optical weight in the row.
 const logoHeight = size === 'large' ? 36 : 30;
+const logoMaxWidth = size === 'large' ? 240 : 200;
 
-interface Partner {
-  id: string;
-  name: string;
-  logo_url: string;
-  website_url?: string;
-  display_order: number;
-  invert_logo: boolean;
-}
-
-// Partners are hidden until we have official channel partner agreements.
-// Once approved, add them via the admin dashboard (which writes to the partners table)
-// or temporarily seed via SQL: see /supabase/migrations/003_partners.sql
-let partners: Partner[] = [];
-
-try {
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || 'http://kong:8000';
-  const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  if (supabaseKey) {
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/partners?select=id,name,logo_url,website_url,display_order,invert_logo&is_visible=eq.true&order=display_order.asc`,
-      {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-        },
-      }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.length > 0) partners = data;
-    }
-  }
-} catch {
-  // Use fallback
-}
+const partners = await getPartners();
 ---
 
 {partners.map((p) => (
   <a href={linkTo} class={`partner-logo ${p.invert_logo ? 'partner-logo--invert' : ''}`} title={p.name}>
-    <img src={p.logo_url} alt={p.name} loading="lazy" style={`height: ${logoHeight}px; width: auto;`}>
+    <img src={p.logo_url} alt={p.name} loading="lazy" style={`max-height: ${logoHeight}px; max-width: ${logoMaxWidth}px; width: auto; height: auto; object-fit: contain;`}>
   </a>
 ))}
 
 <style is:inline>
   .partner-logo {
-    opacity: 0.7;
+    opacity: 0.85;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;

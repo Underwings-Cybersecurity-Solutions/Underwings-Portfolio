@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Azure Cloud Security Assessment
 // Category: Cloud Security (Y1 Flagship, Phase 3 Anchor)
@@ -28,7 +29,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Azure Cloud Security Assessment", "item": "https://underwings.org/services/cloud-security/azure-cloud-security-assessment" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Azure Cloud Security Assessment", "serviceType": "Cloud Security Assessment",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "11000", "highPrice": "24000" },
     "description": "Azure tenant security assessment against CIS Azure Benchmark — Entra ID, RBAC, storage, NSGs, Defender for Cloud posture.",
@@ -44,7 +45,7 @@ export const prerender = false;
 
 <Layout
   title="Azure Cloud Security Assessment UAE | Underwings"
-  description="UAE Azure cloud security assessment against CIS Azure Foundations Benchmark. Entra ID, RBAC, Conditional Access, storage, NSG, Defender for Cloud. AED 11,000 – 24,000. Led by Azure Security certified practitioner."
+  description="Azure security assessment against the CIS Foundations Benchmark — Entra ID, RBAC, Conditional Access, Defender. UAE-delivered, from AED 11,000."
   keywords="Azure security assessment UAE, CIS Azure Benchmark UAE, Entra ID security audit, Azure cloud security Dubai, Conditional Access review UAE, Microsoft Defender for Cloud assessment"
   wfPage="services-page"
   schema={schema}
