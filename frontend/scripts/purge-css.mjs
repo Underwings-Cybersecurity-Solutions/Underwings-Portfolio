@@ -1,9 +1,10 @@
 import { PurgeCSS } from 'purgecss';
 import { readdir, writeFile, stat } from 'fs/promises';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 
-const CSS_DIR = new URL('../public/css', import.meta.url).pathname;
-const DIST_DIR = new URL('../dist/client', import.meta.url).pathname;
+const CSS_DIR = fileURLToPath(new URL('../public/css', import.meta.url));
+const DIST_DIR = fileURLToPath(new URL('../dist/client', import.meta.url));
 
 async function getHtmlFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true });

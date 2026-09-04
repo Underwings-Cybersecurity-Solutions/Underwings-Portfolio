@@ -25,14 +25,48 @@ const { size = 'small', linkTo = '#' } = Astro.props;
 const logoHeight = size === 'large' ? 36 : 30;
 const logoMaxWidth = size === 'large' ? 240 : 200;
 
+// Optical correction for lockups that pair a FULL-HEIGHT ICON with a much
+// SHORTER WORDMARK. An equal box makes their text read far smaller than the
+// rest of the row, because the icon — not the text — sets the height.
+//
+// Measured wordmark height as a share of each logo's own box (rasterised at
+// 200px and alpha-scanned, splitting icon from wordmark at the widest empty
+// column run):
+//   hexnode 100%  ·  sophos 97%  ·  trillium/TISS 75%  ·  sprinto 44%
+//
+// Sprinto is the clear outlier: its square "S" is full height while SPRINTO
+// is under half, so at a shared 30px box the wordmark rendered ~13px against
+// hexnode's ~30px. 1.33x lifts it to ~18px, in line with TISS, while keeping
+// Sprinto's official lockup intact (cropping the icon would match better
+// still, but altering a partner's mark is their call, not ours).
+//
+// Keyed on the logo filename so it survives partner renames in the DB.
+// MEASURE before adding an entry here — do not guess a value.
+const OPTICAL_SCALE: Record<string, number> = {
+  'sprinto.png': 1.33,
+};
+
+const scaleFor = (logoUrl: string) => {
+  const file = (logoUrl || '').split('/').pop() || '';
+  return OPTICAL_SCALE[file] ?? 1;
+};
+
 const partners = await getPartners();
 ---
 
-{partners.map((p) => (
-  <a href={linkTo} class={`partner-logo ${p.invert_logo ? 'partner-logo--invert' : ''}`} title={p.name}>
-    <img src={p.logo_url} alt={p.name} loading="lazy" style={`max-height: ${logoHeight}px; max-width: ${logoMaxWidth}px; width: auto; height: auto; object-fit: contain;`}>
-  </a>
-))}
+{partners.map((p) => {
+  const s = scaleFor(p.logo_url);
+  return (
+    <a href={linkTo} class={`partner-logo ${p.invert_logo ? 'partner-logo--invert' : ''}`} title={p.name}>
+      <img
+        src={p.logo_url}
+        alt={p.name}
+        loading="lazy"
+        style={`max-height: ${Math.round(logoHeight * s)}px; max-width: ${Math.round(logoMaxWidth * s)}px; width: auto; height: auto; object-fit: contain;`}
+      >
+    </a>
+  );
+})}
 
 <style is:inline>
   .partner-logo {

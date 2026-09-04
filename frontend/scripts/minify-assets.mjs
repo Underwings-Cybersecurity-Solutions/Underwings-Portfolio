@@ -3,8 +3,9 @@
 import { transform } from 'esbuild';
 import { readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join, extname } from 'path';
+import { fileURLToPath } from 'url';
 
-const PUBLIC_DIR = new URL('../public', import.meta.url).pathname;
+const PUBLIC_DIR = fileURLToPath(new URL('../public', import.meta.url));
 
 async function walk(dir) {
   const out = [];

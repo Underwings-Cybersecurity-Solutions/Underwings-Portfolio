@@ -53,6 +53,8 @@ const breadcrumbSchema = {
   description="Expert insights on cybersecurity, compliance frameworks, penetration testing, and security best practices from the Underwings team. Stay ahead of threats."
   keywords="cybersecurity blog, penetration testing insights, ISO 27001 guide, security best practices, VAPT blog, compliance tips, cybersecurity news UAE"
   schema={breadcrumbSchema}
+  noindex={currentPage > 1}
+  canonical={currentPage > 1 ? `${Astro.url.origin}/blog?page=${currentPage}` : undefined}
 >
   <Fragment slot="head">
     {currentPage > 1 && <link rel="prev" href={currentPage === 2 ? '/blog' : `/blog?page=${currentPage - 1}`} />}

@@ -1,8 +1,9 @@
 import sharp from 'sharp';
 import { readdir, stat, readFile, writeFile } from 'fs/promises';
 import { join, extname, basename } from 'path';
+import { fileURLToPath } from 'url';
 
-const IMAGES_DIR = new URL('../public/images', import.meta.url).pathname;
+const IMAGES_DIR = fileURLToPath(new URL('../public/images', import.meta.url));
 
 async function getFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
