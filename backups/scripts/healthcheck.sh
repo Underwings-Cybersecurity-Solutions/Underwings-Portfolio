@@ -196,10 +196,14 @@ else
 fi
 
 # ── Core containers ─────────────────────────
+# underwings-webmail is NOT here: Roundcube was decommissioned 2026-09-03 (compose
+# profile "decommissioned"). Listing it kept this check in a permanent FAIL state
+# for 12 days — 3,446 "STILL FAILING" lines — which is exactly the chronic-failure
+# noise that hides real problems.
 for c in underwings-nginx underwings-frontend underwings-admin \
          underwings-db underwings-kong underwings-auth underwings-rest \
          underwings-crm \
-         underwings-mail underwings-webmail; do
+         underwings-mail; do
   check_container "$c"
 done
 
