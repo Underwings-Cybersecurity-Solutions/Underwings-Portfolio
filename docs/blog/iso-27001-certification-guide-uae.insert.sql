@@ -75,7 +75,7 @@ The best first step is a **gap assessment**: it gives you a costed, prioritised 
 
 We run ISO 27001 as **implementation, not advice** — gap assessment, risk register, the full policy stack, control implementation alongside your team, a real internal audit, and we attend your Stage 1 and Stage 2 audits with you. Led by a **named ISO 27001 Lead Auditor**, not handed to a junior. Transparent AED pricing, fixed written quotes within 48 hours, and a limited number of **founding-client** places at preferential rates while we build our public track record.
 
-If ISO 27001 is on your roadmap — or a customer just asked for it — a free 30-minute scoping call will tell you where you genuinely stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 50 567 0394**.
+If ISO 27001 is on your roadmap — or a customer just asked for it — a free 30-minute scoping call will tell you where you genuinely stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 54 707 8203**.
 
 *Manoj Prabhakaran is an ISO 27001 Lead Auditor (CPTS, Azure Security) and leads GRC and compliance at Underwings Cybersecurity Solutions, Abu Dhabi.*
 $UWISO$,

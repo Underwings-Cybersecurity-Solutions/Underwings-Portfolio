@@ -74,6 +74,6 @@ This also maps directly to compliance: ISO 27001, ADHICS, and NESA all expect ne
 
 We review and harden FortiGate and broader network infrastructure — configuration and policy review, segmentation design, VPN and remote-access hardening, logging and visibility — led by a **CCNP- and Fortinet-NSE-certified** practitioner, not a junior. Transparent AED pricing, fixed written quotes within 48 hours, and a limited number of **founding-client** places at preferential rates while we build our public track record.
 
-If you're not sure your network is as secure as the hardware you paid for — or you're doing a refresh, an ISO/ADHICS programme, or worried after an incident — a free 30-minute scoping call will tell you where you stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 50 567 0394**.
+If you're not sure your network is as secure as the hardware you paid for — or you're doing a refresh, an ISO/ADHICS programme, or worried after an incident — a free 30-minute scoping call will tell you where you stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 54 707 8203**.
 
 *Vinoth Samiyappa is CCNP- and Fortinet-NSE-certified (and Azure-certified) and leads network and infrastructure security at Underwings Cybersecurity Solutions, Abu Dhabi.*

@@ -127,7 +127,7 @@ VALUES (
 ## Project Structure
 
 ```
-dockerized/
+.                           # repo root (the former dockerized/ duplicate tree was removed 2026-09)
 ├── docker-compose.yml      # Main orchestration
 ├── .env                    # Environment variables
 ├── frontend/               # Astro frontend

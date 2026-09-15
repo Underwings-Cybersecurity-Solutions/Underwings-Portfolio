@@ -72,6 +72,6 @@ A **free 30-minute scoping call** — no obligation, no sales pressure. You'll l
 
 **Book directly:** book.underwings.org
 **Email:** contact@underwings.org
-**Call / WhatsApp:** +971 50 567 0394
+**Call / WhatsApp:** +971 54 707 8203
 
 *Underwings Cybersecurity Solutions — Abu Dhabi, UAE. Your ecosystem, under our wings.*

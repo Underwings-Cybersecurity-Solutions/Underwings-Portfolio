@@ -121,7 +121,7 @@ function composeEmail(lead, slots) {
     `Regards,\n` +
     `[YOUR NAME]\n` +
     `[TITLE] | Underwings Cybersecurity Solutions\n` +
-    `+971 505670394 | https://underwings.org`;
+    `+971 547078203 | https://underwings.org`;
   return { subject, body };
 }
 

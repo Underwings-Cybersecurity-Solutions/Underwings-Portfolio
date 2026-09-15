@@ -63,6 +63,58 @@ send_mail() {
   return 0
 }
 
+# ── Substring test for a response body ──────
+# Bash-native on purpose. The obvious `printf '%s' "$body" | grep -qF -- "$m"`
+# is broken under this script's `set -o pipefail`: grep -q exits the instant it
+# matches, so on a body larger than the 64 KB pipe buffer printf is still
+# writing when the read end closes, dies of SIGPIPE (141), and pipefail promotes
+# that 141 to the PIPELINE's status. The marker was found and the check still
+# reports it missing. That cost 349 false Academy alarms in August 2026 (~700
+# emails) against a page nginx logged as a full, correct 200.
+# `[[ == ]]` forks nothing and reads nothing, so there is no race to lose. The
+# right-hand side is quoted, which makes the marker a LITERAL — do not unquote
+# it, or a marker containing * or ? silently becomes a glob.
+body_contains() {
+  [[ "$1" == *"$2"* ]]
+}
+
+# ── Disk trend: days until full, or "" ──────
+# Re-baselines only every 6h, because over a 5-minute window normal churn
+# projects to nonsense like "full in 2 days".
+#
+# The projection is PERSISTED alongside the baseline, and that is the whole
+# point. The previous version computed it only on the run that re-baselined, so
+# 71 runs out of every 72 reported no disk warning at all: the failure signature
+# went warning -> empty -> warning and the script mailed an ALERT plus a
+# RECOVERED every six hours while the disk sat at a flat 83%. A projection is a
+# slow-moving fact, so it has to survive between re-baselines or it flaps by
+# construction.
+#
+# A re-baseline that finds the disk no longer shrinking clears the stored
+# projection rather than carrying a stale one forward.
+disk_trend_days() {
+  local now="$1" avail="$2" file="$3"
+  local old_epoch old_avail last_days elapsed lost
+  last_days=""
+  if [ -r "$file" ]; then
+    # A 2-field file written by an older version simply leaves last_days empty.
+    read -r old_epoch old_avail last_days < "$file" 2>/dev/null || true
+    elapsed=$(( now - ${old_epoch:-0} ))
+    if [ "$elapsed" -ge 21600 ] && [ "${old_avail:-0}" -gt 0 ]; then
+      lost=$(( old_avail - avail ))
+      if [ "$lost" -gt 0 ]; then
+        last_days=$(( avail * elapsed / lost / 86400 ))
+      else
+        last_days=""
+      fi
+      printf '%s %s %s\n' "$now" "$avail" "$last_days" > "$file"
+    fi
+  else
+    printf '%s %s %s\n' "$now" "$avail" "" > "$file"
+  fi
+  printf '%s' "${last_days:-}"
+}
+
 # ── Check HTTP endpoint ─────────────────────
 check_url() {
   local name="$1" url="$2" expected="${3:-200}"
@@ -84,7 +136,7 @@ check_url_body() {
   body=$(curl -s --max-time 10 "$@" "$url" 2>/dev/null)
   if [ $? -ne 0 ]; then
     FAILURES="${FAILURES}FAIL: ${name} — request failed (${url})\n"
-  elif ! printf '%s' "$body" | grep -qF -- "$marker"; then
+  elif ! body_contains "$body" "$marker"; then
     FAILURES="${FAILURES}FAIL: ${name} — response did not contain '${marker}' (${url})\n"
   fi
 }
@@ -152,23 +204,9 @@ DISK_AVAIL_KB=$(df -P / | awk 'NR==2 {print $4}')
 TREND_FILE="/tmp/uw-disk-trend"
 NOW_EPOCH=$(date +%s)
 
-if [ -r "$TREND_FILE" ]; then
-  read -r OLD_EPOCH OLD_AVAIL < "$TREND_FILE" 2>/dev/null || { OLD_EPOCH=0; OLD_AVAIL=0; }
-  ELAPSED=$(( NOW_EPOCH - ${OLD_EPOCH:-0} ))
-  # Re-baseline only every 6h: over a 5-minute window normal churn projects to
-  # nonsense like "full in 2 days".
-  if [ "$ELAPSED" -ge 21600 ] && [ "${OLD_AVAIL:-0}" -gt 0 ]; then
-    LOST=$(( OLD_AVAIL - DISK_AVAIL_KB ))
-    if [ "$LOST" -gt 0 ]; then
-      DAYS_LEFT=$(( DISK_AVAIL_KB * ELAPSED / LOST / 86400 ))
-      if [ "$DAYS_LEFT" -lt 21 ]; then
-        FAILURES="${FAILURES}WARN: Disk projected full in ~${DAYS_LEFT} days (now ${DISK_PCT}%)\n"
-      fi
-    fi
-    printf '%s %s\n' "$NOW_EPOCH" "$DISK_AVAIL_KB" > "$TREND_FILE"
-  fi
-else
-  printf '%s %s\n' "$NOW_EPOCH" "$DISK_AVAIL_KB" > "$TREND_FILE"
+DAYS_LEFT=$(disk_trend_days "$NOW_EPOCH" "$DISK_AVAIL_KB" "$TREND_FILE")
+if [ -n "$DAYS_LEFT" ] && [ "$DAYS_LEFT" -lt 21 ]; then
+  FAILURES="${FAILURES}WARN: Disk projected full in ~${DAYS_LEFT} days (now ${DISK_PCT}%)\n"
 fi
 
 if [ "$DISK_PCT" -gt 85 ]; then

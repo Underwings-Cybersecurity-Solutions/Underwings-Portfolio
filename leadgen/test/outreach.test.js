@@ -43,7 +43,7 @@ test('composeEmail builds the exact approved skeleton', () => {
   assert.match(r.body, /I'm not asking you to switch anything/);
   assert.ok(r.body.includes(O.CALENDLY_URL));
   assert.ok(r.body.includes(O.ASSESSMENT_URL));
-  assert.match(r.body, /Regards,\n\[YOUR NAME\]\n\[TITLE\] \| Underwings Cybersecurity Solutions\n\+971 505670394 \| https:\/\/underwings\.org$/);
+  assert.match(r.body, /Regards,\n\[YOUR NAME\]\n\[TITLE\] \| Underwings Cybersecurity Solutions\n\+971 547078203 \| https:\/\/underwings\.org$/);
 });
 
 test('composeEmail greets Hello without a contact and keeps acronym casing', () => {

@@ -47,6 +47,6 @@ ISO 27001 · ADHICS v2 · UAE PDPL · NESA · penetration testing · network sec
 
 A 20-minute call to see if it's useful — and to agree on sending each other one client to test the relationship.
 
-**Email:** contact@underwings.org · **Call / WhatsApp:** +971 50 567 0394 · **Book:** book.underwings.org
+**Email:** contact@underwings.org · **Call / WhatsApp:** +971 54 707 8203 · **Book:** book.underwings.org
 
 *Underwings Cybersecurity Solutions — Abu Dhabi, UAE.*

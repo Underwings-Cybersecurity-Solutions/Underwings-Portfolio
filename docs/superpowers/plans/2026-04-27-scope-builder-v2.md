@@ -1138,7 +1138,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const WA = '971505670394';
+const WA = '971547078203';
 const TEAM = process.env.TEAM_EMAIL || 'itdept1@gcee.ae';
 const KRAYIN_BASE = 'https://crm.underwings.org/admin/leads/view';
 
@@ -2881,7 +2881,7 @@ const fmt = (n) => 'AED ' + Number(n).toLocaleString('en-AE');
       <p>We will email a written fixed-price quote within 48 hours.</p>
       <div class="thx-actions">
         <a class="thx-btn primary" href={`/scope/${scope.token}`}>View online</a>
-        <a class="thx-btn ghost" href={`https://wa.me/971505670394?text=${encodeURIComponent('Question about scope ' + scope.reference)}`}>Ask on WhatsApp</a>
+        <a class="thx-btn ghost" href={`https://wa.me/971547078203?text=${encodeURIComponent('Question about scope ' + scope.reference)}`}>Ask on WhatsApp</a>
       </div>
     </div>
   </main>
@@ -2940,7 +2940,7 @@ if (new Date(scope.expires_at) < new Date()) {
 const fmt = (n) => 'AED ' + Number(n).toLocaleString('en-AE');
 const items = scope.cart;
 const founding = scope.founding_optin;
-const wa = `https://wa.me/971505670394?text=${encodeURIComponent('Question about scope ' + scope.reference)}`;
+const wa = `https://wa.me/971547078203?text=${encodeURIComponent('Question about scope ' + scope.reference)}`;
 ---
 <Layout title={`Scope ${scope.reference}`} description="Your scope plan">
   <main class="hsv">
@@ -3336,7 +3336,7 @@ After completing all tasks, verify:
 - [ ] Hosted-link views log to `scope_views` table AND post Krayin activity
 - [ ] Slack webhook is env-gated — works when set, silent no-op when absent
 - [ ] PDF stored outside web root at `/data/scopes/{token}.pdf`, served via auth-checked endpoint
-- [ ] WhatsApp click-to-chat number `+971505670394` baked into buyer email + thanks page + hosted scope page
+- [ ] WhatsApp click-to-chat number `+971547078203` baked into buyer email + thanks page + hosted scope page
 - [ ] Legacy URL `/services/offensive-security/scope-builder` returns `301` to `/scope-builder?seed=offensive`
 - [ ] Three category hubs (offensive, grc, cloud) link to seeded scope-builder
 

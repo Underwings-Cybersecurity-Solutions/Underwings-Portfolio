@@ -75,7 +75,7 @@ A focused web-app or external-network test is typically **1–3 weeks** end to e
 
 We do **manual penetration testing** — OSCP-certified, methodology-driven, with proof-of-concept findings and a retest included as standard. Named senior tester on your engagement, transparent AED pricing, a fixed written quote within 48 hours of a scoping call, and a limited number of **founding-client** places at preferential rates while we build our public track record.
 
-If you need a pen test — for an enterprise deal, an audit, or your own peace of mind — a free 30-minute scoping call will tell you exactly what you need (and what you don't). Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 50 567 0394**.
+If you need a pen test — for an enterprise deal, an audit, or your own peace of mind — a free 30-minute scoping call will tell you exactly what you need (and what you don't). Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 54 707 8203**.
 
 *Nelson Durairaj is OSCP- and CEH-certified and leads offensive security at Underwings Cybersecurity Solutions, Abu Dhabi.*
 $UWPT$,

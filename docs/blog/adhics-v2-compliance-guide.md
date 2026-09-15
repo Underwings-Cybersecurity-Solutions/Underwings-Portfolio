@@ -53,6 +53,6 @@ The single best first step is a **gap assessment**. It is low-commitment, it giv
 
 We run ADHICS readiness and remediation as a hands-on programme — gap assessment, prioritised roadmap, policy and control implementation alongside your team, and audit-ready evidence — led by a **named ISO 27001 Lead Auditor**, not handed to a junior. We publish indicative AED pricing, scope every engagement in writing within 48 hours, and we are taking a limited number of **founding clients** at preferential rates while we build our public track record.
 
-If ADHICS is on your horizon — or already overdue — a free 30-minute scoping call will tell you where you genuinely stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 50 567 0394**.
+If ADHICS is on your horizon — or already overdue — a free 30-minute scoping call will tell you where you genuinely stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 54 707 8203**.
 
 *Manoj Prabhakaran is an ISO 27001 Lead Auditor (CPTS, Azure Security) and leads GRC and healthcare compliance at Underwings Cybersecurity Solutions, Abu Dhabi.*

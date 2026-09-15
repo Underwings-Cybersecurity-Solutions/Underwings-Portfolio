@@ -1521,7 +1521,7 @@ function crmOutreachBody(p, contactName) {
     `I'm not asking you to switch anything. A 15-minute call, and I'll tell you honestly whether we're a fit.\n\n` +
     `Pick a slot that works: https://calendly.com/underwings1415/30min\n\n` +
     `If it's easier to look before you talk, I've attached our company profile and current service list, and our free assessment is open here: https://underwings.org/#contact\n\n` +
-    `Regards,\n[YOUR NAME]\n[TITLE] | Underwings Cybersecurity Solutions\n+971 505670394 | https://underwings.org`;
+    `Regards,\n[YOUR NAME]\n[TITLE] | Underwings Cybersecurity Solutions\n+971 547078203 | https://underwings.org`;
 }
 
 /** Short nudge for the follow-up queue. Deliberately not AI-drafted: a
@@ -1532,7 +1532,7 @@ function crmFollowupBody(p) {
     `Floating my earlier note back to the top of your inbox — security work rarely makes the list until an audit, a client questionnaire or an incident forces it, and by then it's urgent.\n\n` +
     `If a 15-minute look at where ${p.company_name} stands would be useful, pick any slot: https://calendly.com/underwings1415/30min\n\n` +
     `And if now isn't the time, a one-line "not now" is genuinely helpful too.\n\n` +
-    'Regards,\n[YOUR NAME]\n[TITLE] | Underwings Cybersecurity Solutions\n+971 505670394 | https://underwings.org';
+    'Regards,\n[YOUR NAME]\n[TITLE] | Underwings Cybersecurity Solutions\n+971 547078203 | https://underwings.org';
 }
 
 async function crmCopyOutreach(id) {

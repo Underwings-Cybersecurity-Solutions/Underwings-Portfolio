@@ -435,7 +435,7 @@ Astro endpoint validates a shared signing secret (`KRAYIN_REVERSE_SECRET` env va
   - Bundle range
   - Founding Client status (if opted)
   - Hosted link button: `View online → /scope/{token}`
-  - WhatsApp button: `wa.me/971505670394?text=Question about scope SCB-2026-{nnnn}`
+  - WhatsApp button: `wa.me/971547078203?text=Question about scope SCB-2026-{nnnn}`
   - Calendly link
 - Attachment: `SCB-2026-{nnnn}.pdf`
 
@@ -469,7 +469,7 @@ Astro endpoint validates a shared signing secret (`KRAYIN_REVERSE_SECRET` env va
 
 ### 9.4 WhatsApp
 
-- Click-to-chat URL pattern: `https://wa.me/971505670394?text={url-encoded-message}`
+- Click-to-chat URL pattern: `https://wa.me/971547078203?text={url-encoded-message}`
 - Used in:
   - Buyer confirmation email button
   - Hosted scope page CTA

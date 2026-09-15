@@ -62,6 +62,6 @@ Healthcare organisations in Abu Dhabi often run PDPL alongside **ADHICS** — th
 
 We deliver PDPL as a hands-on implementation — data mapping, a populated RoPA, DPIAs, the policy stack, a runnable data-subject-rights workflow, cross-border transfer documentation, and staff training — led by a senior practitioner, not a junior. Transparent AED pricing, fixed written quotes within 48 hours, and a limited number of **founding-client** places at preferential rates while we build our public track record.
 
-If the PDPL is on your radar — or you've realised you don't actually know where your personal data lives — a free 30-minute scoping call will tell you where you stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 50 567 0394**.
+If the PDPL is on your radar — or you've realised you don't actually know where your personal data lives — a free 30-minute scoping call will tell you where you stand. Book at **book.underwings.org**, email **contact@underwings.org**, or call **+971 54 707 8203**.
 
 *Manoj Prabhakaran is an ISO 27001 Lead Auditor (CPTS, Azure Security) and leads GRC and compliance at Underwings Cybersecurity Solutions, Abu Dhabi.*

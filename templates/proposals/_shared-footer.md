@@ -17,7 +17,7 @@ You will not be passed to anonymous juniors. The named practitioner above runs d
 - **Underwings Cybersecurity Solutions** · Abu Dhabi, UAE
 - **VAT TRN:** *to be added on first invoice*
 - **DPO contact:** dpo@underwings.org
-- **General contact:** contact@underwings.org · +971 50 567 0394
+- **General contact:** contact@underwings.org · +971 54 707 8203
 
 ## Payment terms
 
