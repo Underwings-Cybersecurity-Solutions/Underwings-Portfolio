@@ -1,21 +1,26 @@
 name: Deploy to Production
 
+# MANUAL ONLY since 2026-09-15.
+#
+# The server checkout (/home/deployer/underwings) is the source of truth and is
+# deployed from the box itself with `docker compose up --build -d`. This job is
+# a hands-off way to redeploy whatever origin/main holds — nothing more.
+#
+# It used to fire automatically after every green CI run on main and did
+# `git reset --hard origin/main`, which throws away any uncommitted server
+# work and forces the site to whatever main contains. For three months main
+# was three months behind the server, so one merged PR would have rolled the
+# live site back to June. Do not restore the automatic trigger until main is
+# the only place changes ever land.
 on:
-  workflow_run:
-    workflows: [CI]
-    branches: [main]
-    types: [completed]
+  workflow_dispatch:
 
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -26,5 +31,19 @@ jobs:
       - name: Deploy to server
         run: |
           ssh -i ~/.ssh/deploy_key \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-            "cd /home/deployer/underwings && git fetch origin main && git reset --hard origin/main && docker compose up --build -d && docker image prune -f"
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd /home/deployer/underwings
+          # Never discard server-side work: refuse if anything tracked is modified.
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+            echo "Server checkout has uncommitted changes — refusing to deploy:"
+            git status --short --untracked-files=no
+            exit 1
+          fi
+          git fetch origin main
+          # Fast-forward only: if the server is ahead of main, that is the
+          # server's work that has not been pushed yet, not something to erase.
+          git merge --ff-only origin/main
+          docker compose up --build -d
+          docker image prune -f
+          REMOTE
