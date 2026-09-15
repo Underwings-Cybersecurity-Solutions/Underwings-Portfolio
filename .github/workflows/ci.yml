@@ -104,9 +104,11 @@ jobs:
 
       - name: Verify build output
         run: |
-          test -f ../dist/index.html || (echo "Missing index.html" && exit 1)
-          test -f ../dist/env.js || (echo "Missing runtime env.js" && exit 1)
-          grep -q '__SUPABASE_URL__' ../dist/env.js || (echo "env.js placeholder was substituted at build time — the entrypoint expects it at runtime" && exit 1)
+          # vite.config.js: root 'src', outDir '../dist' → relative to src, i.e. crm/dist
+          # (the same path the Dockerfile copies from). This job runs in crm/, so no '../'.
+          test -f dist/index.html || (echo "Missing index.html" && exit 1)
+          test -f dist/env.js || (echo "Missing runtime env.js" && exit 1)
+          grep -q '__SUPABASE_URL__' dist/env.js || (echo "env.js placeholder was substituted at build time — the entrypoint expects it at runtime" && exit 1)
           echo "CRM build verified"
 
   # ===========================================
