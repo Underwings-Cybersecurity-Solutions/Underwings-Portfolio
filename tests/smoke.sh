@@ -74,10 +74,22 @@ check "Homepage returns 200" "$BASE/"
 check "Homepage has hreflang" "$BASE/" 200 "hreflang"
 check "Homepage has og:image:width" "$BASE/" 200 "og:image:width"
 check "Homepage has cookie consent" "$BASE/" 200 "uw-cookie-banner"
-check "VAPT service page" "$BASE/services/vapt"
-check "ISO 27001 service page" "$BASE/services/iso-27001"
-check "Training service page" "$BASE/services/training"
-check "Consultation service page" "$BASE/services/consultation"
+# The flat /services/<x> URLs were retired in the Apr 2026 IA change; nginx
+# 301s them to the category pages. Assert the redirect, then the live targets —
+# and grep for page-specific text, not brand chrome (an empty-state page would
+# otherwise pass).
+check "Legacy /services/vapt redirects" "$BASE/services/vapt" 301
+check "Legacy /services/iso-27001 redirects" "$BASE/services/iso-27001" 301
+check "Legacy /services/training redirects" "$BASE/services/training" 301
+check "Legacy /services/consultation redirects" "$BASE/services/consultation" 301
+check "Legacy Webflow .html URL redirects" "$BASE/grc-services.html" 301
+check "Services hub" "$BASE/services" 200 "offensive-security"
+check "Network pen-test page" "$BASE/services/offensive-security/network-penetration-testing" 200 "Network Penetration Testing"
+check "ISO 27001 implementation page" "$BASE/services/grc/iso-27001-implementation" 200 "ISO 27001"
+check "ADHICS compliance page" "$BASE/services/grc/adhics-compliance" 200 "ADHICS"
+check "Security awareness training page" "$BASE/services/training-awareness/security-awareness-training" 200 "Security Awareness Training"
+check "Homepage FAQ schema" "$BASE/" 200 "FAQPage"
+check "Footer services directory" "$BASE/" 200 "footer-dir-link"
 check "Blog index" "$BASE/blog"
 check "About page" "$BASE/about"
 check "Arabic landing page" "$BASE/ar"
@@ -87,7 +99,7 @@ check "Brand guidelines" "$BASE/brand"
 check "Software page" "$BASE/software"
 check "Updates page" "$BASE/updates"
 check "Careers page" "$BASE/careers"
-check "Client portal page" "$BASE/portal"
+# /portal was removed in the Astro migration (nginx comment: "target TBD") — no check.
 # 404 test skipped — Astro SSR in hybrid mode hangs on unmatched routes through nginx proxy
 # TODO: Fix 404 routing in Astro/nginx config
 # check "404 page" "$BASE/nonexistent-page-12345" 404
@@ -103,8 +115,11 @@ check_post "Chat API — message too long" "$BASE/api/chat" "$(python3 -c "impor
 check_post "Chat API — invalid role" "$BASE/api/chat" '{"messages":[{"role":"system","content":"hi"}]}' 400 "Invalid role"
 check_post "Newsletter API — missing email" "$BASE/api/newsletter" '{}' 400 "email"
 check_post "Newsletter API — invalid email" "$BASE/api/newsletter" '{"email":"notanemail"}' 400 "email"
-# With Turnstile enabled, requests without a valid token get 403
-check_post "Newsletter API — no CAPTCHA token" "$BASE/api/newsletter" '{"email":"test@example.com"}' 403 "CAPTCHA"
+# A token-less request is accepted BY DESIGN (the footer form renders without
+# Turnstile), so never post a bare email here: it creates a real subscriber,
+# sends a welcome mail, and — since 2026-09-15 — emails the team about the
+# "new signup". An invalid token exercises the CAPTCHA path with no side effects.
+check_post "Newsletter API — invalid CAPTCHA token rejected" "$BASE/api/newsletter" '{"email":"smoke-test@example.com","cf-turnstile-response":"invalid-token"}' 403 "CAPTCHA"
 
 echo ""
 echo "CRM (crm.underwings.org):"
