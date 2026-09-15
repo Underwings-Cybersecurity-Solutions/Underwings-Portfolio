@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import { notifyCrmInbound } from '../../lib/crm-inbound';
+import { notifyTeam as sendTeamNotification, dubaiTime } from '../../lib/team-notify';
 
 export const prerender = false;
 
@@ -127,8 +128,7 @@ async function sendAutoReply(email: string, name: string, company?: string, serv
 
 async function notifyTeam(name: string, email: string, phone?: string, company?: string, service?: string, message?: string): Promise<void> {
   try {
-    const year = new Date().getFullYear();
-    const time = new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai', dateStyle: 'medium', timeStyle: 'short' });
+    const time = dubaiTime();
 
     const html = `<!doctype html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;-webkit-font-smoothing:antialiased">
@@ -177,11 +177,22 @@ async function notifyTeam(name: string, email: string, phone?: string, company?:
 </td></tr></table>
 </body></html>`;
 
-    await smtpTransport.sendMail({
-      from: 'Underwings CRM <newsletter@underwings.org>',
-      to: 'contact@underwings.org',
+    // Recipients + transport live in lib/team-notify (FORM_NOTIFY_TO, NOTIFY_SMTP_*).
+    await sendTeamNotification({
       subject: `New Lead: ${name || 'Unknown'}${service ? ' — ' + service : ''}`,
       html,
+      text: [
+        `New website lead — ${time}`,
+        `Name: ${name || 'Unknown'}`,
+        `Email: ${email}`,
+        phone ? `Phone: ${phone}` : null,
+        company ? `Company: ${company}` : null,
+        service ? `Service interest: ${service}` : null,
+        message ? `Message:\n${message}` : null,
+        '',
+        'View in CRM: https://crm.underwings.org/admin',
+      ].filter(Boolean).join('\n'),
+      replyTo: email,
     });
   } catch (e) {
     console.error('Team notification error:', e);

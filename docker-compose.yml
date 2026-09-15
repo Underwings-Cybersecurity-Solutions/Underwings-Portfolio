@@ -163,6 +163,16 @@ services:
       - SMTP_HOST=stalwart
       - SMTP_USER=newsletter@underwings.org
       - SMTP_PASS=Newsletter@1415!
+      # Team notifications for every website form (contact / newsletter / waitlist).
+      # Go out through the Brevo relay, NOT stalwart: Stalwart still owns
+      # underwings.org as a local domain, so it files @underwings.org mail into
+      # its own dead mailboxes instead of sending it to Zoho (MX since 2026-08-27).
+      # Values live in .env; see frontend/src/lib/team-notify.ts.
+      - FORM_NOTIFY_TO=${FORM_NOTIFY_TO:-admin@underwings.org,manoj@underwings.org}
+      - NOTIFY_SMTP_HOST=${NOTIFY_SMTP_HOST}
+      - NOTIFY_SMTP_PORT=${NOTIFY_SMTP_PORT}
+      - NOTIFY_SMTP_USER=${NOTIFY_SMTP_USER}
+      - NOTIFY_SMTP_PASS=${NOTIFY_SMTP_PASS}
     restart: always
     networks:
       - underwings-network

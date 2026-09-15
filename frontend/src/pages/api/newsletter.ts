@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import { notifyCrmInbound } from '../../lib/crm-inbound';
+import { notifyTeam, dubaiTime } from '../../lib/team-notify';
 
 export const prerender = false;
 
@@ -160,6 +161,30 @@ async function pushToKeila(email: string, source: string): Promise<void> {
   }
 }
 
+/** Tell the team about the signup — same recipients as the contact form. */
+async function notifyTeamOfSignup(email: string, source: string): Promise<void> {
+  const time = dubaiTime();
+  const html = `<!doctype html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:24px;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#111;border:1px solid rgba(255,255,255,.06);border-radius:16px">
+  <tr><td style="height:3px;background:linear-gradient(90deg,#24d758,#27dab4)"></td></tr>
+  <tr><td style="padding:24px 28px">
+    <span style="display:inline-block;background:#0d1f12;border:1px solid rgba(36,215,88,.2);border-radius:16px;padding:4px 12px;color:#24d758;font-size:11px;font-weight:700;letter-spacing:.05em">NEW NEWSLETTER SIGNUP</span>
+    <span style="float:right;color:#555;font-size:12px">${time}</span>
+    <h2 style="color:#fff;font-size:20px;font-weight:700;margin:16px 0 4px">${email}</h2>
+    <p style="color:#888;font-size:13px;margin:0 0 16px">Source: <span style="color:#ccc">${source}</span></p>
+    <a href="https://crm.underwings.org/admin" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">View in CRM</a>
+  </td></tr>
+</table>
+</body></html>`;
+  await notifyTeam({
+    subject: `New newsletter signup: ${email}`,
+    html,
+    text: `New newsletter signup — ${time}\nEmail: ${email}\nSource: ${source}\n\nView in CRM: https://crm.underwings.org/admin`,
+    replyTo: email,
+  });
+}
+
 async function verifyTurnstile(token: string): Promise<boolean> {
   if (!TURNSTILE_SECRET) return true;
   if (!token) return false;
@@ -212,6 +237,7 @@ export const POST: APIRoute = async ({ request }) => {
         : Promise.resolve({ error: { message: 'No Supabase client' } }),
       pushToKeila(cleanEmail, source),
       sendWelcomeEmail(cleanEmail),
+      notifyTeamOfSignup(cleanEmail, source),
       notifyCrmInbound({
         source: 'newsletter',
         person: {
