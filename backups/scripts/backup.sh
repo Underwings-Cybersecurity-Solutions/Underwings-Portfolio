@@ -208,53 +208,7 @@ docker run --rm -v mycosmicstar_storage-data:/st:ro alpine tar czf - -C /st . 2>
 # Krayin/Keila/Seafile/PitStack/AFFiNE/Akaunting — all removed; steps deleted.
 
 
-echo "  → AKL system (SQLite)..."
-if docker ps --format '{{.Names}}' | grep -q '^akl-system-app$'; then
-  # VACUUM INTO, not a file copy: WAL keeps recent commits out of the main file.
-  if docker exec akl-system-app node scripts/snapshot.js /app/data/_backup.sqlite >/dev/null 2>&1; then
-    gzip -c /home/deployer/akl-system/data/_backup.sqlite \
-      | enc > "$BACKUP_DIR/daily/akl_system_db_${DATE}.sqlite.gz.gpg" \
-      || echo "    ! AKL system database encrypt failed"
-    rm -f /home/deployer/akl-system/data/_backup.sqlite
-  else
-    echo "    ! AKL system database snapshot failed, skipping"
-  fi
-  # Photos are FILES on disk (data/uploads); the database holds only their
-  # paths. A database-only restore leaves every photo a broken image.
-  if [ -d /home/deployer/akl-system/data/uploads ]; then
-    tar czf - -C /home/deployer/akl-system/data uploads 2>/dev/null \
-      | enc > "$BACKUP_DIR/daily/akl_system_uploads_${DATE}.tar.gz.gpg" \
-      || echo "    ! AKL system uploads failed, skipping"
-  fi
-else
-  echo "    ! akl-system-app not running, skipping"
-fi
-
-echo "  → AKL real system (SQLite + uploads)..."
-if docker ps --format '{{.Names}}' | grep -q '^akl-real-app$'; then
-  # VACUUM INTO, not a file copy. The system runs in WAL mode, so recent
-  # commits live in the -wal file; copying akl-real.sqlite alone yields a
-  # backup that is missing the newest approvals and looks fine until restored.
-  if docker exec akl-real-app node scripts/snapshot.js /app/data/_backup.sqlite >/dev/null 2>&1; then
-    gzip -c /home/deployer/akl-real/data/_backup.sqlite \
-      | enc > "$BACKUP_DIR/daily/akl_real_db_${DATE}.sqlite.gz.gpg" \
-      || echo "    ! AKL database encrypt failed"
-    rm -f /home/deployer/akl-real/data/_backup.sqlite
-  else
-    echo "    ! AKL database snapshot failed, skipping"
-  fi
-
-  # Attachments are FILES on disk; the database holds only their paths. A
-  # database-only backup restores records pointing at images and tech packs
-  # that are no longer there.
-  if [ -d /home/deployer/akl-real/data/uploads ]; then
-    tar czf - -C /home/deployer/akl-real/data uploads 2>/dev/null \
-      | enc > "$BACKUP_DIR/daily/akl_real_uploads_${DATE}.tar.gz.gpg" \
-      || echo "    ! AKL uploads failed, skipping"
-  fi
-else
-  echo "    ! akl-real-app not running, skipping"
-fi
+# AKL system / AKL real — removed 2026-09-15 (final archive: backups/manual/akl-final-2026-09-15.tar.gz.gpg).
 
 # Remove empty artifacts (failed steps) then rotate (also via EXIT trap)
 find "$BACKUP_DIR/daily" -name "*_${DATE}*" -empty -delete 2>/dev/null || true
