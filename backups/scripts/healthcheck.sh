@@ -11,6 +11,9 @@ STATE_FILE="/tmp/uw-health-state"
 
 # Credentials live in underwings/.env (gitignored) rather than in this file, so
 # the script itself can be tracked in git. They are the ALERT_* set, not SMTP_*:
+# (2026-09-15: ALERT_SMTP_* point at the Brevo relay, not localhost:465. Stalwart
+# still treats underwings.org as a local domain, so alerts submitted to it were
+# filed into its own dead mailboxes after the Zoho MX cutover — never sent.)
 # this script runs on the HOST via cron, where the container-network hostname
 # used by SMTP_HOST would not resolve.
 ENV_FILE="/home/deployer/underwings/.env"
@@ -44,11 +47,16 @@ send_mail() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S UTC')] MAIL NOT SENT: alert credentials missing from ${ENV_FILE}"
     return 1
   fi
+  # 465 = implicit TLS (Stalwart's submissions port); anything else, e.g. the
+  # Brevo relay on 2525, is plain SMTP upgraded with STARTTLS. Never send the
+  # credentials in the clear: swaks --tls fails if STARTTLS is unavailable.
+  local tls_flag="--tls"
+  [ "$SMTP_PORT" = "465" ] && tls_flag="--tls-on-connect"
   out=$(swaks --to "$ALERT_EMAIL" \
     --from "$FROM_EMAIL" \
     --server "$SMTP_HOST" \
     --port "$SMTP_PORT" \
-    --tls-on-connect \
+    "$tls_flag" \
     --auth PLAIN \
     --auth-user "$SMTP_USER" \
     --auth-password "$SMTP_PASS" \
