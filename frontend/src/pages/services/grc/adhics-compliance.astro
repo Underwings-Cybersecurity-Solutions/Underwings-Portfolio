@@ -1,0 +1,272 @@
+---
+// ============================================================
+// SERVICE PAGE — ADHICS v2 Compliance (Abu Dhabi Healthcare)
+// Category: GRC (Y1 Flagship — UAE differentiator, healthcare vertical)
+// ============================================================
+
+import Layout from '../../../layouts/Layout.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import '../../../styles/category-hub.css';
+import '../../../styles/service-page.css';
+
+const faqs = [
+  { q: "What is ADHICS?", a: "ADHICS is the <strong>Abu Dhabi Healthcare Information and Cyber Security Standard</strong>, issued by the Department of Health – Abu Dhabi (DoH). It's the mandatory information-security framework for healthcare entities operating in the Emirate of Abu Dhabi. The current version is <strong>ADHICS v2</strong>. It defines management and security controls that providers, payers, and other DoH-licensed entities must implement to protect health information." },
+  { q: "Does ADHICS apply to my organisation?", a: "If you're a DoH-licensed healthcare entity in Abu Dhabi — a hospital, clinic, day-surgery centre, diagnostic lab, pharmacy, insurer/payer, or a health-IT provider handling patient data — ADHICS applies to you directly. It's a licensing and operational requirement, not optional. Entities connecting to <strong>Malaffi</strong> (the Abu Dhabi Health Information Exchange) must demonstrate ADHICS alignment as a condition of integration." },
+  { q: "What's the difference between ADHICS and ISO 27001?", a: "ISO 27001 is an international, voluntary ISMS certification. ADHICS is an Abu Dhabi <strong>mandatory</strong> healthcare standard with sector-specific controls around health information, medical systems, and DoH governance. There's significant overlap (~60 – 70%) with ISO 27001 Annex A — so existing ISO work accelerates ADHICS — but ADHICS adds healthcare-specific requirements ISO doesn't cover, and applies whether or not you hold ISO 27001." },
+  { q: "Is ADHICS the same as HIPAA?", a: "No. HIPAA is a US law. ADHICS is the Abu Dhabi standard and is the framework DoH assesses you against locally. There's conceptual overlap (both protect health information), but mapping US HIPAA controls to ADHICS is exactly the kind of gap work we do — the control structure, classifications, and evidence expectations differ." },
+  { q: "Do you get us compliant, or certified?", a: "ADHICS compliance is assessed by the <strong>Department of Health – Abu Dhabi</strong> (or its designated auditors) against the standard's controls — it isn't an ISO-style certificate. We deliver the <strong>gap assessment, remediation, and evidence pack</strong> that get you to a compliant, assessment-ready state. Where a formal DoH submission or audit is required, we prepare you for it and support the process." },
+  { q: "How long does the ADHICS gap assessment take?", a: "3 – 5 weeks end-to-end for a typical single-facility provider. Multi-facility groups or hospitals with complex clinical systems extend to 6 – 8 weeks. Healthcare environments carry more in-scope systems (EMR, PACS, LIS, medical devices), so we don't compress coverage." },
+  { q: "Can you combine ADHICS with ISO 27001 or PDPL?", a: "Yes — and most healthcare clients should. ISO 27001 Annex A, ADHICS v2, and UAE PDPL share a large control base. We deliver a <strong>unified control set</strong> mapped across all three, so you implement once and evidence against each framework — 15 – 20% cheaper than running them sequentially." },
+  { q: "What evidence do you produce?", a: "A controls-by-controls assessment against the applicable ADHICS v2 domains with maturity rating and gap severity, a prioritised remediation roadmap, an executive summary for the board / medical director, and a cross-framework mapping showing where existing ISO 27001 / NIST / CIS controls already satisfy ADHICS (so you don't rebuild what's done)." },
+];
+
+const schema = [
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://underwings.org" },
+    { "@type": "ListItem", "position": 2, "name": "Services", "item": "https://underwings.org/services" },
+    { "@type": "ListItem", "position": 3, "name": "Cybersecurity GRC", "item": "https://underwings.org/services/grc" },
+    { "@type": "ListItem", "position": 4, "name": "ADHICS v2 Compliance", "item": "https://underwings.org/services/grc/adhics-compliance" }
+  ]},
+  { "@context": "https://schema.org", "@type": "Service", "name": "ADHICS v2 Compliance & Gap Assessment", "serviceType": "ADHICS Healthcare Compliance",
+    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
+    "audience": { "@type": "Audience", "audienceType": "Abu Dhabi healthcare providers, payers, and health-IT entities" },
+    "offers": { "@type": "AggregateOffer", "priceCurrency": "AED", "lowPrice": "16000", "highPrice": "42000" },
+    "description": "ADHICS v2 (Abu Dhabi Healthcare Information and Cyber Security Standard) gap assessment and remediation — controls-by-controls review, maturity ratings, prioritised roadmap, DoH assessment-readiness. GRC Mastery + ISO 27001 LA led.",
+    "url": "https://underwings.org/services/grc/adhics-compliance"
+  },
+  { "@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": faqs.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } }))
+  }
+];
+
+export const prerender = false;
+---
+
+<Layout
+  title="ADHICS v2 Compliance UAE — Abu Dhabi Healthcare | Underwings"
+  description="ADHICS v2 gap assessment & compliance for Abu Dhabi healthcare providers, payers, and health-IT entities. DoH-aligned controls review, remediation roadmap, Malaffi-readiness. AED 16,000 – 42,000."
+  keywords="ADHICS compliance, ADHICS v2, Abu Dhabi healthcare cybersecurity, DoH ADHICS, ADHICS gap assessment UAE, Malaffi security compliance, healthcare data protection Abu Dhabi"
+  wfPage="services-page"
+  schema={schema}
+  bodyClass="body svc-compact"
+>
+  <Header currentPage="services" />
+
+  <main id="main" class="main">
+
+    <section class="section bottom-padding-clear top-padding-small">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/services">Services</a><span aria-hidden="true">›</span>
+          <a href="/services/grc">Cybersecurity GRC</a><span aria-hidden="true">›</span>
+          <span class="crumbs-current">ADHICS v2 Compliance</span>
+        </nav>
+
+        <div class="svc-hero">
+          <div class="label" style="justify-content:center;"><div class="text-small color-grey">GRC — Healthcare Flagship</div></div>
+          <h1 class="heading-large">ADHICS v2 Compliance — Abu Dhabi Healthcare</h1>
+          <p class="text" style="max-width:720px;margin:1rem auto 0;">
+            Controls-by-controls assessment and remediation against the <strong>Abu Dhabi Healthcare Information and Cyber Security Standard (ADHICS v2)</strong> — the mandatory Department of Health – Abu Dhabi framework for providers, payers, and health-IT entities. Get to a DoH assessment-ready, Malaffi-eligible posture. Led by a GRC Mastery + ISO 27001 Lead Auditor practitioner.
+          </p>
+
+          <div class="svc-hero-badges">
+            <span class="svc-hero-badge svc-hero-badge-price">AED 16,000 – 42,000</span>
+            <span class="svc-hero-badge svc-hero-badge-certs">GRC Mastery · ISO 27001 LA</span>
+            <span class="svc-hero-badge svc-hero-badge-time">3 – 5 weeks</span>
+          </div>
+
+          <div class="svc-hero-ctas">
+            <div class="button">
+              <a href="/#contact?service=adhics" class="button-hidden w-button">Book a 30-min Scoping Call →</a>
+              <div class="button-wrapper"><div class="button-text">Book a 30-min Scoping Call →</div></div>
+              <div class="button-accent-gradinet"></div>
+            </div>
+            <a href="#faq" class="svc-hero-cta-secondary">Jump to FAQ</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">What it is</h2>
+        <div class="svc-sec-body">
+          <p>A focused, 3 – 5 week assessment of your healthcare organisation's posture against <strong>ADHICS v2</strong> — the Department of Health – Abu Dhabi standard covering information-security governance, human-resources and physical security, access control, operations and communications, health-information handling, third-party security, incident management, and continuity.</p>
+          <p>We review your existing controls, interview stakeholders across clinical IT, operations, HR, and administration, observe the technical and procedural evidence across your in-scope systems (EMR, PACS, LIS, pharmacy, and medical-device networks), and map every applicable ADHICS control to its current implementation maturity. The output is a gap report, a prioritised remediation roadmap, and a mapping of existing ISO 27001 / NIST / CIS work to ADHICS — so remediation doesn't duplicate effort.</p>
+          <p>Led by a practitioner holding <strong>GRC Mastery</strong> and <strong>ISO 27001 Lead Auditor</strong> credentials with hands-on experience in UAE regulated-sector environments.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">What this is <em>not</em></h2>
+        <div class="svc-not-list">
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not the DoH assessment itself.</strong> The Department of Health assesses formally; we get you compliant and assessment-ready before that happens.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a generic IT audit.</strong> ADHICS-specific — scoped to the standard's control domains and DoH evidence expectations, not a broad checklist.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not checklist scoring.</strong> Evidence-based — we observe clinical and technical systems, interview, validate, and rate maturity.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not duplicate work.</strong> Existing ISO 27001 / CIS / NIST controls are mapped — you don't re-build what already satisfies ADHICS.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Who this is for</h2>
+        <div class="svc-triggers">
+          <div class="svc-trigger"><div class="svc-trigger-num">1</div><div>You're a <strong>DoH-licensed healthcare provider</strong> in Abu Dhabi — hospital, clinic, day-surgery, diagnostic lab, or pharmacy.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">2</div><div>You're a <strong>health insurer / payer</strong> or a <strong>health-IT vendor</strong> handling Abu Dhabi patient data.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">3</div><div>You need to <strong>connect to Malaffi</strong> and must demonstrate ADHICS alignment as a condition of integration.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">4</div><div>DoH has issued an <strong>ADHICS compliance directive or deadline</strong> and you need to close the gap.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">5</div><div>You already hold <strong>ISO 27001</strong> and need to understand the delta to ADHICS v2.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">What you get</h2>
+        <ul class="svc-deliv-list">
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Scope &amp; applicability document</strong> — which facilities, systems, and ADHICS control domains are in scope for your entity classification.</div></li>
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Controls-by-controls assessment report</strong> — every applicable ADHICS control with current state, maturity rating (0 – 4), evidence observed, gap severity.</div></li>
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Cross-framework mapping</strong> — where your ISO 27001 / CIS / NIST evidence already satisfies ADHICS (to avoid duplicate work).</div></li>
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Prioritised remediation roadmap</strong> — 90-day / 6-month / 12-month plan with effort estimates, sequenced to DoH expectations.</div></li>
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Executive summary</strong> — 2-page board / medical-director brief with a maturity heat map.</div></li>
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>DoH / Malaffi readiness statement</strong> — a document evidencing ADHICS posture for regulator submission or Malaffi integration.</div></li>
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Walkthrough session</strong> — 90-minute live review with your clinical-IT and executive teams.</div></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">How we deliver</h2>
+        <div class="svc-process-table">
+          <div class="svc-process-row"><div class="svc-process-row-num">01</div><div><div class="svc-process-row-step">Scoping &amp; classification</div><div class="svc-process-row-duration">3 – 5 days</div></div><div class="svc-process-row-desc">Scope workshop, entity-classification and control-applicability assessment, interview list, document-request list.</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">02</div><div><div class="svc-process-row-step">Fieldwork — interviews &amp; evidence</div><div class="svc-process-row-duration">6 – 9 days</div></div><div class="svc-process-row-desc">Stakeholder interviews, policy and procedure review, clinical-system and medical-device observation, sampling.</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">03</div><div><div class="svc-process-row-step">Controls assessment &amp; mapping</div><div class="svc-process-row-duration">3 – 5 days</div></div><div class="svc-process-row-desc">Maturity rating per control, cross-framework mapping, gap-severity scoring against ADHICS v2.</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">04</div><div><div class="svc-process-row-step">Reporting</div><div class="svc-process-row-duration">3 – 5 days</div></div><div class="svc-process-row-desc">Controls report, remediation roadmap, executive summary, DoH / Malaffi readiness statement.</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">05</div><div><div class="svc-process-row-step">Walkthrough</div><div class="svc-process-row-duration">90 minutes</div></div><div class="svc-process-row-desc">Live session covering gaps, roadmap priorities, and remediation sequencing.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Pricing</h2>
+        <div class="svc-pricing">
+          <div class="svc-pricing-card">
+            <h4>Published range</h4>
+            <div class="svc-pricing-range">AED 16k – 42k</div>
+            <p class="svc-pricing-note">Per engagement. Written quote within 48 hours.</p>
+            <p class="svc-pricing-note" style="margin-top:0.75rem;"><strong>What drives the price:</strong></p>
+            <ul class="svc-pricing-drivers">
+              <li>Number of facilities (single site vs. multi-facility group)</li>
+              <li>Entity classification and applicable control set</li>
+              <li>Clinical-system complexity (EMR, PACS, LIS, medical devices)</li>
+              <li>Third-party and health-IT vendor assessment scope</li>
+              <li>Existing ISO 27001 / CIS / NIST maturity (drives mapping workload)</li>
+            </ul>
+          </div>
+          <div class="svc-pricing-card">
+            <h4>Commercial terms</h4>
+            <ul class="svc-pricing-terms">
+              <li><strong>Deposit:</strong> 50% at signing</li>
+              <li><strong>Net terms:</strong> Net-30</li>
+              <li><strong>Quote validity:</strong> 30 days</li>
+              <li><strong>Combined with ISO 27001 / PDPL:</strong> 15 – 20% discount</li>
+              <li><strong>Deliverable:</strong> PDF + editable DOCX</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Your cert-backed lead</h2>
+        <div class="svc-team">
+          <div class="svc-team-card" style="grid-column:1/-1;">
+            <p class="svc-team-role">Engagement Lead</p>
+            <h3 class="svc-team-name">Manoj Prabhakaran</h3>
+            <p class="svc-team-certs">ISO 27001 Lead Auditor · GRC Mastery · CPTS · CDSA · Security+ · Azure Cloud Security</p>
+            <p class="svc-team-focus"><strong>Focus:</strong> ADHICS v2 control mapping, cross-framework alignment, maturity assessment, and remediation roadmap design for Abu Dhabi healthcare entities.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Frequently asked questions</h2>
+        <div class="svc-faq">
+          {faqs.map(item => (
+            <details class="svc-faq-item">
+              <summary>{item.q}</summary>
+              <p class="svc-faq-answer" set:html={item.a}></p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">You might also need</h2>
+        <div class="svc-related-grid">
+          <a href="/services/grc/iso-27001-implementation" class="svc-related-card">
+            <h4>ISO 27001 Implementation</h4>
+            <p>~60 – 70% control overlap with ADHICS — run them together and implement once, evidence twice.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+          <a href="/services/grc/uae-pdpl-advisory" class="svc-related-card">
+            <h4>UAE PDPL Compliance Advisory</h4>
+            <p>Patient data is personal data — ADHICS and PDPL overlap heavily on privacy and consent.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+          <a href="/services/grc/risk-assessment-register" class="svc-related-card">
+            <h4>Risk Assessment &amp; Register</h4>
+            <p>ADHICS mandates a documented risk-management process — our ISO 27005-aligned register satisfies it.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+          <a href="/services/offensive-security/network-penetration-testing" class="svc-related-card">
+            <h4>Network Penetration Testing</h4>
+            <p>ADHICS technical controls expect vulnerability and penetration-test evidence — delivered under one program.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <div class="section-wrapper-vertical" style="align-items:center;text-align:center;">
+          <h2 class="heading" style="max-width:600px;">Facing an ADHICS deadline — or a Malaffi integration that needs proof of compliance?</h2>
+          <p class="text-medium" style="max-width:600px;">Book a 30-minute scoping call. We'll assess applicability, scope the engagement, and send a written quote within 48 hours.</p>
+          <div class="button">
+            <a href="/#contact?service=adhics" class="button-hidden w-button">Book a Scoping Call →</a>
+            <div class="button-wrapper"><div class="button-text">Book a Scoping Call →</div></div>
+            <div class="button-accent-gradinet"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+</Layout>

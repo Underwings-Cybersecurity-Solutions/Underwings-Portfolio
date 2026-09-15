@@ -13,6 +13,11 @@ export interface Props {
   wfPage?: string;
   schema?: object | object[] | null;
   bodyClass?: string;
+  hasArabicAlternate?: boolean;
+  // Set on non-canonical variants (e.g. paginated /blog?page=N) so they are
+  // noindex,follow with a self-canonical and no hreflang — the correct treatment
+  // for archive pagination and what clears the crawler's hreflang "conflicts".
+  noindex?: boolean;
 }
 
 const {
@@ -28,6 +33,7 @@ const {
   // the mirrored /ar/<path> URL. Lets hreflang scale to a full Arabic tree
   // without emitting alternates that point at pages which don't exist yet.
   hasArabicAlternate,
+  noindex = false,
 } = Astro.props;
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || "https://underwings.org";
@@ -137,9 +143,13 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:locale" content="en_AE">
+  <meta property="og:locale:alternate" content="ar_AE">
 
-  <!-- hreflang: reciprocal en ↔ ar; all hrefs match the canonical URL form -->
-  {showArabic ? (
+  <!-- hreflang: reciprocal en ↔ ar; all hrefs match the canonical URL form.
+       Suppressed on noindex variants (e.g. /blog?page=N) — non-canonical
+       pages must not emit alternates, which is what caused the crawler's
+       hreflang "conflicts within page source code". -->
+  {!noindex && (showArabic ? (
     <>
       <link rel="alternate" hreflang="en" href={enUrl}>
       <link rel="alternate" hreflang="ar" href={arUrl}>
@@ -150,10 +160,10 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
       <link rel="alternate" hreflang="en" href={canonicalUrl}>
       <link rel="alternate" hreflang="x-default" href={canonicalUrl}>
     </>
-  )}
+  ))}
   <meta content="summary_large_image" name="twitter:card">
   <meta content="width=device-width, initial-scale=1" name="viewport">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"}>
   <meta name="author" content="Underwings Cybersecurity Solutions">
   <meta name="geo.region" content="AE">
   <meta name="geo.placename" content="Abu Dhabi, UAE">

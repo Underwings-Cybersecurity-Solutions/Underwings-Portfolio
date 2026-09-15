@@ -113,7 +113,7 @@ function buildWelcomeHTML(email: string): string {
   <tr><td style="padding:28px 32px;text-align:center;font-family:-apple-system,sans-serif">
     <p style="margin:0 0 8px;color:#444;font-size:12px">&copy; ${year} Underwings Cybersecurity Solutions</p>
     <p style="margin:0 0 8px;color:#333;font-size:11px">Abu Dhabi, UAE</p>
-    <p style="margin:0"><a href="https://underwings.org" style="color:#24d758;font-size:12px;text-decoration:none">underwings.org</a> &nbsp;&middot;&nbsp; <a href="https://www.linkedin.com/company/underwings-technologies" style="color:#555;font-size:12px;text-decoration:none">LinkedIn</a></p>
+    <p style="margin:0"><a href="https://underwings.org" style="color:#24d758;font-size:12px;text-decoration:none">underwings.org</a> &nbsp;&middot;&nbsp; <a href="https://www.linkedin.com/company/underwings-cybersecurity" style="color:#555;font-size:12px;text-decoration:none">LinkedIn</a></p>
   </td></tr>
 
 </table>

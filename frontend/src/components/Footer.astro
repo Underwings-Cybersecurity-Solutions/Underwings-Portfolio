@@ -161,6 +161,47 @@ const year = new Date().getFullYear();
       </div>
 
       <!-- ════════════════════════════════════════════════
+           SERVICES DIRECTORY — every leaf page, all 5 pillars
+           (site-wide internal links so no service page is orphaned)
+           ════════════════════════════════════════════════ -->
+      <nav class="footer-dir" aria-label="All services">
+        <div class="footer-dir-col">
+          <a href="/services/offensive-security" class="footer-dir-head">Offensive Security</a>
+          <a href="/services/offensive-security/network-penetration-testing" class="footer-dir-link">Network Penetration Testing</a>
+          <a href="/services/offensive-security/web-application-penetration-testing" class="footer-dir-link">Web App Penetration Testing</a>
+          <a href="/services/offensive-security/mobile-application-penetration-testing" class="footer-dir-link">Mobile App Penetration Testing</a>
+          <a href="/services/offensive-security/vulnerability-assessment" class="footer-dir-link">Vulnerability Assessment</a>
+          <a href="/services/offensive-security/phishing-simulation" class="footer-dir-link">Phishing Simulation</a>
+          <a href="/services/offensive-security#ptaas" class="footer-dir-link">PTaaS</a>
+        </div>
+        <div class="footer-dir-col">
+          <a href="/services/grc" class="footer-dir-head">Cybersecurity GRC</a>
+          <a href="/services/grc/iso-27001-implementation" class="footer-dir-link">ISO 27001 Implementation</a>
+          <a href="/services/grc/iso-27001-gap-assessment" class="footer-dir-link">ISO 27001 Gap Assessment</a>
+          <a href="/services/grc/nesa-uae-ia" class="footer-dir-link">NESA / UAE IA V2</a>
+          <a href="/services/grc/uae-pdpl-advisory" class="footer-dir-link">UAE PDPL Advisory</a>
+          <a href="/services/grc/adhics-compliance" class="footer-dir-link">ADHICS v2 (Healthcare)</a>
+          <a href="/services/grc/risk-assessment-register" class="footer-dir-link">Risk Assessment &amp; Register</a>
+          <a href="/services/grc#managed-grc" class="footer-dir-link">Continuous Compliance</a>
+        </div>
+        <div class="footer-dir-col">
+          <a href="/services/cloud-security" class="footer-dir-head">Cloud Security</a>
+          <a href="/services/cloud-security/azure-cloud-security-assessment" class="footer-dir-link">Azure Security Assessment</a>
+          <a href="/services/cloud-security/microsoft-365-security-review" class="footer-dir-link">Microsoft 365 Review</a>
+        </div>
+        <div class="footer-dir-col">
+          <a href="/services/network-infrastructure" class="footer-dir-head">Network &amp; Infrastructure</a>
+          <a href="/services/network-infrastructure/firewall-network-security-review" class="footer-dir-link">Firewall &amp; Network Review</a>
+          <a href="/services/network-infrastructure/security-architecture-review" class="footer-dir-link">Security Architecture Review</a>
+        </div>
+        <div class="footer-dir-col">
+          <a href="/services/training-awareness" class="footer-dir-head">Training &amp; Awareness</a>
+          <a href="/services/training-awareness/security-awareness-training" class="footer-dir-link">Security Awareness Training</a>
+          <a href="/services/training-awareness/tabletop-incident-response" class="footer-dir-link">Tabletop IR Exercise</a>
+        </div>
+      </nav>
+
+      <!-- ════════════════════════════════════════════════
            CERTIFICATIONS + METHODOLOGY + COMPLIANCE trust strip
            ════════════════════════════════════════════════ -->
       <div class="footer-trust">
@@ -257,7 +298,7 @@ const year = new Date().getFullYear();
             <p class="copy-text">&copy; {year} Underwings Cybersecurity Solutions · All rights reserved.</p>
           </div>
           <div class="footer-bottom-part">
-            <p class="copy-text">United Arab Emirates · <a href="/privacy-policy" style="color:inherit;text-decoration:underline;opacity:0.7;">Privacy</a> · <a href="/about" style="color:inherit;text-decoration:underline;opacity:0.7;">Terms</a></p>
+            <p class="copy-text">United Arab Emirates · <a href="/privacy-policy" style="color:inherit;text-decoration:underline;opacity:0.7;">Privacy</a></p>
           </div>
         </div>
       </div>
@@ -377,6 +418,42 @@ const year = new Date().getFullYear();
     letter-spacing: 0.15em;
     color: rgba(255,255,255,0.35);
     font-weight: 700;
+  }
+
+  /* ── Services directory (all leaf pages) ──────────── */
+  #footer .footer-dir {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem 1.75rem;
+    padding: 1.85rem 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 0.5rem;
+  }
+  #footer .footer-dir-col { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+  #footer .footer-dir-head {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #37dc82;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 0.2rem;
+    transition: color 160ms ease;
+  }
+  #footer .footer-dir-head:hover { color: #24d758; text-decoration: underline; }
+  #footer .footer-dir-link {
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: rgba(255,255,255,0.58);
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+  #footer .footer-dir-link:hover { color: #fff; }
+  @media (max-width: 991px) {
+    #footer .footer-dir { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  }
+  @media (max-width: 600px) {
+    #footer .footer-dir { grid-template-columns: repeat(2, 1fr); gap: 1.35rem 1rem; padding: 1.35rem 0; }
   }
 
   /* ── Trust strip (methodology + compliance) ────────── */
