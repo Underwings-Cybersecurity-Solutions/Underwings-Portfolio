@@ -24,7 +24,6 @@ services:
       - studio
       - kong
       - stalwart
-      - webmail
     restart: always
     networks:
       - underwings-network
@@ -50,7 +49,15 @@ services:
       retries: 3
       start_period: 5s
 
+  # DECOMMISSIONED 2026-09-03: no human login since 24 Jun 2026 (Zoho migration).
+  # Parked behind a profile so a plain `docker compose up` will NOT start it —
+  # it came back once already, via nginx's depends_on, after that was removed.
+  # Data (roundcube/db, config, skin) is untouched on disk.
+  # To bring it back: delete the `profiles:` line below, restore the
+  # webmail.underwings.org server blocks AND the `upstream webmail` line in
+  # nginx/nginx.conf, then `docker compose up -d webmail nginx`.
   webmail:
+    profiles: ["decommissioned"]
     image: roundcube/roundcubemail:latest-apache
     container_name: underwings-webmail
     environment:

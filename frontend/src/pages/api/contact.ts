@@ -84,7 +84,7 @@ function buildContactReplyHTML(name: string, company?: string, service?: string,
       <!-- Urgent -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px"><tr><td style="background:#1a1a1a;border-radius:10px;padding:16px 20px;text-align:center">
         <p style="margin:0 0 4px;color:#666;font-size:12px">Need immediate assistance?</p>
-        <p style="margin:0;color:#fff;font-size:16px;font-weight:600">+971 50 567 0394</p>
+        <p style="margin:0;color:#fff;font-size:16px;font-weight:600">+971 54 707 8203</p>
       </td></tr></table>
 
       <!-- CTA -->

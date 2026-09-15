@@ -2,7 +2,7 @@
 
 > UAE-based cybersecurity company (founded 2026, operating from Abu Dhabi). We deliver offensive security, cloud security, network & infrastructure security, GRC (ISO 27001 / NESA / UAE PDPL), and security awareness training. Every engagement is delivered by named, certified practitioners — OSCP, CPTS, CDSA, CEH, ISO 27001 Lead Auditor, CCNP, Fortinet, Azure Security — not anonymous juniors. Manual testing, transparent published pricing in AED, 48-hour written quotes, and a free first retest of critical/high findings.
 
-Contact: contact@underwings.org · +971 50 567 0394
+Contact: contact@underwings.org · +971 54 707 8203
 Location: Abu Dhabi, United Arab Emirates
 Languages: English, Arabic
 LinkedIn: https://www.linkedin.com/company/underwings-cybersecurity

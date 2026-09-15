@@ -60,7 +60,7 @@ Fintech & Banking, Healthcare, SaaS & Technology, E-commerce & Retail, Governmen
 
 ## Contact
 - Email: contact@underwings.org
-- Phone: +971 505670394
+- Phone: +971 547078203
 - Location: UAE
 - Contact form on our website at /#contact
 - Book a call via Calendly (available on our website)
@@ -83,7 +83,7 @@ interface ChatMessage {
 
 export const POST: APIRoute = async ({ request }) => {
   if (!ANTHROPIC_API_KEY) {
-    return new Response(JSON.stringify({ reply: "I'm currently being set up! In the meantime, reach us at **contact@underwings.org** or call **+971 505670394**." }), {
+    return new Response(JSON.stringify({ reply: "I'm currently being set up! In the meantime, reach us at **contact@underwings.org** or call **+971 547078203**." }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -152,7 +152,7 @@ export const POST: APIRoute = async ({ request }) => {
       console.error('Anthropic API error:', res.status, errText);
 
       // Provide helpful fallback message instead of generic error
-      const fallbackReply = "I'm temporarily offline, but I'd love to help! You can reach us directly:\n\n- **Email:** contact@underwings.org\n- **Phone:** +971 505670394\n- **Book a call** using the 'Book a Call' button in the navbar\n- **Contact form** at the bottom of the homepage";
+      const fallbackReply = "I'm temporarily offline, but I'd love to help! You can reach us directly:\n\n- **Email:** contact@underwings.org\n- **Phone:** +971 547078203\n- **Book a call** using the 'Book a Call' button in the navbar\n- **Contact form** at the bottom of the homepage";
 
       return new Response(JSON.stringify({ reply: fallbackReply }), {
         status: 200,
