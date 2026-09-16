@@ -916,14 +916,15 @@ const schemas = [
 
             <!-- Cert badge row — real credential artwork with green glow -->
             <div class="hero-cert-badges hero-fade-in" style="animation-delay: 0.7s">
-              <span class="hero-cert-label">Underwings is certified · Credentials on the delivery team</span>
+              <!-- These are the DELIVERY TEAM's certifications, individually held
+                   and independently verifiable. The ISO/IEC 27001 and ISO 9001
+                   "Certified Organisation" badges that used to lead this row were
+                   removed: Underwings does not hold either certification yet, and
+                   both /about and /services/grc state it is being pursued in 2026.
+                   Do not reinstate them until an accredited certification body has
+                   issued a certificate — with its number published alongside. -->
+              <span class="hero-cert-label">Certifications held by the practitioners who do the work</span>
               <div class="hero-cert-badge-grid">
-                <div class="hero-cert-badge hero-cert-badge-company" title="Underwings — ISO/IEC 27001 Certified Organisation">
-                  <img src="/images/certifications/iso-27001-company.svg" alt="ISO 27001 Certified" loading="lazy" width="96" height="96">
-                </div>
-                <div class="hero-cert-badge hero-cert-badge-company" title="Underwings — ISO 9001 Certified Organisation">
-                  <img src="/images/certifications/iso-9001-company.svg" alt="ISO 9001 Certified" loading="lazy" width="96" height="96">
-                </div>
                 <div class="hero-cert-badge" title="OSCP — Offensive Security Certified Professional">
                   <img src="/images/certifications/oscp.png" alt="OSCP" loading="lazy" width="96" height="96">
                 </div>
