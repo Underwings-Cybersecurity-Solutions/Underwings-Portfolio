@@ -14,11 +14,11 @@ import { ORG_ID, leadPractitioner } from '../../lib/team';
 //     Intune, Jamf, Kandji, Scalefusion and ManageEngine Endpoint Central
 //     do too. We bundle for single accountability, not exclusivity.
 //   - Which edition reports disk-encryption state to Sprinto differs by
-//     platform and is confirmed with Hexnode in writing before we quote.
+//     platform and is confirmed with Hexnode in writing before we recommend an edition.
 //     Do not publish an edition-by-edition encryption matrix here.
-//   - AED figures are Hexnode's own published list prices. Deployment and
-//     managed-service figures are NOT published, because ours are internal
-//     planning estimates until partner terms are signed.
+//   - NO PRICES. The site publishes no prices, fees or payment terms: not
+//     Hexnode's licence list prices, and not our deployment or managed-
+//     service fees. Do not add a cost FAQ, a price badge or a pricing section.
 // ============================================================
 
 import Layout from '../../layouts/Layout.astro';
@@ -29,21 +29,19 @@ import '../../styles/service-page.css';
 
 const faqs = [
   { q: "We already have Microsoft Intune. Why would we add Hexnode?",
-    a: "Often you wouldn't — keep Intune for Windows laptops, especially if you're on Microsoft 365 E3 or E5, which have included Intune Plan 2 since 1 July 2026. Hexnode earns its place where Intune is weakest: shared, kiosk and POS devices (Intune licenses per user, which is the wrong unit for a device ten people touch in a shift), Android devices without Google services, and mixed Apple fleets. The honest answer is usually 'both, for different estates' — and a 14-day trial on just those devices settles it faster than a debate." },
+    a: "Often you wouldn't — keep Intune for Windows laptops, especially if you're on Microsoft 365 E3 or E5, which have included Intune Plan 2 since 1 July 2026. Hexnode earns its place where Intune is weakest: shared, kiosk and POS devices (Intune is built around the user, which fits poorly on a device ten people touch in a shift), Android devices without Google services, and mixed Apple fleets. The honest answer is usually 'both, for different estates' — and a 14-day trial on just those devices settles it faster than a debate." },
   { q: "Where is our data hosted?",
     a: "Hexnode announced a UAE data centre on AWS in July 2025, aimed at finance, healthcare and government. Before you sign, we confirm in writing which specific services are hosted there and which certifications that facility holds — we don't present UAE hosting as a resilience guarantee on your behalf." },
-  { q: "What does it actually cost?",
-    a: "Hexnode publishes its list prices, so we quote them openly: on annual billing, roughly AED 8 per device per month for Pro, AED 12 for Enterprise and AED 17 for Ultimate. Ultra is quoted on request. Monthly billing runs about 10% higher. There's a 15-device minimum and no separate support fee. Deployment and managed service are quoted against your scope after a scoping call — we don't publish a number we'd have to walk back." },
   { q: "Is Hexnode a Gartner Magic Quadrant leader?",
     a: "No, and we'd rather you heard it from us. In Gartner's 2026 Magic Quadrant for Endpoint Management Tools, Hexnode received an <strong>Honourable Mention</strong>. Its strongest independent analyst recognition is the <strong>IDC MarketScape 2025–26</strong>, which named it a Leader for SMB and for Apple devices. If a vendor tells you otherwise, check the source document." },
   { q: "Can we just buy Hexnode ourselves online?",
-    a: "Yes, at the same list price — Hexnode sells direct by card. What you get from us is the deployment, the control mapping to ADEK, ADHICS or ISO 27001 Annex A 8.1, local support from the engineer who built your configuration, and a monthly device-compliance report. If you only need licences, buying direct is a perfectly reasonable choice and we'll say so." },
+    a: "Yes — Hexnode sells direct. What you get from us is the deployment, the control mapping to ADEK, ADHICS or ISO 27001 Annex A 8.1, local support from the engineer who built your configuration, and a monthly device-compliance report. If you only need licences, buying direct is a perfectly reasonable choice and we'll say so." },
   { q: "How does this connect to ISO 27001?",
     a: "ISO/IEC 27001:2022 control 8.1 covers user endpoint devices: registered endpoints, remote lock and wipe, and separation of work data on personal devices. A Hexnode rollout implements those controls and produces the evidence an auditor asks for. If you also run Sprinto, it reads endpoint state — OS currency, disk encryption, antivirus and screen lock — directly from Hexnode, so the evidence stays current between audits rather than being assembled the week before." },
   { q: "Does only Hexnode integrate with Sprinto?",
     a: "No. Sprinto's device integrations also include Intune, Jamf, Kandji, Scalefusion and ManageEngine Endpoint Central. We bundle Hexnode with Sprinto because it gives you one accountable party for both the enforcement and the evidence — not because nothing else connects." },
-  { q: "What's the minimum commitment?",
-    a: "Hexnode has a 15-device minimum and offers a 14-day free trial. We start every engagement with that trial running on your real devices, with the profiles you actually need — not a demo tenant. If the trial doesn't prove the case, you've lost two weeks and no money." },
+  { q: "How do we get started?",
+    a: "Hexnode has a 15-device minimum and offers a 14-day trial. We start every engagement with that trial running on your real devices, with the profiles you actually need — not a demo tenant. If the trial doesn't prove the case, you'll know within two weeks." },
 ];
 
 const schema = [
@@ -70,7 +68,7 @@ export const prerender = false;
 
 <Layout
   title="Hexnode UEM in the UAE — Deployment & Device Compliance | Underwings"
-  description="Hexnode UEM deployed and managed in the UAE. Kiosk, BYOD and school device profiles mapped to ADEK, ADHICS and ISO 27001. Published AED licence prices, UAE data centre."
+  description="Hexnode UEM deployed and managed in the UAE. Kiosk, BYOD and school device profiles mapped to ADEK, ADHICS and ISO 27001. UAE data centre, 14-day trial."
   keywords="Hexnode UAE, Hexnode partner UAE, MDM UAE, UEM Abu Dhabi, device management Dubai, ADEK device policy, ADHICS device controls, kiosk device management UAE, Apple device management UAE"
   wfPage="services-page"
   schema={schema}
@@ -97,7 +95,7 @@ export const prerender = false;
           </p>
 
           <div class="svc-hero-badges">
-            <span class="svc-hero-badge svc-hero-badge-price">Licences from AED 8 / device / month</span>
+            <span class="svc-hero-badge svc-hero-badge-price">iOS · Android · macOS · Windows</span>
             <span class="svc-hero-badge svc-hero-badge-certs">UAE data centre</span>
             <span class="svc-hero-badge svc-hero-badge-time">14-day trial on your real devices</span>
           </div>
@@ -120,9 +118,9 @@ export const prerender = false;
         <h2 class="svc-sec-title">What it is</h2>
         <div class="svc-sec-body">
           <p>Hexnode UEM is unified endpoint management built by Mitsogo. It enrols, configures, encrypts, patches, locks and wipes devices across <strong>iOS and iPadOS, macOS, Android, Windows, ChromeOS and tvOS</strong> from a single console — and it locks kiosks and single-purpose devices down to exactly the apps they should run.</p>
-          <p>It is priced <strong>per device</strong>, not per user. That sounds like a detail until you manage a shared tablet that ten people touch in a shift, at which point it becomes the whole argument. There's a 15-device minimum, a 14-day free trial, and no separate support fee. Hexnode announced a <strong>UAE data centre on AWS in July 2025</strong>, aimed at finance, healthcare and government.</p>
+          <p>It manages the <strong>device</strong>, not just the user account — which matters the moment a shared tablet is used by ten people in a shift. There's a 15-device minimum and a 14-day trial. Hexnode announced a <strong>UAE data centre on AWS in July 2025</strong>, aimed at finance, healthcare and government.</p>
           <p>Independent recognition, stated precisely: the <strong>IDC MarketScape 2025–26</strong> named Hexnode a Leader for SMB and for Apple devices. In Gartner's 2026 Magic Quadrant for Endpoint Management Tools it received an Honourable Mention — not a Quadrant placement.</p>
-          <p>The licence is the cheap part. What decides whether a rollout works is the configuration: which profiles, which enrolment method, what happens to a lost device, and whether any of it produces evidence an auditor accepts. That is the part we do.</p>
+          <p>The software is only half of it. What decides whether a rollout works is the configuration: which profiles, which enrolment method, what happens to a lost device, and whether any of it produces evidence an auditor accepts. That is the part we do.</p>
         </div>
       </div>
     </section>
@@ -134,7 +132,7 @@ export const prerender = false;
         <div class="svc-triggers">
           <div class="svc-trigger"><div class="svc-trigger-num">1</div><div>You run an <strong>Abu Dhabi private school</strong> and the ADEK School Digital Policy expects device security, filtering, anti-malware, disk encryption and patching — with full compliance already required and penalties attached.</div></div>
           <div class="svc-trigger"><div class="svc-trigger-num">2</div><div>You're an <strong>Abu Dhabi healthcare entity under ADHICS v2</strong>. AM 2.5 says no health data on staff personal devices; AM 2.1 expects mobile and medical devices in your asset inventory. Both are tested in the annual independent audit.</div></div>
-          <div class="svc-trigger"><div class="svc-trigger-num">3</div><div>You operate <strong>shared, kiosk or POS devices</strong> — retail, F&amp;B, delivery, facilities — where per-user licensing prices the estate badly and a locked-down device is the requirement.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">3</div><div>You operate <strong>shared, kiosk or POS devices</strong> — retail, F&amp;B, delivery, facilities — where devices are shared rather than tied to one user, and a locked-down device is the requirement.</div></div>
           <div class="svc-trigger"><div class="svc-trigger-num">4</div><div>You're <strong>implementing ISO 27001</strong> and need control 8.1 (user endpoint devices) genuinely implemented, not just documented.</div></div>
           <div class="svc-trigger"><div class="svc-trigger-num">5</div><div>Your fleet is <strong>Apple-heavy or genuinely mixed</strong> across several operating systems, and you'd rather run one console than three.</div></div>
           <div class="svc-trigger"><div class="svc-trigger-num">6</div><div>Staff use <strong>personal phones</strong> for work, patient or student data, and you have no way to separate or remove it.</div></div>
@@ -149,22 +147,18 @@ export const prerender = false;
         <div class="svc-sub-tier-grid">
           <div class="svc-sub-tier-card">
             <p class="svc-sub-tier-name">Frontline Lockdown</p>
-            <p class="svc-sub-tier-price">AED 8–12<span class="svc-sub-tier-cycle">/device/month</span></p>
-            <p class="svc-sub-tier-body">Retail, F&amp;B, delivery and facilities with POS, kiosk or rugged Android devices. Kiosk and app profiles, Android Enterprise zero-touch enrolment, a pilot site before full rollout, and 90 days of support. Deployment quoted on scope.</p>
+            <p class="svc-sub-tier-body">Retail, F&amp;B, delivery and facilities with POS, kiosk or rugged Android devices. Kiosk and app profiles, Android Enterprise zero-touch enrolment, a pilot site before full rollout, and 90 days of support.</p>
           </div>
           <div class="svc-sub-tier-card svc-sub-tier-card-popular">
             <span class="svc-sub-tier-badge">Most common</span>
             <p class="svc-sub-tier-name">Audit-Ready Endpoint</p>
-            <p class="svc-sub-tier-price">AED 17<span class="svc-sub-tier-cycle">/device/month</span></p>
-            <p class="svc-sub-tier-body">Clinics, healthtech, insurers and any ISO 27001 client. Device baseline mapped to ISO 27001 8.1 and ADHICS AM 2.1 / AM 2.5, BYOD policy and work profiles, encryption and patch enforcement, and a monthly device-compliance report. Ultra quoted on request.</p>
+            <p class="svc-sub-tier-body">Clinics, healthtech, insurers and any ISO 27001 client. Device baseline mapped to ISO 27001 8.1 and ADHICS AM 2.1 / AM 2.5, BYOD policy and work profiles, encryption and patch enforcement, and a monthly device-compliance report.</p>
           </div>
           <div class="svc-sub-tier-card">
             <p class="svc-sub-tier-name">School Device Controls</p>
-            <p class="svc-sub-tier-price">AED 12<span class="svc-sub-tier-cycle">/device/month</span></p>
-            <p class="svc-sub-tier-body">Abu Dhabi schools under ADEK and new Dubai campuses. Controls mapped clause by clause to the ADEK Digital Policy, Apple School Manager enrolment and filtering, BYOD rules, a staff awareness session, and a termly compliance check. Laptops quoted on Ultra.</p>
+            <p class="svc-sub-tier-body">Abu Dhabi schools under ADEK and new Dubai campuses. Controls mapped clause by clause to the ADEK Digital Policy, Apple School Manager enrolment and filtering, BYOD rules, a staff awareness session, and a termly compliance check.</p>
           </div>
         </div>
-        <p class="svc-pricing-note">Licence figures are Hexnode's own published list prices on annual billing; monthly billing runs about 10% higher and Ultra is quoted on request. Deployment and managed-service fees are quoted against your scope after a scoping call. Every quote shows the licence and our services as separate lines, so you can see exactly what you're paying us for.</p>
       </div>
     </section>
 
@@ -173,9 +167,9 @@ export const prerender = false;
       <div class="container-medium">
         <h2 class="svc-sec-title">When we'll tell you <em>not</em> to buy this</h2>
         <div class="svc-not-list">
-          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>A Windows laptop estate on Microsoft 365 E3 or E5.</strong> Both have included Intune Plan 2 since 1 July 2026. You've already paid for device management — use it.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>A Windows laptop estate on Microsoft 365 E3 or E5.</strong> Both have included Intune Plan 2 since 1 July 2026. You already have device management — use it.</div></div>
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>A large Apple-only estate with its own Mac admins.</strong> Jamf is the stronger tool at that shape and is distributed in the UAE. We'll say so.</div></div>
-          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Under 25 devices with no compliance driver.</strong> Free and near-free tiers exist and will do the job. Come back when the estate or the audit grows.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Under 25 devices with no compliance driver.</strong> Simpler tools will do the job. Come back when the estate or the audit grows.</div></div>
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>A tender requiring a DESC-certified cloud</strong> for Dubai Government work. Check the certification requirement against the hosting on offer before anyone writes a proposal.</div></div>
           <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a security product.</strong> Hexnode enforces configuration; it does not stop malware. Endpoint protection is a separate layer and we'll scope it separately.</div></div>
         </div>
@@ -189,8 +183,8 @@ export const prerender = false;
         <div class="svc-process-table">
           <div class="svc-process-row"><div class="svc-process-row-num">1</div><div class="svc-process-row-step">Scoping call</div><div class="svc-process-row-desc">Device count and types, OS mix, your Microsoft licence and its renewal date, and the inspection or audit driving the timing. This is also where we tell you if you don't need us.</div><div class="svc-process-row-duration">20 min</div></div>
           <div class="svc-process-row"><div class="svc-process-row-num">2</div><div class="svc-process-row-step">Trial on real devices</div><div class="svc-process-row-desc">We enrol 10–15 of your actual devices with the profiles you actually need — kiosk, school iPad, clinic BYOD — not a sandbox.</div><div class="svc-process-row-duration">14 days</div></div>
-          <div class="svc-process-row"><div class="svc-process-row-num">3</div><div class="svc-process-row-step">Trial review</div><div class="svc-process-row-desc">What was locked, patched, filtered and found. We agree the edition per device group in writing, so nobody is surprised by a licence line later.</div><div class="svc-process-row-duration">30 min</div></div>
-          <div class="svc-process-row"><div class="svc-process-row-num">4</div><div class="svc-process-row-step">Proposal</div><div class="svc-process-row-desc">Licences at published list price, fixed-price deployment, and a managed-service option priced separately. Three visible lines.</div><div class="svc-process-row-duration">3 working days</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">3</div><div class="svc-process-row-step">Trial review</div><div class="svc-process-row-desc">What was locked, patched, filtered and found. We agree the edition per device group in writing, so the rollout matches what you actually need.</div><div class="svc-process-row-duration">30 min</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">4</div><div class="svc-process-row-step">Proposal</div><div class="svc-process-row-desc">A written proposal covering the editions, the deployment plan and an optional managed service.</div><div class="svc-process-row-duration">3 working days</div></div>
           <div class="svc-process-row"><div class="svc-process-row-num">5</div><div class="svc-process-row-step">Pilot, then rollout</div><div class="svc-process-row-desc">One site first, then all sites, with a handover runbook your team can actually operate and 90 days of support.</div><div class="svc-process-row-duration">1–3 weeks</div></div>
         </div>
       </div>
