@@ -36,7 +36,7 @@ export const TEAM: TeamMember[] = [
     role: 'Founder',
     founder: true,
     certs: ['CPTS', 'CDSA', 'CompTIA Security+', 'Azure Cloud Security', 'ISO/IEC 27001 Lead Auditor', 'HTB Omniscient'],
-    knowsAbout: ['ISO/IEC 27001', 'NESA / UAE IA V2', 'UAE PDPL', 'ADHICS', 'Information Security Risk Management', 'Azure Security', 'Microsoft 365 Security'],
+    knowsAbout: ['ISO/IEC 27001', 'NESA / UAE IA', 'UAE PDPL', 'ADHICS', 'Information Security Risk Management', 'Azure Security', 'Microsoft 365 Security'],
   },
   {
     slug: 'nelson-durairaj',

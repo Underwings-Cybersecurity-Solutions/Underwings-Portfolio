@@ -172,14 +172,14 @@ const scopes = [
 // Compliance framework → required/recommended scope mapping
 const compliance = [
   { framework: "ISO 27001 (Annex A 8.8)", required: "VA + annual pen test", recommended: "External network + primary web app", link: "/services/grc/iso-27001-implementation" },
-  { framework: "UAE IA V2 (T3.6.1)", required: "External + internal pen test", recommended: "+ phishing simulation + wireless", link: "/services/grc" },
+  { framework: "UAE IA (T3.6.1)", required: "External + internal pen test", recommended: "+ phishing simulation + wireless", link: "/services/grc" },
   { framework: "ADHICS v2 (Healthcare UAE)", required: "Annual pen test", recommended: "+ mobile app (if patient-facing) + PHI systems", link: "/services/grc" },
   { framework: "PCI DSS 11.3", required: "Internal + external pen test", recommended: "+ segmentation testing + web app (if CDE)", link: "/services/grc" },
   { framework: "SOC 2 (CC7.1)", required: "Annual pen test", recommended: "External network + web app + API", link: "/services/grc" },
 ];
 
 const comingY2 = [
-  { slug: "third-party-vendor-risk", title: "Third-Party / Vendor Risk Assessment", desc: "Assess the cybersecurity posture of your suppliers and vendors. UAE IA V2 and ISO 27001 both require it — we deliver it via a scalable questionnaire framework." },
+  { slug: "third-party-vendor-risk", title: "Third-Party / Vendor Risk Assessment", desc: "Assess the cybersecurity posture of your suppliers and vendors. UAE IA and ISO 27001 both require it — we deliver it via a scalable questionnaire framework." },
   { slug: "managed-vulnerability-management", title: "Managed Vulnerability Management", desc: "Continuous scanning, prioritisation, and remediation tracking — delivered as a monthly retainer with your named engineer." },
 ];
 
@@ -689,19 +689,19 @@ export const prerender = false;
             <!-- Stats strip -->
             <div class="off-hero-stats hero-fade-in" style="animation-delay: 0.85s">
               <div class="off-hero-stat">
-                <span class="off-hero-stat-num" data-target="8" data-suffix="">0</span>
+                <span class="off-hero-stat-num" data-target="8" data-suffix="">8</span>
                 <span class="off-hero-stat-label">PTES Stages</span>
               </div>
               <div class="off-hero-stat">
-                <span class="off-hero-stat-num" data-target="5" data-suffix="">0</span>
+                <span class="off-hero-stat-num" data-target="5" data-suffix="">5</span>
                 <span class="off-hero-stat-label">Flagship Services</span>
               </div>
               <div class="off-hero-stat">
-                <span class="off-hero-stat-num" data-target="30" data-suffix="d">0d</span>
+                <span class="off-hero-stat-num" data-target="30" data-suffix="d">30d</span>
                 <span class="off-hero-stat-label">Free Retest Window</span>
               </div>
               <div class="off-hero-stat">
-                <span class="off-hero-stat-num" data-target="100" data-suffix="%">0%</span>
+                <span class="off-hero-stat-num" data-target="100" data-suffix="%">100%</span>
                 <span class="off-hero-stat-label">Manual Testing</span>
               </div>
             </div>

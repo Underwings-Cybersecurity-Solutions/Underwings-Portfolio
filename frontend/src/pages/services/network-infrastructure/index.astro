@@ -114,7 +114,7 @@ const faqs = [
   { q: "What's the difference between a Firewall Review and an Architecture Review?", a: "A Firewall Review goes deep into your existing rules and configuration — shadowed rules, overly permissive ANY-ANY entries, missing logging, weak ciphers, outdated firmware. An Architecture Review steps back and asks if the network design itself is sound — segmentation, DMZ posture, VPN boundaries, zero-trust readiness, target-state diagrams. Most clients need both." },
   { q: "Will you implement the recommended changes, or just hand over a report?", a: "Both options are available. The default deliverable is a risk-rated findings report with a prioritised remediation plan. If you prefer, we can co-implement the changes alongside your network team in a change-controlled window — knowledge transfer included so your engineers own the result." },
   { q: "How does this work pair with penetration testing?", a: "A firewall and architecture review tells you how your network is supposed to behave; an internal pen test tells you how an attacker would actually move through it. Running them together gives you the highest-fidelity view of network risk, and we coordinate findings so nothing falls between the gaps." },
-  { q: "Will this support our ISO 27001, NESA or PCI DSS compliance work?", a: "Yes. Findings are mapped to ISO 27001 Annex A (8.20–8.23 network controls), UAE IA V2, ADHICS v2, and PCI DSS Requirement 1 on request. The remediation evidence is suitable for auditor review, and PCI segmentation testing is available as an add-on." },
+  { q: "Will this support our ISO 27001, NESA or PCI DSS compliance work?", a: "Yes. Findings are mapped to ISO 27001 Annex A (8.20–8.23 network controls), UAE IA, ADHICS v2, and PCI DSS Requirement 1 on request. The remediation evidence is suitable for auditor review, and PCI segmentation testing is available as an add-on." },
 ];
 
 const schema = [
@@ -429,19 +429,19 @@ export const prerender = false;
 
             <div class="ni-hero-stats ni-hero-fade" style="animation-delay: 0.85s">
               <div class="ni-hero-stat">
-                <span class="ni-hero-stat-num" data-target="24" data-suffix="h">0h</span>
+                <span class="ni-hero-stat-num" data-target="24" data-suffix="h">24h</span>
                 <span class="ni-hero-stat-label">Quote Turnaround</span>
               </div>
               <div class="ni-hero-stat">
-                <span class="ni-hero-stat-num" data-target="14" data-suffix="d">0d</span>
+                <span class="ni-hero-stat-num" data-target="14" data-suffix="d">14d</span>
                 <span class="ni-hero-stat-label">Typical Delivery</span>
               </div>
               <div class="ni-hero-stat">
-                <span class="ni-hero-stat-num" data-target="30" data-suffix="d">0d</span>
+                <span class="ni-hero-stat-num" data-target="30" data-suffix="d">30d</span>
                 <span class="ni-hero-stat-label">Free Retest</span>
               </div>
               <div class="ni-hero-stat">
-                <span class="ni-hero-stat-num" data-target="200" data-suffix="+">0+</span>
+                <span class="ni-hero-stat-num" data-target="200" data-suffix="+">200+</span>
                 <span class="ni-hero-stat-label">Rules Reviewed Avg</span>
               </div>
             </div>
@@ -734,7 +734,7 @@ export const prerender = false;
               <svg class="ni-faq-icon" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </summary>
             <div class="ni-faq-a">
-              Yes. Findings are mapped to ISO 27001 Annex A (8.20–8.23 network controls), UAE IA V2,
+              Yes. Findings are mapped to ISO 27001 Annex A (8.20–8.23 network controls), UAE IA,
               ADHICS v2, and PCI DSS Requirement 1 (network security) on request. The remediation
               evidence we produce is suitable for auditor review. PCI segmentation testing is available
               as an add-on if your CDE needs it.

@@ -17,7 +17,7 @@ const faqs = [
   { q: "How do you scope which assets to test?",                                   a: "At onboarding we define your perimeter: web apps, external network ranges, APIs, optional internal/AD, optional cloud config. Asset list is updated quarterly (or on-demand for major launches). Out-of-scope assets are never touched." },
   { q: "What if we find a critical issue between engagements?",                    a: "Critical findings get a same-day PoC + remediation guidance via the portal. We coordinate with your team on Slack/Teams until the fix is verified. No waiting for the next 'engagement window'." },
   { q: "Can we cancel?",                                                           a: "After the 12-month minimum, you can cancel with 30 days' notice. Before then, only with cause (e.g., we fail to deliver against the SLA)." },
-  { q: "Is this a replacement for compliance pen tests?",                          a: "Yes — the annual deep-dive included on Standard and Pro tiers satisfies ISO 27001 Annex A 8.8, UAE IA V2 T3.6.1, ADHICS v2, PCI DSS 11.3, and SOC 2 CC7.1. We provide a signed attestation letter for your auditor." },
+  { q: "Is this a replacement for compliance pen tests?",                          a: "Yes — the annual deep-dive included on Standard and Pro tiers satisfies ISO 27001 Annex A 8.8, UAE IA T3.6.1, ADHICS v2, PCI DSS 11.3, and SOC 2 CC7.1. We provide a signed attestation letter for your auditor." },
   { q: "Do you use automated tools?",                                              a: "Yes — Nuclei, Nessus, Burp Suite Pro, Nmap, BloodHound, custom recon tooling. Tools handle coverage; manual testing handles depth. Tools never write the report or decide what to exploit next." },
   { q: "What about destructive testing?",                                          a: "Never on production without explicit per-finding approval. Default rules of engagement exclude DoS, destructive exploits, and data-modifying actions. Anything risky is staged on copies first." },
 ];
@@ -290,7 +290,7 @@ export const prerender = false;
             </div>
             <h3 class="ptaas-pillar-title">Compliance Ready</h3>
             <ul class="ptaas-pillar-list">
-              <li><strong>Signed attestation letter</strong> mapping testing to ISO 27001 Annex A 8.8, UAE IA V2 T3.6.1, ADHICS v2, PCI DSS 11.3, SOC 2 CC7.1.</li>
+              <li><strong>Signed attestation letter</strong> mapping testing to ISO 27001 Annex A 8.8, UAE IA T3.6.1, ADHICS v2, PCI DSS 11.3, SOC 2 CC7.1.</li>
               <li><strong>Quarterly refresh</strong> on Standard &amp; Pro — your auditor always has a current letter.</li>
               <li><strong>Framework mapping pack</strong> (Pro) — finding-to-control traceability for ISMS evidence.</li>
             </ul>

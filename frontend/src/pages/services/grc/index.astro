@@ -11,6 +11,22 @@ import Footer from '../../../components/Footer.astro';
 import PricingTiers from '../../../components/PricingTiers.astro';
 import '../../../styles/category-hub.css';
 
+// CLAIM DISCIPLINE — "Why GRC matters for UAE" section and the FAQ below.
+// Every regulatory claim on this page is scoped deliberately. Do NOT reword
+// any of them to say PDPL is "in force", do not attach a PDPL deadline, and
+// do not quote an AED fine band: the executive regulations had still not been
+// issued as of June 2026, and companies get six months once they appear.
+// UAE IA v2.1 (Nov 2025) binds government entities and critical infrastructure
+// only -- never call it mandatory for private companies. Dubai's current
+// standard is ISR v3, not v2. And do not reintroduce a control-overlap
+// percentage unless you can cite its source; the "~70%" that used to sit in
+// the FAQ could not be sourced, so it was replaced with qualitative wording.
+// These are the first claims a compliance buyer checks.
+//
+// This note lives in the frontmatter, not in an HTML comment, because Astro
+// ships HTML comments to the browser -- which would publish the exact wrong
+// phrasing in the page source of a page selling compliance.
+
 const tiers = [
   {
     name: "Starter",
@@ -65,7 +81,7 @@ const tiers = [
     price: "AED 75,000–110,000",
     ideal: "Multi-framework programs — ISO 27001 + ADHICS or NESA.",
     includes: [
-      "Combined program (ISO 27001 + ADHICS v2 OR NESA / UAE IA V2)",
+      "Combined program (ISO 27001 + ADHICS v2 OR NESA / UAE IA)",
       "Unified control set across frameworks",
       "Multi-site or regulated-sector scope",
       "Full evidence pack + audit liaison",
@@ -115,7 +131,7 @@ const flagship = [
   },
   {
     slug: "nesa-uae-ia",
-    title: "NESA / UAE IA V2 Gap Assessment",
+    title: "NESA / UAE IA Gap Assessment",
     tagline: "UAE national standards — full controls assessment for govt-adjacent clients.",
     price: "AED 14,000 – 35,000",
     certs: ["GRC Mastery", "ISO 27001 LA"],
@@ -161,8 +177,8 @@ const comingY2 = [
   { slug: "iso-27701", title: "ISO 27701:2025 (Privacy Information Management)", desc: "Privacy management systems layered on ISO 27001. Natural upsell as UAE PDPL enforcement tightens." },
   { slug: "nist-csf-risk-reporting", title: "NIST CSF 2.0 + Board Risk Reporting", desc: "Structured risk programs with appetite statements, registers, and quarterly board reports." },
   { slug: "pci-dss-v4", title: "PCI DSS v4.0", desc: "Payment card compliance — launching if fintech is our Year-1 vertical anchor." },
-  { slug: "dubai-isr-v2", title: "Dubai ISR v2", desc: "Dubai Government information security regulation — government-adjacent and supplier contracts." },
-  { slug: "third-party-risk", title: "Third-Party Risk Assessment", desc: "Scalable vendor security assessment service. Mandated by UAE IA V2 and ISO 27001." },
+  { slug: "dubai-isr-v3", title: "Dubai ISR v3", desc: "Dubai Government information security regulation — binds Dubai Government entities and sets minimum standards for their external parties and managed services." },
+  { slug: "third-party-risk", title: "Third-Party Risk Assessment", desc: "Scalable vendor security assessment service. Expected under the UAE IA Standard and ISO 27001, and required of suppliers by the CSC National Third Party Security Policy." },
 ];
 
 // Year 3 (2028) roadmap
@@ -179,7 +195,7 @@ const faqs = [
   { q: "Are you also the auditor? Isn't that a conflict of interest?", a: "No — and we never will be. We are the implementer. The certificate is issued by an accredited certification body (DNV, BSI, BV, Intertek, TÜV — your choice). This separation is required by ISO/IEC 17021 and we keep it absolute. We'll happily make the introduction to a certifier we trust." },
   { q: "How long does ISO 27001 take from kickoff to certification?", a: "Typical SME path: 4–6 months end-to-end. Gap assessment (2–3 weeks), implementation including risk register, SoA, policies and controls (8–12 weeks), internal audit + management review (2 weeks), Stage 1 audit (1 week), remediation, Stage 2 audit (1 week). Larger or multi-site organisations need 6–9 months." },
   { q: "Will you actually do the work, or just hand us templates?", a: "We do the work. Policies are authored to fit your business — not generic boilerplate. The risk register is populated from interviews and asset inventories we run with your team. Controls are configured in your systems, not ticked on a spreadsheet. The deliverable is operational evidence, not paperwork." },
-  { q: "We need ISO 27001 + UAE PDPL + NESA — can you do all three together?", a: "Yes — and you should. There's around 70% control overlap between ISO 27001 Annex A, UAE IA V2 and PDPL. We deliver a unified control set mapped against all three frameworks, so you implement once and evidence three times. Adding ADHICS v2 or PCI DSS is a matter of mapping, not duplicate effort." },
+  { q: "We need ISO 27001 + UAE PDPL + UAE IA — can you do all three together?", a: "Yes — and you should. ISO 27001 Annex A, the UAE IA Standard and PDPL share a large part of their control ground, so most of the work counts once and evidences three times. We deliver a unified control set mapped across all three and show you the mapping during scoping. Adding ADHICS v2 or PCI DSS is a matter of mapping, not duplicate effort." },
   { q: "What if our scope changes mid-project (acquisition, new region, new product)?", a: "Scope changes are normal. Every engagement has a written change-control clause: small additions are absorbed, larger ones get a transparent change-order with adjusted timeline and fee — no surprise invoices. The certification scope statement can be drafted to cover anticipated growth." },
   { q: "Do you provide ongoing support after certification?", a: "Yes. After Stage 2, most clients move onto a maintenance retainer covering surveillance audit prep, internal audits, management reviews, policy updates, control re-tests, and evidence pack curation — billed monthly or per surveillance cycle, so you stay certified without re-running an implementation project every year." },
 ];
@@ -217,7 +233,7 @@ export const prerender = false;
 
 <Layout
   title="GRC Services UAE — ISO 27001, NESA, PDPL | Underwings"
-  description="UAE GRC led by an ISO 27001 Lead Auditor — ISO 27001, NESA / UAE IA V2, PDPL advisory and risk registers. Published prices, real implementation."
+  description="UAE GRC led by an ISO 27001 Lead Auditor — ISO 27001, NESA / UAE IA, PDPL advisory and risk registers. Published prices, real implementation."
   keywords="ISO 27001 UAE, NESA gap assessment, UAE PDPL advisory, cybersecurity GRC Dubai, ISO 27001 consultant UAE, risk assessment UAE"
   wfPage="services-page"
   schema={schema}
@@ -464,11 +480,11 @@ export const prerender = false;
               </span>
 
               <h1 class="heading-large hero-heading-large grc-hero-fade" style="animation-delay: 0.2s">
-                Implementation, not advice — for<br><span class="grc-hero-rotator" aria-live="polite"><span class="grc-hero-rotator-word" data-rotate='["ISO 27001 Certification","NESA / UAE IA V2","UAE PDPL Readiness","ADHICS Compliance","Risk Register Build","Dubai ISR v2","PCI DSS v4.0"]'>ISO 27001 Certification</span><span class="grc-hero-rotator-caret" aria-hidden="true"></span></span>
+                Implementation, not advice — for<br><span class="grc-hero-rotator" aria-live="polite"><span class="grc-hero-rotator-word" data-rotate='["ISO 27001 Certification","NESA / UAE IA","UAE PDPL Readiness","ADHICS Compliance","Risk Register Build","Dubai ISR v3","PCI DSS v4.0"]'>ISO 27001 Certification</span><span class="grc-hero-rotator-caret" aria-hidden="true"></span></span>
               </h1>
 
               <p class="text text-center grc-hero-fade" style="animation-delay: 0.4s; max-width:720px; margin:0 auto;">
-                ISO 27001, NESA / UAE IA V2, PDPL, ADHICS, and formal risk programs — delivered hands-on by an
+                ISO 27001, NESA / UAE IA, PDPL, ADHICS, and formal risk programs — delivered hands-on by an
                 <strong>ISO 27001 Lead Auditor</strong>. We implement. Accredited certification bodies certify.
                 <strong>Never both.</strong> No conflict of interest, ever.
               </p>
@@ -502,19 +518,19 @@ export const prerender = false;
 
             <div class="grc-hero-stats grc-hero-fade" style="animation-delay: 0.85s">
               <div class="grc-hero-stat">
-                <span class="grc-hero-stat-num" data-target="24" data-suffix="h">0h</span>
+                <span class="grc-hero-stat-num" data-target="24" data-suffix="h">24h</span>
                 <span class="grc-hero-stat-label">Quote Turnaround</span>
               </div>
               <div class="grc-hero-stat">
-                <span class="grc-hero-stat-num" data-target="90" data-suffix="d">0d</span>
+                <span class="grc-hero-stat-num" data-target="90" data-suffix="d">90d</span>
                 <span class="grc-hero-stat-label">Typical ISO Track</span>
               </div>
               <div class="grc-hero-stat">
-                <span class="grc-hero-stat-num" data-target="5" data-suffix="">0</span>
+                <span class="grc-hero-stat-num" data-target="5" data-suffix="">5</span>
                 <span class="grc-hero-stat-label">Frameworks Delivered</span>
               </div>
               <div class="grc-hero-stat">
-                <span class="grc-hero-stat-num" data-target="100" data-suffix="%">0%</span>
+                <span class="grc-hero-stat-num" data-target="100" data-suffix="%">100%</span>
                 <span class="grc-hero-stat-label">Implementation, not Advice</span>
               </div>
             </div>
@@ -526,10 +542,10 @@ export const prerender = false;
           <span class="grc-method-chip">ISO/IEC 27001:2022</span>
           <span class="grc-method-chip">ISO/IEC 27002:2022</span>
           <span class="grc-method-chip">ISO/IEC 27005</span>
-          <span class="grc-method-chip">UAE IA V2</span>
+          <span class="grc-method-chip">UAE IA</span>
           <span class="grc-method-chip">ADHICS v2</span>
           <span class="grc-method-chip">UAE PDPL</span>
-          <span class="grc-method-chip">Dubai ISR v2</span>
+          <span class="grc-method-chip">Dubai ISR v3</span>
         </div>
       </div>
     </section>
@@ -752,12 +768,12 @@ export const prerender = false;
                 <h2 class="heading">Why GRC matters for UAE</h2>
               </div>
               <div class="heading-horizontal-right-part">
-                <p class="text-medium">Enforcement is moving from paper to penalty. A written policy isn't a program.</p>
+                <p class="text-medium">The rules that bite are the ones with a recurring audit. A written policy isn't a program.</p>
               </div>
             </div>
           </div>
           <div class="why-uae-body">
-            <p>UAE PDPL is in active enforcement. NESA / UAE IA V2 assessments are being run across semi-government and regulated sectors. ADHICS compliance is mandatory for Abu Dhabi healthcare providers. Dubai ISR v2 is a gate for any Dubai government supplier. Every one of these frameworks needs <strong>implementation, not more advice</strong>.</p>
+            <p>ADHICS v2 binds every Abu Dhabi entity handling health information — providers, payers, EMR vendors and health apps — and its independent audit recurs every year. The UAE Information Assurance Standard, now v2.1 (November 2025), binds government entities and critical-infrastructure operators, and reaches private companies through supplier contracts. Dubai ISR v3 binds Dubai Government entities and sets minimum security standards for their external parties and managed services. UAE PDPL's executive regulations had not been issued as of June 2026; once they are, companies get six months to comply. Every one of these needs <strong>implementation, not more advice</strong>.</p>
             <p>Our team has lived inside these standards — not just read them — and we deliver hands-on programmes that end with audit-ready evidence and operational controls, partnered with accredited certification bodies where a certificate is required. Never both implementer and certifier. Never a conflict of interest.</p>
             <p class="why-uae-dogfood"><strong>We're pursuing our own ISO 27001:2022 certification in 2026 — the same program we deliver to clients, applied to ourselves first.</strong></p>
           </div>
@@ -823,14 +839,16 @@ export const prerender = false;
 
           <details class="grc-faq-item">
             <summary class="grc-faq-q">
-              We need ISO 27001 + UAE PDPL + NESA — can you do all three together?
+              We need ISO 27001 + UAE PDPL + UAE IA — can you do all three together?
               <svg class="grc-faq-icon" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </summary>
             <div class="grc-faq-a">
-              Yes — and you should. There's ~70% control overlap between ISO 27001 Annex A, UAE IA V2,
-              and PDPL. We deliver a <strong>unified control set</strong> mapped against all three frameworks,
-              so you implement once and evidence three times. Adding ADHICS v2 (healthcare) or PCI DSS
-              (payments) on top is a matter of mapping, not duplicate effort.
+              Yes — and you should. ISO 27001 Annex A, the UAE IA Standard and PDPL share a large
+              part of their control ground, so most of the work counts once and evidences three times.
+              We deliver a <strong>unified control set</strong> mapped across all three and show you
+              the mapping during scoping, so you can see exactly where they overlap and where they
+              don't. Adding ADHICS v2 (healthcare) or PCI DSS (payments) is a matter of mapping,
+              not duplicate effort.
             </div>
           </details>
 
