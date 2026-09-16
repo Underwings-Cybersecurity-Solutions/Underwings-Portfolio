@@ -1,0 +1,276 @@
+---
+import { ORG_ID, leadPractitioner } from '../../lib/team';
+// ============================================================
+// PARTNER PRODUCT PAGE — Sprinto
+// Category: Software (signed partner — compliance automation)
+//
+// CLAIM DISCIPLINE. This page sells a compliance product to people whose
+// job is checking evidence, so every claim here is deliberately scoped.
+// Do NOT reword any of the following:
+//   - Sprinto publishes NO UAE framework: no UAE IA, no ADHICS, no Dubai
+//     ISR, no UAE PDPL. We load those as CUSTOM frameworks. The wording is
+//     always "we build it", NEVER "Sprinto has it". Getting this wrong is
+//     a misrepresentation a buyer can verify in about a minute.
+//   - Sprinto does NOT certify anyone. Accredited certification bodies do.
+//     We implement and never certify — that separation is the point.
+//   - Sprinto's data regions are the US, EU, India and Australia. There is
+//     no Middle East region. Do not imply UAE or GCC hosting.
+//   - Counts (frameworks, integrations, customers) and the "audit-ready in
+//     2-4 weeks" timeline are the VENDOR'S OWN figures and are attributed
+//     as such. Do not restate them as our measurements.
+//   - Our service fees are internal planning estimates until partner terms
+//     are signed, so they are quoted on scope rather than published.
+// ============================================================
+
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import '../../styles/category-hub.css';
+import '../../styles/service-page.css';
+
+const faqs = [
+  { q: "Does Sprinto include UAE frameworks — UAE IA, ADHICS, Dubai ISR or PDPL?",
+    a: "No, and you should be careful with anyone who tells you otherwise. Sprinto's published framework library contains no UAE framework. What it does support is <strong>custom frameworks</strong>, and that is how we deliver UAE content: our ISO 27001 Lead Auditor builds the control pack — ADHICS first, with UAE IA or PDPL readiness on request — loads it into your Sprinto tenant, and maps it to the ISO 27001 controls you're already implementing, so one piece of work evidences both. The UAE layer is ours. The platform is Sprinto's." },
+  { q: "Where is our data hosted?",
+    a: "The United States, Europe, India or Australia. There is <strong>no Middle East region</strong>. If your regulator or a customer contract requires compliance evidence to be held in the UAE, tell us at the first meeting — we'll confirm the options with Sprinto in writing before you commit to anything, and if it can't be met we'll tell you that rather than sell around it." },
+  { q: "Does Sprinto certify us?",
+    a: "No. Certification comes from an accredited certification body — EIAC, UKAS or another IAF member — and you can bring your own. Sprinto collects the evidence; we implement the controls and run the internal audit; the body certifies. We are never both implementer and certifier, because an auditor will flag that conflict and they'd be right to." },
+  { q: "What does it cost?",
+    a: "Sprinto prices by quote, not a public list — a Foundation and a Growth plan, each including one framework, with further frameworks and modules as add-ons billed on what you enable. We quote your licence from our partner price book. Our implementation is quoted against your scope after a scoping call. Every proposal shows three visible lines: the Sprinto licence, our services, and the certification-body fee you pay directly to the body. You should always be able to see which part of the number is us." },
+  { q: "How fast is 'audit-ready'?",
+    a: "Sprinto's own claim is that most teams are audit-ready in two to four weeks, with the majority of Annex A evidence collected continuously. Treat that as the vendor's figure, because it is. In practice the platform's speed isn't usually the constraint — writing policies, building a risk register from real interviews, fixing the controls that are actually broken and getting through Stage 1 and Stage 2 audits is. A realistic first-certification programme runs 8–12 weeks of implementation before the audit." },
+  { q: "We're not cloud-first. Does it still work?",
+    a: "Less well, and Sprinto says so itself — it's built for cloud-first environments, and legacy or on-premises estates need extra integration effort. If most of your systems sit in a rack rather than an account, tell us early. We'll either scope that integration work honestly or tell you a different approach fits better." },
+  { q: "What do reviewers complain about?",
+    a: "Fairly consistently: price for small teams, a desktop agent that's weaker on Linux, occasional sync issues, frequent interface changes, and a learning curve. Capterra sits around 4.7 out of 5. We'd rather you knew the list before you bought than discovered it in month two." },
+  { q: "Does it connect to what we already run?",
+    a: "Sprinto publishes a large integration catalogue, and the ones that matter for our clients are covered: Hexnode, Sophos Central, Microsoft Intune, Entra ID, Azure, Defender for Endpoint and Office 365. We did not find a Fortinet integration — if Fortinet evidence is in your scope, we'll handle it outside the platform rather than pretend otherwise." },
+  { q: "Sprinto has its own experts. Why pay Underwings?",
+    a: "The platform shows you what's missing. It doesn't configure your firewall, build your risk register from stakeholder interviews, write your policies, run your internal audit or penetration-test your application. That work is what decides whether you pass, and it's what we do — in Abu Dhabi, by named practitioners you can verify." },
+];
+
+const schema = [
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://underwings.org" },
+    { "@type": "ListItem", "position": 2, "name": "Software", "item": "https://underwings.org/software" },
+    { "@type": "ListItem", "position": 3, "name": "Sprinto", "item": "https://underwings.org/software/sprinto" }
+  ]},
+  { "@context": "https://schema.org", "@type": "Service", "name": "Sprinto — Compliance Automation with a UAE Control Pack",
+    "serviceType": "Compliance automation implementation",
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
+    "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
+    "audience": { "@type": "Audience", "audienceType": "UAE cloud-first fintech, SaaS and healthtech companies pursuing ISO 27001 or SOC 2" },
+    "description": "Sprinto compliance automation implemented in the UAE by an ISO 27001 Lead Auditor, with a UAE control pack (ADHICS, UAE IA, PDPL readiness) loaded as a custom framework and mapped to ISO 27001. We implement; accredited bodies certify.",
+    "url": "https://underwings.org/software/sprinto"
+  },
+  { "@context": "https://schema.org", "@type": "FAQPage",
+    "mainEntity": faqs.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } }))
+  }
+];
+
+export const prerender = false;
+---
+
+<Layout
+  title="Sprinto in the UAE — Compliance Automation + UAE Control Pack | Underwings"
+  description="Sprinto implemented in the UAE by an ISO 27001 Lead Auditor. Continuous ISO 27001 and SOC 2 evidence, plus a UAE control pack (ADHICS, UAE IA, PDPL) we build as a custom framework."
+  keywords="Sprinto UAE, Sprinto partner UAE, compliance automation UAE, ISO 27001 automation Abu Dhabi, SOC 2 UAE, ADHICS Sprinto, continuous compliance UAE, Vanta alternative UAE, Drata alternative UAE"
+  wfPage="services-page"
+  schema={schema}
+  bodyClass="body svc-compact"
+>
+  <Header currentPage="software" />
+
+  <main id="main" class="main">
+
+    <section class="section bottom-padding-clear top-padding-small">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a><span aria-hidden="true">›</span>
+          <a href="/software">Software</a><span aria-hidden="true">›</span>
+          <span class="crumbs-current">Sprinto</span>
+        </nav>
+
+        <div class="svc-hero">
+          <div class="label" style="justify-content:center;"><div class="text-small color-grey">Software Partner — Compliance Automation</div></div>
+          <h1 class="heading-large">Sprinto, with the UAE layer it doesn't ship</h1>
+          <p class="text" style="max-width:760px;margin:1rem auto 0;">
+            Sprinto collects your ISO 27001 and SOC 2 evidence continuously, so compliance stops being an annual scramble. What it doesn't carry is anything UAE-specific — no ADHICS, no UAE IA, no PDPL. <strong>We build that part</strong>, load it into your tenant as a custom framework, and map it to the controls you're already implementing.
+          </p>
+
+          <div class="svc-hero-badges">
+            <span class="svc-hero-badge svc-hero-badge-price">Licence + services + audit, quoted separately</span>
+            <span class="svc-hero-badge svc-hero-badge-certs">ISO 27001 Lead Auditor led</span>
+            <span class="svc-hero-badge svc-hero-badge-time">We implement — never certify</span>
+          </div>
+
+          <div class="svc-hero-ctas">
+            <div class="button">
+              <a href="/#contact?service=sprinto" class="button-hidden w-button">Book a 20-min Scoping Call →</a>
+              <div class="button-wrapper"><div class="button-text">Book a 20-min Scoping Call →</div></div>
+              <div class="button-accent-gradinet"></div>
+            </div>
+            <a href="https://wa.me/971505670394?text=Hi%20Underwings%2C%20I%27d%20like%20to%20talk%20about%20Sprinto%20and%20ISO%2027001." target="_blank" rel="noopener noreferrer" class="svc-hero-cta-secondary">Ask on WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">What it is</h2>
+        <div class="svc-sec-body">
+          <p>Sprinto is a compliance-automation platform. It connects to the systems you already run — cloud accounts, identity provider, device management, code repositories, HR — and collects control evidence continuously rather than at audit time. By the vendor's own published figures it serves 4,000+ companies across 75 countries, with 300+ integrations and 200+ frameworks, of which 25+ are automated out of the box.</p>
+          <p>Those are Sprinto's numbers, not our measurements, and we label them that way deliberately. Here is ours: <strong>none of those 200+ frameworks is a UAE framework.</strong> No UAE Information Assurance Standard, no ADHICS, no Dubai ISR, no UAE PDPL. If a UAE rule is the reason you're buying, the platform alone will not answer it.</p>
+          <p>That gap is exactly what we fill. Sprinto supports custom frameworks, so our ISO 27001 Lead Auditor builds the UAE control pack, loads it into your tenant, and maps it against the ISO 27001 controls already in your programme — so one set of work evidences both, and the mapping is something you can show an auditor rather than take on trust.</p>
+          <p>Sprinto is at its best in cloud-first environments. If most of your estate is on-premises, it says itself that legacy systems need extra integration effort, and we'd rather scope that honestly at the start than discover it at week six.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Who this is for</h2>
+        <div class="svc-triggers">
+          <div class="svc-trigger"><div class="svc-trigger-num">1</div><div>A <strong>bank, enterprise customer or investor</strong> has asked you to prove your security, and a due-diligence questionnaire is already sitting in someone's inbox.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">2</div><div>You've <strong>just raised</strong>, and the security questions that follow a round have started arriving from partners and larger customers.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">3</div><div>You're an <strong>Abu Dhabi healthtech or health-service provider</strong> facing ADHICS Service Provider controls and an annual independent audit.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">4</div><div>You're a <strong>VARA-licensed or regulated financial firm</strong> whose rulebook requires a named CISO, annual independent testing and evidence that survives supervision.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">5</div><div>You supply <strong>government or critical-infrastructure buyers</strong> whose contracts push security minimums down to you.</div></div>
+          <div class="svc-trigger"><div class="svc-trigger-num">6</div><div>You're <strong>already certified</strong> and tired of rebuilding the evidence pack by hand every surveillance audit.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Packages</h2>
+        <div class="svc-sub-tier-grid">
+          <div class="svc-sub-tier-card">
+            <p class="svc-sub-tier-name">Audit-Ready Sprint</p>
+            <p class="svc-sub-tier-price">Quoted<span class="svc-sub-tier-cycle">on scope</span></p>
+            <p class="svc-sub-tier-body">20–150 staff, cloud-first, one framework — ISO 27001 or SOC 2. Scoping and gap assessment, policies, risk register and control implementation over 8–12 weeks, internal audit by an ISO 27001 Lead Auditor, and certification-body coordination.</p>
+          </div>
+          <div class="svc-sub-tier-card svc-sub-tier-card-popular">
+            <span class="svc-sub-tier-badge">Lead package</span>
+            <p class="svc-sub-tier-name">Tender-Ready UAE</p>
+            <p class="svc-sub-tier-price">Quoted<span class="svc-sub-tier-cycle">on scope</span></p>
+            <p class="svc-sub-tier-body">Abu Dhabi healthtech, regulated financial firms, and suppliers to government or critical infrastructure. Everything in the Sprint, plus the UAE control pack — ADHICS first, UAE IA or PDPL readiness on request — built by us and mapped inside Sprinto, an external and web-application penetration test, and optional Hexnode endpoint evidence.</p>
+          </div>
+          <div class="svc-sub-tier-card">
+            <p class="svc-sub-tier-name">Managed Compliance</p>
+            <p class="svc-sub-tier-price">Quoted<span class="svc-sub-tier-cycle">monthly</span></p>
+            <p class="svc-sub-tier-body">For certified clients from the month after Stage 2. Licence renewal and added frameworks as needed, a monthly readiness pack and call, a quarterly internal mini-audit, your surveillance audit attended, and a PTaaS option for rolling penetration-test evidence.</p>
+          </div>
+        </div>
+        <p class="svc-pricing-note">Every proposal shows <strong>three visible lines</strong>: the Sprinto licence, our services, and the certification-body fee — which you pay directly to the body, never through us. Sprinto prices by quote rather than a public list, and our service fees are set against your actual scope, so we quote after a scoping call instead of publishing a range we'd have to revise. If a smaller scope fits your budget better, we'll reduce the scope rather than quietly discount the work.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">What this is <em>not</em></h2>
+        <div class="svc-not-list">
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a certificate.</strong> An accredited certification body issues that, after Stage 1 and Stage 2 audits. We implement and prepare; we never certify.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not a UAE framework library.</strong> Sprinto ships none. The UAE control pack is built by us and loaded as a custom framework — that work is real, and it's on our line of the quote.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not UAE-hosted.</strong> Data sits in the US, EU, India or Australia. If a contract requires UAE residency for evidence, raise it before you commit and we'll get the position in writing.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not device management.</strong> Sprinto's agent monitors and reports; it doesn't enforce encryption, push patches, manage phones or wipe a lost device. That's a separate layer.</div></div>
+          <div class="svc-not-item"><div class="svc-not-ico"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div><strong>Not the right lead for government-only UAE IA work.</strong> Platforms with native UAE content and local hosting exist, and for that specific bid they're a better answer. We'll tell you when that's the case.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">How an engagement runs</h2>
+        <div class="svc-process-table">
+          <div class="svc-process-row"><div class="svc-process-row-num">1</div><div class="svc-process-row-step">Scoping call</div><div class="svc-process-row-desc">Who asked you to prove your security, what exactly they asked for, when you need to show it, where your systems run, and who signs. If the honest answer is that you don't need a platform yet, we'll say so.</div><div class="svc-process-row-duration">20 min</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">2</div><div class="svc-process-row-step">Scope-and-gap session</div><div class="svc-process-row-desc">Our Lead Auditor maps frameworks, entities and systems, and demonstrates Sprinto with the UAE control pack loaded. You leave with a one-page scope and a written gap list.</div><div class="svc-process-row-duration">60 min</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">3</div><div class="svc-process-row-step">Proposal</div><div class="svc-process-row-desc">Three price lines, a week-by-week timeline to Stage 2, and two accredited certification bodies to choose between — so the auditor is visibly independent of us.</div><div class="svc-process-row-duration">3 working days</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">4</div><div class="svc-process-row-step">Implementation</div><div class="svc-process-row-desc">Integrations connected in weeks 1–2, then policies, risk register and control work. First internal readiness review at week 6.</div><div class="svc-process-row-duration">8–12 weeks</div></div>
+          <div class="svc-process-row"><div class="svc-process-row-num">5</div><div class="svc-process-row-step">Audit and beyond</div><div class="svc-process-row-desc">Internal audit, Stage 1 and Stage 2 support with the body you chose, then monthly managed compliance so the evidence stays current instead of decaying until the next surveillance audit.</div><div class="svc-process-row-duration">Ongoing</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">How we compare it for you</h2>
+        <div class="svc-sec-body">
+          <p>You'll be looking at Vanta, Drata, Secureframe or Scrut, and possibly at a consultancy with a spreadsheet. We think the comparison should be made on the <strong>total first-year cost in AED</strong> — licence, add-ons, implementation, penetration test, training and the certification audit — not on licence price alone, because licence price is the part every vendor is happy to discuss and the smallest part of what you'll actually spend.</p>
+          <p>Two things worth knowing before you compare. None of the major US platforms publishes a Gulf framework either, so "no UAE content" is a category-wide gap rather than a Sprinto failing. And there are regional platforms that <em>do</em> ship UAE IA and ISR content with local hosting — if your requirement is a UAE-government bid specifically, that is a genuinely better fit and we'd rather tell you than win the wrong deal.</p>
+          <p>Where we think this combination wins is a cloud-first company that has to satisfy a bank, an enterprise customer or a sector regulator, and wants the implementation done by a named ISO 27001 Lead Auditor in the same time zone — with a penetration test bundled in, which most compliance-tool resellers cannot offer.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark" id="faq">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Frequently asked questions</h2>
+        <div class="svc-faq">
+          {faqs.map(item => (
+            <details class="svc-faq-item">
+              <summary>{item.q}</summary>
+              <p class="svc-faq-answer" set:html={item.a}></p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <h2 class="svc-sec-title">Related</h2>
+        <div class="svc-related-grid">
+          <a href="/software/hexnode" class="svc-related-card">
+            <h4>Hexnode UEM</h4>
+            <p>Sprinto proves your endpoints are compliant. Hexnode is what makes them compliant in the first place.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+          <a href="/services/grc/iso-27001-implementation" class="svc-related-card">
+            <h4>ISO 27001 Implementation</h4>
+            <p>The implementation programme the platform runs underneath — policies, risk register, internal audit, certification support.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+          <a href="/services/grc/adhics-compliance" class="svc-related-card">
+            <h4>ADHICS v2 Compliance</h4>
+            <p>The UAE control pack we load into Sprinto starts here — Abu Dhabi healthcare, assessed by an ISO 27001 Lead Auditor.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+          <a href="/services/grc/continuous-compliance-subscription" class="svc-related-card">
+            <h4>Continuous Compliance Subscription</h4>
+            <p>Managed compliance after certification — the subscription Sprinto runs underneath.</p>
+            <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section bg-color-dark">
+      <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"><div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div></div>
+      <div class="container-medium">
+        <div class="section-wrapper-vertical" style="align-items:center;text-align:center;">
+          <h2 class="heading" style="max-width:640px;">Has a questionnaire already landed?</h2>
+          <p class="text-medium" style="max-width:620px;">Book a 20-minute call. We'll tell you what it would take to answer it properly, what the UAE part actually requires, and what the whole first year costs in AED — licence, our work and the audit, as three separate lines.</p>
+          <div class="button">
+            <a href="/#contact?service=sprinto" class="button-hidden w-button">Book a Scoping Call →</a>
+            <div class="button-wrapper"><div class="button-text">Book a Scoping Call →</div></div>
+            <div class="button-accent-gradinet"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+</Layout>
