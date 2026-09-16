@@ -59,11 +59,42 @@ const articleAuthor = post.author
   ? { "@type": "Person", "name": post.author }
   : { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": siteUrl };
 
+// ── Meta description ──────────────────────────────────────────────
+// meta_description is the purpose-built SEO field and must win. It was
+// previously the FALLBACK behind excerpt, so whatever an author typed as
+// display copy became the meta description — which is why live posts ranged
+// from 25 to 278 characters. Google renders roughly 155-160.
+const DESC_MAX = 158;
+const DESC_MIN = 70;
+
+function trimToWord(text: string, max: number) {
+  const t = text.replace(/\s+/g, ' ').trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.\s]+$/, '') + '…';
+}
+
+function buildDescription() {
+  const candidates = [post.meta_description, post.excerpt].map((v) => (v || '').replace(/\s+/g, ' ').trim());
+  // Prefer the first candidate that is already a usable length.
+  const usable = candidates.find((c) => c.length >= DESC_MIN);
+  if (usable) return trimToWord(usable, DESC_MAX);
+
+  // Both missing or too thin to be useful as a snippet: extend the best one
+  // with real context rather than shipping a 25-character description.
+  const seed = candidates.find(Boolean) || post.title;
+  const topic = post.category ? `${post.category} · ` : '';
+  return trimToWord(`${seed} — ${topic}practical guidance for UAE businesses from Underwings, by named OSCP and ISO 27001 Lead Auditor practitioners.`, DESC_MAX);
+}
+
+const metaDescription = buildDescription();
+
 const articleSchema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": post.title,
-  "description": post.excerpt || post.meta_description || '',
+  "description": metaDescription,
   "image": articleImage,
   "datePublished": articlePublished,
   "dateModified": articleModified,
@@ -95,7 +126,7 @@ const breadcrumbSchema = {
 
 <Layout
   title={(post.meta_title && post.meta_title.trim()) || `${post.title} | Underwings`}
-  description={post.excerpt || post.meta_description || `Read ${post.title} on Underwings Cybersecurity Solutions blog.`}
+  description={metaDescription}
   ogImage={post.featured_image}
   schema={[articleSchema, breadcrumbSchema]}
 >

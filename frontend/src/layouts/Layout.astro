@@ -170,14 +170,35 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
   <link rel="canonical" href={canonicalUrl}>
   <meta name="keywords" content={keywords}>
 
-  <!-- Google Analytics -->
-  <script is:inline nonce={nonce} async src="https://www.googletagmanager.com/gtag/js?id=G-YZG3QCH600"></script>
+  <!-- Google Analytics — Consent Mode v2.
+       Consent defaults to DENIED and is only granted once the visitor accepts
+       the cookie banner. This must run BEFORE the gtag.js tag loads, otherwise
+       a page_view is sent before the visitor has chosen — which is what the
+       banner previously implied was not happening. -->
   <script is:inline nonce={nonce}>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+
+    var uwConsent = null;
+    try { uwConsent = localStorage.getItem('uw-cookie-consent'); } catch (e) {}
+    var uwGranted = uwConsent === 'accepted' ? 'granted' : 'denied';
+
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage': uwGranted,
+      'functionality_storage': 'granted',
+      'security_storage': 'granted',
+      'wait_for_update': 500
+    });
+
     gtag('js', new Date());
-    gtag('config', 'G-YZG3QCH600');
+    // send_page_view is suppressed until consent is granted; uwTrack() below
+    // fires the page_view once the visitor accepts.
+    gtag('config', 'G-YZG3QCH600', { 'send_page_view': uwConsent === 'accepted' });
   </script>
+  <script is:inline nonce={nonce} async src="https://www.googletagmanager.com/gtag/js?id=G-YZG3QCH600"></script>
 
   <!-- Structured Data -->
   {schemaArray.map(s => (
@@ -187,11 +208,35 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
   <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="Underwings Blog" href="/rss.xml">
 
-  <!-- Calendly -->
-  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+  <!-- Calendly stylesheet — loaded non-blocking.
+       The widget is never above the fold, so a render-blocking third-party
+       stylesheet in <head> delayed first paint on all pages for nothing.
+       media="print" makes the browser fetch it at low priority without
+       blocking paint; the nonced script below promotes it to media="all"
+       once it lands. An inline onload= attribute cannot do the swap here —
+       the CSP sets script-src without 'unsafe-inline', so inline event
+       handlers are blocked. -->
+  <link
+    id="uw-calendly-css"
+    href="https://assets.calendly.com/assets/external/widget.css"
+    rel="stylesheet"
+    media="print"
+  >
+  <script is:inline nonce={nonce}>
+    (function() {
+      var l = document.getElementById('uw-calendly-css');
+      if (!l) return;
+      var apply = function() { l.media = 'all'; };
+      if (l.sheet) apply(); else l.addEventListener('load', apply, { once: true });
+    })();
+  </script>
+  <noscript>
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+  </noscript>
 
   <!-- DNS Prefetch -->
   <link rel="dns-prefetch" href="//assets.calendly.com">
+  <link rel="preconnect" href="https://assets.calendly.com" crossorigin>
   <link rel="dns-prefetch" href="//d3e54v103j8qbb.cloudfront.net">
   <link rel="dns-prefetch" href="//cdn.prod.website-files.com">
   <link rel="preconnect" href="https://d3e54v103j8qbb.cloudfront.net" crossorigin>
@@ -1389,11 +1434,19 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
     document.getElementById('uw-cookie-accept').addEventListener('click', function() {
       localStorage.setItem('uw-cookie-consent', 'accepted');
       document.getElementById('uw-cookie-banner').style.display = 'none';
+      // Actually grant consent — Consent Mode v2 then releases the queued hits.
+      if (typeof gtag === 'function') {
+        gtag('consent', 'update', { 'analytics_storage': 'granted' });
+        gtag('event', 'page_view');
+      }
     });
 
     document.getElementById('uw-cookie-decline').addEventListener('click', function() {
       localStorage.setItem('uw-cookie-consent', 'declined');
       document.getElementById('uw-cookie-banner').style.display = 'none';
+      if (typeof gtag === 'function') {
+        gtag('consent', 'update', { 'analytics_storage': 'denied' });
+      }
     });
   })();
   </script>
@@ -1622,6 +1675,105 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
         btn.disabled = false;
       });
     });
+  })();
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════
+       CONVERSION TRACKING
+       Every lead path on the site emits a GA4 event so pipeline can be
+       attributed to a page. Delegated from document, so it covers elements
+       added later (chat, exit-intent) without re-binding.
+
+       Consent Mode v2 governs storage: events raised before the visitor
+       accepts are not stored by GA4, so this is safe to run unconditionally.
+
+       Mark as key events in GA4 Admin → Events:
+         book_call_click · contact_form_submit · whatsapp_click
+       ═══════════════════════════════════════════════════ -->
+  <script is:inline nonce={nonce}>
+  (function() {
+    function track(name, params) {
+      if (typeof gtag !== 'function') return;
+      var p = params || {};
+      p.page_path = location.pathname;
+      gtag('event', name, p);
+    }
+
+    // ── Click paths ────────────────────────────────────────────────
+    document.addEventListener('click', function(e) {
+      var el = e.target && e.target.closest ? e.target.closest('a, button, [data-calendly-open]') : null;
+      if (!el) return;
+
+      if (el.hasAttribute('data-calendly-open')) {
+        track('book_call_click', { method: 'calendly', label: (el.textContent || '').trim().slice(0, 60) });
+        return;
+      }
+
+      var href = el.getAttribute('href') || '';
+      if (href.indexOf('https://wa.me/') === 0) {
+        track('whatsapp_click', { label: (el.textContent || '').trim().slice(0, 60) });
+      } else if (href.indexOf('mailto:') === 0) {
+        track('email_click', { label: href.replace('mailto:', '').split('?')[0] });
+      } else if (href.indexOf('tel:') === 0) {
+        track('phone_click', { label: href.replace('tel:', '') });
+      }
+    }, true);
+
+    // ── Form submissions ───────────────────────────────────────────
+    var chatCounted = false;
+    document.addEventListener('submit', function(e) {
+      var f = e.target;
+      if (!f || f.nodeName !== 'FORM') return;
+
+      if (f.id === 'contact-form') {
+        var svc = f.querySelector('[name="service"], #service, select');
+        track('contact_form_submit', { service: svc && svc.value ? svc.value : 'unspecified' });
+
+      } else if (f.id === 'newsletter-form') {
+        track('newsletter_signup', { location: 'footer' });
+
+      } else if (f.id === 'uw-exit-form') {
+        track('lead_magnet_download', { asset: 'security-assessment-checklist' });
+
+      } else if (f.hasAttribute('data-waitlist-form')) {
+        track('waitlist_signup', {
+          service: f.getAttribute('data-service-slug') || 'unknown',
+          launch_year: f.getAttribute('data-service-year') || ''
+        });
+
+      } else if (f.id === 'uw-chat-form') {
+        // Count engagement once per session, not per message.
+        if (!chatCounted) { chatCounted = true; track('ai_chat_engaged', {}); }
+      }
+    }, true);
+  })();
+  </script>
+
+  <!-- Link prefetching.
+       Astro's built-in prefetch injects a script tag it cannot nonce, which
+       'strict-dynamic' then blocks — so it is disabled in astro.config.mjs and
+       replaced here with a nonced equivalent. Prefetches an internal page on
+       hover/touch intent, once per URL. -->
+  <script is:inline nonce={nonce}>
+  (function() {
+    if (!('connection' in navigator) || !navigator.connection.saveData) {
+      var seen = {};
+      var warm = function(e) {
+        var a = e.target && e.target.closest ? e.target.closest('a') : null;
+        if (!a) return;
+        var href = a.getAttribute('href') || '';
+        if (href.charAt(0) !== '/' || href.indexOf('//') === 0) return;
+        if (a.hasAttribute('download') || a.getAttribute('target') === '_blank') return;
+        if (seen[href]) return;
+        seen[href] = 1;
+        var l = document.createElement('link');
+        l.rel = 'prefetch';
+        l.href = href;
+        document.head.appendChild(l);
+      };
+      document.addEventListener('mouseover', warm, { passive: true });
+      document.addEventListener('touchstart', warm, { passive: true });
+    }
   })();
   </script>
 </body>

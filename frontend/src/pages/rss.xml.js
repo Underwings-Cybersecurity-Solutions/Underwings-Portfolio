@@ -1,5 +1,10 @@
 import { getBlogPosts } from '../lib/supabase';
 
+// MUST stay SSR. Prerendered at build time this feed baked in zero items,
+// because Supabase is unreachable from the build container — which is why
+// /rss.xml served an empty channel in production despite 12 published posts.
+export const prerender = false;
+
 export async function GET() {
   const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://underwings.org';
   const posts = await getBlogPosts(50);

@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Security Architecture Review
 // Category: Network & Infrastructure (Y1 Flagship, Full Template)
@@ -28,7 +29,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Security Architecture Review", "item": "https://underwings.org/services/network-infrastructure/security-architecture-review" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Security Architecture Review", "serviceType": "Security Architecture Review",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('vinoth-sivasamy')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "Enterprise security architecture review for UAE — network zones, identity, remote access, DMZ, segmentation, target-state design and migration roadmap.",
     "url": "https://underwings.org/services/network-infrastructure/security-architecture-review"
@@ -43,7 +44,7 @@ export const prerender = false;
 
 <Layout
   title="Security Architecture Review UAE | Underwings"
-  description="UAE enterprise security architecture review. Network zones, identity, VPN / ZTNA, DMZ, segmentation. Current-state + target-state design + migration roadmap. CCNP + Security+ + Fortinet led."
+  description="UAE security architecture review — zones, identity, VPN / ZTNA, DMZ, segmentation. Current state, target design, migration roadmap."
   keywords="security architecture review UAE, enterprise security design Dubai, network segmentation UAE, ZTNA readiness UAE, target-state architecture UAE"
   wfPage="services-page"
   schema={schema}

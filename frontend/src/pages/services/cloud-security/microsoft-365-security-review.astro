@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Microsoft 365 Security Review (LIGHTER TEMPLATE)
 // Category: Cloud Security (Y1 Flagship)
@@ -25,7 +26,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Microsoft 365 Security Review", "item": "https://underwings.org/services/cloud-security/microsoft-365-security-review" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Microsoft 365 Security Review", "serviceType": "Microsoft 365 Security Assessment",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "UAE Microsoft 365 security posture review — Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. Measured against CIS Microsoft 365 benchmark.",
     "url": "https://underwings.org/services/cloud-security/microsoft-365-security-review"
@@ -39,9 +40,9 @@ export const prerender = false;
 ---
 
 <Layout
-  title="Microsoft 365 Security Review UAE | Underwings"
-  description="UAE Microsoft 365 security posture review against CIS Microsoft 365 benchmark. Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. Led by Azure Security + Security+ practitioner."
-  keywords="Microsoft 365 security review UAE, M365 security audit Dubai, Conditional Access review UAE, Exchange Online security assessment, SharePoint security review UAE"
+  title="Microsoft 365 Security Assessment & Review UAE | Underwings"
+  description="Microsoft 365 security assessment and audit to the CIS benchmark: Exchange, SharePoint, Teams, Conditional Access, MFA, DLP. Delivered in the UAE."
+  keywords="Microsoft 365 security assessment UAE, Microsoft 365 security review UAE, Microsoft 365 security audit UAE, M365 security assessment UAE, Microsoft 365 cybersecurity UAE, Conditional Access review UAE, Exchange Online security assessment"
   wfPage="services-page"
   schema={schema}
   bodyClass="body svc-compact"
@@ -62,7 +63,7 @@ export const prerender = false;
 
         <div class="svc-hero">
           <div class="label" style="justify-content:center;"><div class="text-small color-grey">Cloud Security — Flagship Service</div></div>
-          <h1 class="heading-large">Microsoft 365 Security Review in the UAE</h1>
+          <h1 class="heading-large">Microsoft 365 Security Assessment &amp; Review in the UAE</h1>
           <p class="text" style="max-width:680px;margin:1rem auto 0;">
             Complete posture review of your Microsoft 365 tenant — Exchange, SharePoint, Teams, Conditional Access, MFA, DLP — measured against CIS Microsoft 365 Foundations Benchmark. Quick-to-deliver. Easy companion to an Azure assessment.
           </p>

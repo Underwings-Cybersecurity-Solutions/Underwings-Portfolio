@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Azure Cloud Security Assessment
 // Category: Cloud Security (Y1 Flagship, Phase 3 Anchor)
@@ -28,7 +29,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Azure Cloud Security Assessment", "item": "https://underwings.org/services/cloud-security/azure-cloud-security-assessment" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Azure Cloud Security Assessment", "serviceType": "Cloud Security Assessment",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "Azure tenant security assessment against CIS Azure Benchmark — Entra ID, RBAC, storage, NSGs, Defender for Cloud posture.",
     "url": "https://underwings.org/services/cloud-security/azure-cloud-security-assessment"
@@ -43,7 +44,7 @@ export const prerender = false;
 
 <Layout
   title="Azure Cloud Security Assessment UAE | Underwings"
-  description="UAE Azure cloud security assessment against CIS Azure Foundations Benchmark. Entra ID, RBAC, Conditional Access, storage, NSG, Defender for Cloud. Led by Azure Security certified practitioner."
+  description="Azure security assessment against the CIS Foundations Benchmark — Entra ID, RBAC, Conditional Access, Defender. Delivered in the UAE."
   keywords="Azure security assessment UAE, CIS Azure Benchmark UAE, Entra ID security audit, Azure cloud security Dubai, Conditional Access review UAE, Microsoft Defender for Cloud assessment"
   wfPage="services-page"
   schema={schema}
@@ -136,7 +137,7 @@ export const prerender = false;
           <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Findings report</strong> — CVSS-scored, with reproduction steps, business impact, and specific remediation commands.</div></li>
           <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Executive summary</strong> — 2-page C-suite version with risk heat map and 90-day remediation roadmap.</div></li>
           <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Remediation walkthrough</strong> — 90-minute live session with your Azure admin team.</div></li>
-          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Control mapping</strong> — findings mapped to ISO 27001 Annex A, NESA / UAE IA V2, and PDPL controls for audit reuse.</div></li>
+          <li class="svc-deliv-item"><svg class="svc-deliv-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>Control mapping</strong> — findings mapped to ISO 27001 Annex A, NESA / UAE IA, and PDPL controls for audit reuse.</div></li>
         </ul>
       </div>
     </section>

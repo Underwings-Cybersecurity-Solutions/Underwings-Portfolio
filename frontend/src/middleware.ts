@@ -10,6 +10,26 @@ const ALLOWED_ORIGINS = [
 ];
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  // --- Trailing slash: 301 to the canonical no-slash form ---
+  // astro.config sets trailingSlash: 'never', which makes the no-slash URL the
+  // only one that RESOLVES — the node adapter returns a hard 404 for the slash
+  // variant rather than redirecting. So every inbound link, bookmark, pasted
+  // URL or directory-style link written as /about/ was a dead end, and Search
+  // Console logged it under "Not found (404)".
+  //
+  // Handled here rather than in nginx because the deployed nginx config has
+  // drifted from nginx/nginx.conf in this repo; middleware ships with the app
+  // and cannot drift.
+  //
+  // GET/HEAD only: redirecting a POST would drop the body.
+  if (context.request.method === 'GET' || context.request.method === 'HEAD') {
+    const url = new URL(context.request.url);
+    if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
+      const stripped = url.pathname.replace(/\/+$/, '') || '/';
+      return context.redirect(stripped + url.search, 301);
+    }
+  }
+
   // --- CSRF: Origin validation on state-changing requests ---
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(context.request.method)) {
     const origin = context.request.headers.get('origin');

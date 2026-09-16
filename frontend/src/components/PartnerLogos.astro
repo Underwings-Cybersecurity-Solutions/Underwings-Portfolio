@@ -2,8 +2,14 @@
 // ===========================================
 // PARTNER LOGOS GRID
 // Underwings Cybersecurity Solutions
-// Fetches from Supabase, falls back to hardcoded
 // ===========================================
+//
+// Renders nothing when the partners table has no visible rows, so callers can
+// drop it in without guarding. Pages that wrap it in a titled section should
+// still call getPartners() themselves to decide whether to render the heading
+// — see index.astro.
+
+import { getPartners } from '../lib/partners';
 
 export interface Props {
   size?: 'small' | 'large';
@@ -11,59 +17,84 @@ export interface Props {
 }
 
 const { size = 'small', linkTo = '#' } = Astro.props;
+
+// Logos are bounded by BOTH axes, not height alone: a wide horizontal
+// lockup (e.g. Sophos, ~10.5:1) sized purely by height would run 3x the
+// width of the others. The width cap keeps every mark at a comparable
+// optical weight in the row.
 const logoHeight = size === 'large' ? 36 : 30;
+const logoMaxWidth = size === 'large' ? 240 : 200;
 
-interface Partner {
-  id: string;
-  name: string;
-  logo_url: string;
-  website_url?: string;
-  display_order: number;
-  invert_logo: boolean;
-}
+// Optical correction for lockups that pair a FULL-HEIGHT ICON with a much
+// SHORTER WORDMARK. An equal box makes their text read far smaller than the
+// rest of the row, because the icon — not the text — sets the height.
+//
+// Measured wordmark height as a share of each logo's own box (rasterised at
+// 200px and alpha-scanned, splitting icon from wordmark at the widest empty
+// column run):
+//   hexnode 100%  ·  sophos 97%  ·  trillium/TISS 75%  ·  sprinto 44%
+//
+// Sprinto is the clear outlier: its square "S" is full height while SPRINTO
+// is under half, so at a shared 30px box the wordmark rendered ~13px against
+// hexnode's ~30px. 1.33x lifts it to ~18px, in line with TISS, while keeping
+// Sprinto's official lockup intact (cropping the icon would match better
+// still, but altering a partner's mark is their call, not ours).
+//
+// Keyed on the logo filename so it survives partner renames in the DB.
+// MEASURE before adding an entry here — do not guess a value.
+const OPTICAL_SCALE: Record<string, number> = {
+  'sprinto.png': 1.33,
+};
 
-// Fallback partner list — shown when Supabase has no visible partners.
-// Logos live in /public/images/partners/. invert_logo forces dark logos to white
-// (brightness(0) invert(1)) so they read on the dark background.
-let partners: Partner[] = [
-  { id: 'sophos',   name: 'Sophos',   logo_url: '/images/partners/sophos.svg',   website_url: 'https://www.sophos.com',            display_order: 1, invert_logo: true  },
-  { id: 'sprinto',  name: 'Sprinto',  logo_url: '/images/partners/sprinto.png',  website_url: 'https://sprinto.com',              display_order: 2, invert_logo: false },
-  { id: 'hexnode',  name: 'Hexnode',  logo_url: '/images/partners/hexnode.svg',  website_url: 'https://www.hexnode.com',          display_order: 3, invert_logo: true  },
-  { id: 'trillium', name: 'Trillium', logo_url: '/images/partners/trillium.png', website_url: 'https://www.trilliuminfosec.com',  display_order: 4, invert_logo: false },
-];
+const scaleFor = (logoUrl: string) => {
+  const file = (logoUrl || '').split('/').pop() || '';
+  return OPTICAL_SCALE[file] ?? 1;
+};
 
-try {
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || 'http://kong:8000';
-  const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  if (supabaseKey) {
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/partners?select=id,name,logo_url,website_url,display_order,invert_logo&is_visible=eq.true&order=display_order.asc`,
-      {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-        },
-      }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.length > 0) partners = data;
-    }
-  }
-} catch {
-  // Use fallback
-}
+// Partners that have their own product page get sent there instead of to the
+// generic `linkTo` destination. Until these pages existed every logo pointed
+// at the same place (or at "#"), so a visitor who recognised a vendor and
+// clicked it learned nothing about what we actually do with it.
+//
+// Keyed on the logo filename for the same reason as OPTICAL_SCALE above: it
+// survives a partner being renamed in the database. A partner with no entry
+// here falls back to `linkTo`, so adding a vendor never breaks the row.
+// Matched on the filename STEM, not the full filename, so re-uploading a logo
+// as a different format (hexnode.svg -> hexnode.png) doesn't silently drop the
+// link back to the generic destination. That failure would be invisible: the
+// row still renders, the logo still looks right, the click just goes nowhere
+// useful.
+const PRODUCT_PAGE: Record<string, string> = {
+  sprinto: '/software/sprinto',
+  hexnode: '/software/hexnode',
+};
+
+const hrefFor = (logoUrl: string) => {
+  const file = (logoUrl || '').split('/').pop() || '';
+  const stem = file.replace(/\.[^.]+$/, '').toLowerCase();
+  return PRODUCT_PAGE[stem] ?? linkTo;
+};
+
+const partners = await getPartners();
 ---
 
-{partners.map((p) => (
-  <a href={linkTo} class={`partner-logo ${p.invert_logo ? 'partner-logo--invert' : ''}`} title={p.name}>
-    <img src={p.logo_url} alt={p.name} loading="lazy" style={`height: ${logoHeight}px; width: auto;`}>
-  </a>
-))}
+{partners.map((p) => {
+  const s = scaleFor(p.logo_url);
+  return (
+    <a href={hrefFor(p.logo_url)} class={`partner-logo ${p.invert_logo ? 'partner-logo--invert' : ''}`} title={p.name}>
+      <img
+        src={p.logo_url}
+        alt={p.name}
+        loading="lazy"
+        style={`max-height: ${Math.round(logoHeight * s)}px; max-width: ${Math.round(logoMaxWidth * s)}px; width: auto; height: auto; object-fit: contain;`}
+      >
+    </a>
+  );
+})}
 
 <style is:inline>
   .partner-logo {
-    opacity: 0.7;
+    opacity: 0.85;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;

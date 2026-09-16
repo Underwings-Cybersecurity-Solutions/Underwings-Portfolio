@@ -259,18 +259,18 @@ CREATE TRIGGER update_partners_updated_at
     BEFORE UPDATE ON public.partners
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Seed current partners
+-- Seed current partners.
+-- Kept in sync with the live partners table and with the logo files committed
+-- under frontend/public/images/partners/. The previous seed listed vendors that
+-- are no longer partners (Securonix, Qualys, Tenable, Rapid7) and referenced
+-- brandfetch CDN URLs, so a fresh environment came up with the wrong roster.
+-- invert_logo applies filter: brightness(0) invert(1), which normalises any
+-- opaque logo to white — leave it false only for marks that must keep colour.
 INSERT INTO public.partners (name, logo_url, website_url, display_order, is_visible, invert_logo) VALUES
-    ('Sophos', '/images/partners/sophos.svg', 'https://www.sophos.com', 1, true, true),
-    ('ManageEngine', '/images/partners/manageengine.webp', 'https://www.manageengine.com', 2, true, false),
-    ('Teramind', '/images/partners/teramind.png', 'https://www.teramind.co', 3, true, false),
-    ('Securonix', 'https://cdn.brandfetch.io/idtcaX4QNF/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B', 'https://www.securonix.com', 4, true, true),
-    ('Qualys', 'https://cdn.brandfetch.io/id9QAR2zL7/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B', 'https://www.qualys.com', 5, true, true),
-    ('ISMS.online', '/images/partners/isms-online.svg', 'https://www.isms.online', 6, true, false),
-    ('Fortinet', '/images/partners/fortinet.webp', 'https://www.fortinet.com', 7, true, false),
-    ('Tenable', 'https://cdn.brandfetch.io/idonBVesbb/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B', 'https://www.tenable.com', 8, true, true),
-    ('Rapid7', 'https://cdn.brandfetch.io/id4wVB7jg_/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B', 'https://www.rapid7.com', 9, true, true),
-    ('Wazuh', '/images/partners/wazuh.svg', 'https://wazuh.com', 10, true, false)
+    ('Sophos',   '/images/partners/sophos.svg',   'https://www.sophos.com',   1, true, true),
+    ('Sprinto',  '/images/partners/sprinto.png',  'https://sprinto.com',      2, true, false),
+    ('Hexnode',  '/images/partners/hexnode.svg',  'https://www.hexnode.com',  3, true, true),
+    ('Trillium', '/images/partners/trillium.png', 'https://trilliumit.com',   4, true, false)
 ON CONFLICT DO NOTHING;
 
 -- ===========================================

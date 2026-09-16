@@ -9,9 +9,14 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PartnerLogos from '../components/PartnerLogos.astro';
+import { getPartners } from '../lib/partners';
 import '../styles/category-hub.css';
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL || "https://underwings.org";
+
+// Decides whether the "Trusted Technology Partners" section renders at all —
+// the component alone would leave the heading stranded above an empty row.
+const hasPartners = (await getPartners()).length > 0;
 
 const schemas = [
   {
@@ -76,7 +81,7 @@ const schemas = [
       {
         "@type": "Question",
         "name": "Can you help with UAE compliance — ISO 27001, NESA / UAE IA, PDPL, and ADHICS?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Our GRC work is led by an ISO 27001 Lead Auditor and covers ISO 27001:2022, NESA / UAE IA V2, UAE PDPL, and ADHICS v2 for Abu Dhabi healthcare — from gap assessment to implementation and audit support." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Our GRC work is led by an ISO 27001 Lead Auditor and covers ISO 27001:2022, NESA / UAE IA, UAE PDPL, and ADHICS v2 for Abu Dhabi healthcare — from gap assessment to implementation and audit support." }
       },
       {
         "@type": "Question",
@@ -99,9 +104,9 @@ const schemas = [
 ---
 
 <Layout
-  title="Underwings – Cybersecurity Solutions | UAE"
-  description="Cybersecurity startup in UAE. OSCP+ & CPTS certified VAPT, ISO 27001 implementation, security awareness training, and software sales with hands-on support."
-  keywords="cybersecurity UAE, VAPT services Abu Dhabi, ISO 27001 implementation, security software sales, penetration testing, cybersecurity training, OSCP penetration testing, compliance services UAE"
+  title="Cybersecurity Company UAE — Abu Dhabi Services | Underwings"
+  description="Abu Dhabi cybersecurity company serving the UAE: OSCP+ & CPTS-certified VAPT, ISO 27001 implementation, awareness training and supported security software."
+  keywords="cybersecurity company UAE, cybersecurity services UAE, cybersecurity consultant UAE, cyber security company Abu Dhabi, cybersecurity services Abu Dhabi, VAPT services Abu Dhabi, ISO 27001 implementation, penetration testing, cybersecurity training, security software sales"
   wfPage="6920627afaad5c7afb54bfa8"
   schema={schemas}
 >
@@ -957,7 +962,7 @@ const schemas = [
               <span class="hero-compliance-label">Aligned to:</span>
               <span class="hero-compliance-chip">ISO 27001</span>
               <span class="hero-compliance-dot" aria-hidden="true">·</span>
-              <span class="hero-compliance-chip">UAE IA V2</span>
+              <span class="hero-compliance-chip">UAE IA</span>
               <span class="hero-compliance-dot" aria-hidden="true">·</span>
               <span class="hero-compliance-chip">ADHICS v2</span>
               <span class="hero-compliance-dot" aria-hidden="true">·</span>
@@ -1007,7 +1012,7 @@ const schemas = [
                 <span class="cat-service-pill cat-service-pill-new">Continuous Compliance · NEW</span>
                 <span class="cat-service-pill">ISO 27001 Gap</span>
                 <span class="cat-service-pill">ISO 27001 Implementation</span>
-                <span class="cat-service-pill">NESA / UAE IA V2</span>
+                <span class="cat-service-pill">NESA / UAE IA</span>
                 <span class="cat-service-pill">UAE PDPL</span>
                 <span class="cat-service-pill">Risk Register</span>
               </div>
@@ -1181,13 +1186,19 @@ const schemas = [
             <h2 data-w-id="179c1623-13df-8a0e-1e2c-9b54442d3704" class="heading heading-center">Security software that actually gets deployed<br> <span class="text-gradient-clip bg-color-green-gradient">Implementation, Support &amp; Training included</span></h2>
             <p data-w-id="74043303-85bb-873d-9493-0a71a57f9a3b" class="text-medium vertical-heading-description" style="text-align: center; max-width: 720px; margin-left: auto; margin-right: auto;">We partner with leading cybersecurity vendors so you don't have to navigate the market alone. From endpoint protection to SIEM, we handle everything — selection, deployment, training, and ongoing support. No shelfware.</p>
 
-            <!-- Trusted Technology Partners -->
-            <div data-w-id="partners-section" style="margin-top: 3rem;" class="partners-section">
-              <p style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2rem;">Trusted Technology Partners</p>
-              <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2.5rem; max-width: 900px; margin: 0 auto;">
-                <PartnerLogos size="small" linkTo="/software" />
+            <!-- Trusted Technology Partners.
+                 Guarded on hasPartners so the heading can never orphan above an
+                 empty row. Previously commented out entirely while production
+                 still served it from an older build — meaning the next deploy
+                 would have silently removed the site's only third-party proof. -->
+            {hasPartners && (
+              <div data-w-id="partners-section" style="margin-top: 3rem;" class="partners-section">
+                <p style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2rem;">Trusted Technology Partners</p>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2.5rem; max-width: 900px; margin: 0 auto;">
+                  <PartnerLogos size="small" linkTo="/software" />
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
         </div>
@@ -1264,7 +1275,7 @@ const schemas = [
                 <h2 data-w-id="6b22a0dd-39ed-3430-b873-0b94f1ee1f0a" class="heading">ISO 27001, NESA, PDPL — Implementation, Not Just Advice</h2>
               </div>
               <div id="w-node-_6b22a0dd-39ed-3430-b873-0b94f1ee1f0c-fb54bfa8" class="heading-horizontal-right-part">
-                <p data-w-id="6b22a0dd-39ed-3430-b873-0b94f1ee1f0d" class="text-medium">Hands-on GRC delivered by an ISO 27001 Lead Auditor. ISO 27001 gap and implementation, NESA / UAE IA V2 gap assessment, UAE PDPL compliance advisory, and ISO 27005-aligned risk register build. We implement; accredited certification bodies certify — never both.</p>
+                <p data-w-id="6b22a0dd-39ed-3430-b873-0b94f1ee1f0d" class="text-medium">Hands-on GRC delivered by an ISO 27001 Lead Auditor. ISO 27001 gap and implementation, NESA / UAE IA gap assessment, UAE PDPL compliance advisory, and ISO 27005-aligned risk register build. We implement; accredited certification bodies certify — never both.</p>
               </div>
             </div>
           </div>
@@ -1899,7 +1910,7 @@ const schemas = [
                     <option value="continuous-compliance">Continuous Compliance Subscription · NEW</option>
                     <option value="iso-27001-gap">ISO 27001 Gap Assessment</option>
                     <option value="iso-27001-implementation">ISO 27001 Implementation</option>
-                    <option value="nesa">NESA / UAE IA V2 Gap</option>
+                    <option value="nesa">NESA / UAE IA Gap</option>
                     <option value="pdpl">UAE PDPL Compliance Advisory</option>
                     <option value="risk-assessment">Risk Assessment &amp; Register</option>
                   </optgroup>
@@ -1971,7 +1982,7 @@ const schemas = [
             </details>
             <details class="uw-faq-item">
               <summary>Can you help with UAE compliance — ISO 27001, NESA / UAE IA, PDPL, and ADHICS?</summary>
-              <div class="uw-faq-a"><p>Yes. Our GRC work is led by an ISO 27001 Lead Auditor and covers ISO 27001:2022, NESA / UAE IA V2, UAE PDPL, and ADHICS v2 for Abu Dhabi healthcare — from gap assessment to implementation and audit support.</p></div>
+              <div class="uw-faq-a"><p>Yes. Our GRC work is led by an ISO 27001 Lead Auditor and covers ISO 27001:2022, NESA / UAE IA, UAE PDPL, and ADHICS v2 for Abu Dhabi healthcare — from gap assessment to implementation and audit support.</p></div>
             </details>
             <details class="uw-faq-item">
               <summary>How quickly can you start, and when do I get the report?</summary>

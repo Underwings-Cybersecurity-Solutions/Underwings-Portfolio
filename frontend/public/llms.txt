@@ -15,6 +15,10 @@ Location: Abu Dhabi, United Arab Emirates
 
 ## Flagship Service Pages
 
+- [PTaaS — Penetration Testing as a Service](https://underwings.org/services/offensive-security#ptaas): Continuous OSCP-led testing on a monthly subscription, live findings portal, on-demand retests.
+- [Continuous Compliance Subscription](https://underwings.org/services/grc#managed-grc): Monthly ISMS maintenance for certified organisations — internal audits, evidence management, audit liaison.
+- [ADHICS v2 Compliance](https://underwings.org/services/grc/adhics-compliance): Abu Dhabi healthcare (DoH) ADHICS v2 gap assessment, remediation roadmap, Malaffi readiness.
+- [Mobile Application Penetration Testing](https://underwings.org/services/offensive-security/mobile-application-penetration-testing): iOS and Android testing aligned to OWASP MASTG / MASVS.
 - [Network Penetration Testing](https://underwings.org/services/offensive-security/network-penetration-testing)
 - [Web Application Penetration Testing](https://underwings.org/services/offensive-security/web-application-penetration-testing)
 - [Vulnerability Assessment](https://underwings.org/services/offensive-security/vulnerability-assessment)
@@ -41,6 +45,21 @@ Location: Abu Dhabi, United Arab Emirates
 ## Content
 
 - [Blog](https://underwings.org/blog): In-depth articles on UAE cybersecurity, compliance (ISO 27001, NESA, PDPL), penetration testing, and security awareness.
+
+### Articles
+
+- [The Real Cost of ISO 27001 in the UAE, by Company Size](https://underwings.org/blog/real-cost-of-iso-27001-uae-broken-down-by-company-size)
+- [ISO 27001 Certification Guide for UAE Businesses](https://underwings.org/blog/iso-27001-certification-guide-uae)
+- [Why UAE Businesses Can't Afford to Ignore ISO 27001 in 2026](https://underwings.org/blog/why-uae-businesses-cant-afford-to-ignore-iso-27001-in-2026)
+- [ISO 27005 Risk Register: A UAE SME Playbook](https://underwings.org/blog/iso-27005-risk-register-uae-sme-playbook)
+- [NESA / UAE IA V2 in Plain English](https://underwings.org/blog/nesa-uae-ia-v2-in-plain-english)
+- [UAE PDPL Compliance Guide](https://underwings.org/blog/uae-pdpl-compliance-guide)
+- [ADHICS v2 Compliance Guide for Abu Dhabi Healthcare](https://underwings.org/blog/adhics-v2-compliance-guide-abu-dhabi-healthcare)
+- [Penetration Testing Buyer's Guide (UAE)](https://underwings.org/blog/penetration-testing-buyers-guide-uae)
+- [Penetration Testing vs Vulnerability Assessment](https://underwings.org/blog/penetration-testing-vs-vulnerability-assessment-uae)
+- [Phishing Simulation vs Awareness Training](https://underwings.org/blog/phishing-simulation-vs-awareness-training-uae)
+- [7 Azure Misconfigurations We Find in UAE Assessments](https://underwings.org/blog/7-azure-misconfigurations-uae-assessments)
+- [FortiGate Hardening & Network Security (UAE)](https://underwings.org/blog/fortigate-hardening-network-security-uae)
 - [Threat Intelligence Updates](https://underwings.org/updates): Aggregated advisories from CISA, The Hacker News, BleepingComputer.
 
 ## Optional

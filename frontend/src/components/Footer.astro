@@ -6,6 +6,25 @@
 // ===========================================
 const nonce = Astro.locals.nonce || "";
 const year = new Date().getFullYear();
+
+// The "UAE IA" chip in the standards row points at the Cyber Security Council's
+// policies listing, which carries the current UAE Information Assurance Standard
+// (v2.1, Nov 2025). It previously pointed at TDRA's UAE IA Regulation v1.1 PDF
+// from 2020 -- two revisions behind, under a label that read "V2". Citing a
+// superseded primary source is worse than citing none, so re-check this link
+// whenever the CSC republishes.
+//
+// The standards and methodology chips below are site-wide, so one dead link
+// here becomes a broken external link on every page of the site -- which is
+// exactly what a 16 Sep 2026 crawl found. Two OWASP projects had moved:
+//   www-project-mobile-app-security -> mas.owasp.org
+//   www-project-api-security        -> owasp.org/API-Security
+// Re-test every href in this block before release, not just the new ones.
+//
+// Known false positive: iso.org returns 403 to datacentre and crawler traffic
+// even with full browser headers, so auditors report the ISO 27001 chip as
+// broken. It resolves normally for real visitors. Do not "fix" it by pointing
+// at a non-canonical mirror.
 ---
 
 <footer id="footer" data-wf--footer--variant="black" class="footer w-variant-2d3c46da-753e-dab6-6d26-4f15379a30dd">
@@ -24,7 +43,7 @@ const year = new Date().getFullYear();
               <a href="/" class="logo w-nav-brand" aria-label="Underwings home">
                 <img src="/brand/logos/underwings-lockup-primary.png?v=3" loading="lazy" alt="Underwings Cybersecurity Solutions" class="logo-image">
               </a>
-              <p class="footer-tagline">UAE-based cybersecurity team — pen testing, ISO 27001, UAE IA V2, ADHICS &amp; PDPL. Named OSCP and ISO 27001 Lead Auditor practitioners. No anonymous juniors.</p>
+              <p class="footer-tagline">UAE-based cybersecurity team — pen testing, ISO 27001, UAE IA, ADHICS &amp; PDPL. Named OSCP and ISO 27001 Lead Auditor practitioners. No anonymous juniors.</p>
 
               <a href="/#contact" class="footer-scope-cta">
                 <span class="footer-scope-cta-ico">
@@ -178,7 +197,7 @@ const year = new Date().getFullYear();
           <a href="/services/grc" class="footer-dir-head">Cybersecurity GRC</a>
           <a href="/services/grc/iso-27001-implementation" class="footer-dir-link">ISO 27001 Implementation</a>
           <a href="/services/grc/iso-27001-gap-assessment" class="footer-dir-link">ISO 27001 Gap Assessment</a>
-          <a href="/services/grc/nesa-uae-ia" class="footer-dir-link">NESA / UAE IA V2</a>
+          <a href="/services/grc/nesa-uae-ia" class="footer-dir-link">NESA / UAE IA</a>
           <a href="/services/grc/uae-pdpl-advisory" class="footer-dir-link">UAE PDPL Advisory</a>
           <a href="/services/grc/adhics-compliance" class="footer-dir-link">ADHICS v2 (Healthcare)</a>
           <a href="/services/grc/risk-assessment-register" class="footer-dir-link">Risk Assessment &amp; Register</a>
@@ -225,26 +244,30 @@ const year = new Date().getFullYear();
             <span class="footer-trust-chip">ISO 27001:2022 certification in progress · 2026</span>
           </div>
         </div>
+        <!-- Standards link to their primary sources. Citing the authority you
+             work against is a real expertise signal for both search quality
+             raters and generative engines — and previously the whole site had
+             nine outbound links, seven of which were WhatsApp. -->
         <div class="footer-trust-col">
           <span class="footer-trust-label">Methodology</span>
           <div class="footer-trust-chips">
-            <span class="footer-trust-chip">PTES</span>
-            <span class="footer-trust-chip">OWASP WSTG</span>
-            <span class="footer-trust-chip">OWASP MASTG</span>
-            <span class="footer-trust-chip">OWASP API Top 10</span>
-            <span class="footer-trust-chip">NIST SP 800-115</span>
-            <span class="footer-trust-chip">MITRE ATT&amp;CK</span>
+            <a class="footer-trust-chip" href="http://www.pentest-standard.org/index.php/Main_Page" rel="noopener" target="_blank">PTES</a>
+            <a class="footer-trust-chip" href="https://owasp.org/www-project-web-security-testing-guide/" rel="noopener" target="_blank">OWASP WSTG</a>
+            <a class="footer-trust-chip" href="https://mas.owasp.org/" rel="noopener" target="_blank">OWASP MASTG</a>
+            <a class="footer-trust-chip" href="https://owasp.org/API-Security/" rel="noopener" target="_blank">OWASP API Top 10</a>
+            <a class="footer-trust-chip" href="https://csrc.nist.gov/pubs/sp/800/115/final" rel="noopener" target="_blank">NIST SP 800-115</a>
+            <a class="footer-trust-chip" href="https://attack.mitre.org/" rel="noopener" target="_blank">MITRE ATT&amp;CK</a>
           </div>
         </div>
         <div class="footer-trust-col">
           <span class="footer-trust-label">Client work aligned to</span>
           <div class="footer-trust-chips">
-            <span class="footer-trust-chip footer-trust-chip-green">ISO 27001</span>
-            <span class="footer-trust-chip footer-trust-chip-green">UAE IA V2</span>
-            <span class="footer-trust-chip footer-trust-chip-green">ADHICS v2</span>
-            <span class="footer-trust-chip footer-trust-chip-green">PCI DSS</span>
-            <span class="footer-trust-chip footer-trust-chip-green">SOC 2</span>
-            <span class="footer-trust-chip footer-trust-chip-green">UAE PDPL</span>
+            <a class="footer-trust-chip footer-trust-chip-green" href="https://www.iso.org/isoiec-27001-information-security.html" rel="noopener" target="_blank">ISO 27001</a>
+            <a class="footer-trust-chip footer-trust-chip-green" href="https://csc.gov.ae/en/policies-listing" rel="noopener" target="_blank">UAE IA</a>
+            <a class="footer-trust-chip footer-trust-chip-green" href="https://www.doh.gov.ae/en/resources/standards" rel="noopener" target="_blank">ADHICS v2</a>
+            <a class="footer-trust-chip footer-trust-chip-green" href="https://www.pcisecuritystandards.org/" rel="noopener" target="_blank">PCI DSS</a>
+            <a class="footer-trust-chip footer-trust-chip-green" href="https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2" rel="noopener" target="_blank">SOC 2</a>
+            <a class="footer-trust-chip footer-trust-chip-green" href="https://u.ae/en/about-the-uae/digital-uae/data/data-protection-laws" rel="noopener" target="_blank">UAE PDPL</a>
           </div>
         </div>
       </div>
@@ -505,6 +528,22 @@ const year = new Date().getFullYear();
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 100px;
     white-space: nowrap;
+    text-decoration: none;
+  }
+  /* Standards chips are links now; keep them visually identical at rest and
+     make the affordance appear on hover/focus rather than shouting by default. */
+  #footer a.footer-trust-chip {
+    transition: color .2s ease, border-color .2s ease, background .2s ease;
+  }
+  #footer a.footer-trust-chip:hover,
+  #footer a.footer-trust-chip:focus-visible {
+    color: #fff;
+    border-color: rgba(36,215,88,0.55);
+    background: rgba(36,215,88,0.08);
+  }
+  #footer a.footer-trust-chip:focus-visible {
+    outline: 2px solid rgba(36,215,88,0.75);
+    outline-offset: 2px;
   }
   #footer .footer-trust-chip-cert {
     color: #37dc82;

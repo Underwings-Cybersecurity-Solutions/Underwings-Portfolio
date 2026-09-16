@@ -36,7 +36,10 @@ const VALID_SERVICE_SLUGS = new Set<string>([
   'zero-trust-architecture-design', 'network-segmentation-implementation',
   // GRC — Y2
   'incident-response-retainer', 'iso-27701', 'nist-csf-risk-reporting',
-  'pci-dss-v4', 'dubai-isr-v2', 'third-party-risk',
+  // 'dubai-isr-v2' is the retired slug for what is now 'dubai-isr-v3' — Dubai's
+  // current standard is ISR v3. Both stay accepted so waitlist rows captured under
+  // the old slug keep validating; the roadmap only ever emits the v3 slug now.
+  'pci-dss-v4', 'dubai-isr-v3', 'dubai-isr-v2', 'third-party-risk',
   // GRC — Y3
   'nca-ecc-sama', 'cobit-2019', 'iso-42001', 'dora-nis2',
   // Training & Awareness — Y2

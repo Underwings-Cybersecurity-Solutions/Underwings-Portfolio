@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Security Awareness Training — Workshops
 // Category: Training & Awareness (Y1 Flagship, Phase 3 Anchor)
@@ -29,7 +30,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Security Awareness Training — Workshops", "item": "https://underwings.org/services/training-awareness/security-awareness-training" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Security Awareness Training — Workshops", "serviceType": "Security Awareness Training",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('nelson-durairaj')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "Live security awareness workshops with offensive-security demos — phishing, social engineering, password, data handling.",
     "url": "https://underwings.org/services/training-awareness/security-awareness-training"
@@ -44,7 +45,7 @@ export const prerender = false;
 
 <Layout
   title="Security Awareness Training UAE | Underwings"
-  description="UAE security awareness training workshops led by OSCP-certified offensive security practitioners. Live phishing, Wi-Fi, and social engineering demos. Classroom or virtual. Pairs with phishing simulation."
+  description="UAE security awareness training led by OSCP-certified pen testers. Live phishing, Wi-Fi and social engineering demos, classroom or virtual."
   keywords="security awareness training UAE, phishing awareness workshop Dubai, cybersecurity staff training UAE, social engineering training, password security workshop UAE"
   wfPage="services-page"
   schema={schema}

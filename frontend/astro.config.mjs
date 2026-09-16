@@ -31,10 +31,12 @@ export default defineConfig({
     port: 4321,
     host: true
   },
-  prefetch: {
-    prefetchAll: false,
-    defaultStrategy: 'viewport'
-  },
+  // Astro's prefetch injects a <script> tag it cannot attach the CSP nonce to.
+  // Because middleware.ts sets 'strict-dynamic' (which disables host-based
+  // allowlisting, including 'self'), that script was blocked on every page
+  // load. Prefetching is now done by a nonced hover-intent script in
+  // Layout.astro instead. Do not re-enable this without solving the nonce.
+  prefetch: false,
   vite: {
     define: {
       'import.meta.env.PUBLIC_SUPABASE_URL': JSON.stringify(process.env.PUBLIC_SUPABASE_URL),

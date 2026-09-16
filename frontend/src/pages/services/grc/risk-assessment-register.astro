@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Risk Assessment & Risk Register Build
 // Category: GRC (Y1 Flagship)
@@ -29,7 +30,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Risk Assessment & Risk Register Build", "item": "https://underwings.org/services/grc/risk-assessment-register" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Risk Assessment & Risk Register Build", "serviceType": "Cybersecurity Risk Assessment",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('manoj-prabhakaran')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "ISO 27005-aligned cybersecurity risk assessment and risk register build for UAE organisations. Asset identification, threat mapping, treatment decisions, audit-ready documentation.",
     "url": "https://underwings.org/services/grc/risk-assessment-register"
@@ -44,7 +45,7 @@ export const prerender = false;
 
 <Layout
   title="Risk Assessment & Register Build UAE | Underwings"
-  description="ISO 27005-aligned cybersecurity risk assessment and risk register build in UAE. Asset-based risk identification, threat mapping, treatment decisions, audit-ready documentation. Written quote within 48 hours of a scoping call."
+  description="ISO 27005-aligned risk assessment and register build for UAE organisations. Asset-based identification, threat mapping, audit-ready documentation."
   keywords="cybersecurity risk assessment UAE, ISO 27005 risk register, information security risk UAE, risk treatment plan UAE, board risk reporting UAE, enterprise cyber risk Dubai"
   wfPage="services-page"
   schema={schema}
@@ -203,7 +204,7 @@ export const prerender = false;
             <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </a>
           <a href="/services/grc/nesa-uae-ia" class="svc-related-card">
-            <h4>NESA / UAE IA V2 Gap</h4>
+            <h4>NESA / UAE IA Gap</h4>
             <p>NESA mandates documented risk management — our register satisfies the requirement.</p>
             <div class="svc-related-cta">Read full details <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M7 3l3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </a>

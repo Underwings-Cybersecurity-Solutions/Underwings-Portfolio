@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Phishing Simulation & Social Engineering (LIGHTER TEMPLATE)
 // Category: Offensive Security (Y1 Flagship — easy upsell)
@@ -26,7 +27,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Phishing Simulation", "item": "https://underwings.org/services/offensive-security/phishing-simulation" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Phishing Simulation & Social Engineering", "serviceType": "Phishing Simulation",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('nelson-durairaj')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "UAE phishing simulation and vishing campaigns. Realistic scenarios, click-rate metrics, before/after reporting. Pairs with Security Awareness Training.",
     "url": "https://underwings.org/services/offensive-security/phishing-simulation"
@@ -41,7 +42,7 @@ export const prerender = false;
 
 <Layout
   title="Phishing Simulation UAE | Underwings"
-  description="UAE phishing simulation campaigns. Realistic scenarios tailored to UAE threats, click-rate reporting, before/after metrics. Pairs with Security Awareness Training. Quotes via scoping call."
+  description="UAE phishing simulation campaigns with scenarios tailored to local threats, click-rate reporting and before/after metrics."
   keywords="phishing simulation UAE, phishing campaign Dubai, vishing UAE, social engineering assessment UAE, phishing awareness metrics UAE"
   wfPage="services-page"
   schema={schema}

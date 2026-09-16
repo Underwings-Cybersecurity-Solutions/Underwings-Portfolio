@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Firewall & Network Security Review
 // Category: Network & Infrastructure (Y1 Flagship, Phase 3 Anchor)
@@ -28,7 +29,7 @@ const schema = [
     { "@type": "ListItem", "position": 4, "name": "Firewall & Network Security Review", "item": "https://underwings.org/services/network-infrastructure/firewall-network-security-review" }
   ]},
   { "@context": "https://schema.org", "@type": "Service", "name": "Firewall & Network Security Review", "serviceType": "Firewall Configuration Review",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('vinoth-sivasamy')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "FortiGate configuration review, firewall rules audit, network segmentation, and routing security review for UAE mid-market.",
     "url": "https://underwings.org/services/network-infrastructure/firewall-network-security-review"
@@ -43,7 +44,7 @@ export const prerender = false;
 
 <Layout
   title="Firewall & Network Security Review UAE | Underwings"
-  description="UAE firewall configuration and network security review. FortiGate, Palo Alto, Cisco. CCNP + Fortinet + OSCP combination — rare skill combo in the region. Find the 30 – 200 stale rules most environments carry."
+  description="FortiGate, Palo Alto and Cisco firewall reviews in the UAE by a rare CCNP + Fortinet + OSCP combination. Find the stale rules before attackers do."
   keywords="FortiGate configuration review UAE, firewall rule audit Dubai, network segmentation review UAE, FortiGate consultant UAE, CCNP Fortinet UAE"
   wfPage="services-page"
   schema={schema}

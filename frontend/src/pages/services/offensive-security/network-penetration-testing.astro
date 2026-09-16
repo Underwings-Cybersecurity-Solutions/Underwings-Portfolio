@@ -1,4 +1,5 @@
 ---
+import { ORG_ID, leadPractitioner } from '../../../lib/team';
 // ============================================================
 // SERVICE PAGE — Network Penetration Testing
 // Category: Offensive Security (Y1 Flagship, Phase 3 Anchor)
@@ -62,7 +63,7 @@ const schema = [
     "@type": "Service",
     "name": "Network Penetration Testing",
     "serviceType": "Penetration Testing",
-    "provider": { "@type": "Organization", "name": "Underwings Cybersecurity Solutions", "url": "https://underwings.org" },
+    "provider": [{ "@id": ORG_ID }, leadPractitioner('nelson-durairaj')],
     "areaServed": { "@type": "Country", "name": "United Arab Emirates" },
     "description": "OSCP-led external and internal network penetration testing in the UAE. Real exploitation, Active Directory attacks, detailed reporting, remediation walkthroughs.",
     "url": "https://underwings.org/services/offensive-security/network-penetration-testing"
@@ -83,8 +84,8 @@ export const prerender = false;
 
 <Layout
   title="Network Penetration Testing UAE — OSCP-Led | Underwings"
-  description="OSCP-led external and internal network penetration testing in the UAE. Active Directory attacks, lateral movement, real exploitation, detailed reports, remediation walkthroughs. Fixed-scope quotes via scoping call."
-  keywords="network penetration testing UAE, pen test Dubai, OSCP pentester UAE, Active Directory pentest, internal network pen test UAE, external pentest Abu Dhabi"
+  description="OSCP-led network penetration testing in the UAE and Abu Dhabi: external and internal network VAPT, Active Directory attacks and remediation walkthroughs."
+  keywords="network penetration testing UAE, network penetration testing Abu Dhabi, network security testing UAE, network VAPT UAE, external penetration testing UAE, internal network pen test UAE, Active Directory pentest, OSCP pentester UAE"
   wfPage="services-page"
   schema={schema}
   bodyClass="body svc-compact"
