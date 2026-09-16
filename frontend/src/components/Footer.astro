@@ -206,10 +206,23 @@ const year = new Date().getFullYear();
            ════════════════════════════════════════════════ -->
       <div class="footer-trust">
         <div class="footer-trust-col">
-          <span class="footer-trust-label">Underwings is certified</span>
+          <!-- Practitioner credentials, NOT company certifications.
+               Do not reword this to imply Underwings itself holds ISO 27001 or
+               ISO 9001: it does not yet, and /about plus /services/grc both
+               state the certification is being pursued in 2026. A claim here
+               that contradicts those pages is an advertising-claim risk and
+               the first thing a compliance buyer verifies. -->
+          <span class="footer-trust-label">Delivery team credentials</span>
           <div class="footer-trust-chips">
-            <span class="footer-trust-chip footer-trust-chip-cert">ISO/IEC 27001 · Information Security</span>
-            <span class="footer-trust-chip footer-trust-chip-cert">ISO 9001 · Quality Management</span>
+            <span class="footer-trust-chip footer-trust-chip-cert">ISO 27001 Lead Auditor</span>
+            <span class="footer-trust-chip footer-trust-chip-cert">OSCP</span>
+            <span class="footer-trust-chip footer-trust-chip-cert">CPTS</span>
+            <span class="footer-trust-chip footer-trust-chip-cert">CCNP</span>
+            <span class="footer-trust-chip footer-trust-chip-cert">Azure Security</span>
+          </div>
+          <span class="footer-trust-label footer-trust-label-sub">Our own ISMS</span>
+          <div class="footer-trust-chips">
+            <span class="footer-trust-chip">ISO 27001:2022 certification in progress · 2026</span>
           </div>
         </div>
         <div class="footer-trust-col">
@@ -477,6 +490,9 @@ const year = new Date().getFullYear();
     text-transform: uppercase;
     color: rgba(255,255,255,0.38);
   }
+  /* Second label inside a trust column ("Our own ISMS") needs breathing room
+     from the chip row above it, which the column gap alone doesn't give. */
+  #footer .footer-trust-label-sub { margin-top: 0.5rem; }
   #footer .footer-trust-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   #footer .footer-trust-chip {
     display: inline-block;
