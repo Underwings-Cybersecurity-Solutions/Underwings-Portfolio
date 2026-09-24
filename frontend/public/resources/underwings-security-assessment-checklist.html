@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Security Assessment Checklist — Underwings</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  @page { size: A4; margin: 16mm 16mm 18mm; }
+  :root { --ink:#0b0f0c; --muted:#5c6660; --line:#dfe5e1; --green:#24d758; --green-dark:#0f7a33; --tint:#eefbf2; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:#fff; color:var(--ink); font: 10.5pt/1.45 -apple-system, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif; }
+  body { width: 178mm; margin: 0 auto; }
+  header { display:flex; align-items:center; justify-content:space-between; padding-bottom:6mm; border-bottom:2px solid var(--green); }
+  header img { height: 11mm; }
+  header .tag { font-size:8.5pt; letter-spacing:.14em; text-transform:uppercase; color:var(--green-dark); font-weight:700; }
+  h1 { font-size:22pt; line-height:1.15; margin:7mm 0 2mm; letter-spacing:-.01em; }
+  .lede { color:var(--muted); font-size:11pt; margin:0 0 5mm; max-width: 150mm; }
+  .how { background:var(--tint); border-left:3px solid var(--green); padding:3mm 4mm; border-radius:3px; margin:0 0 6mm; font-size:9.5pt; }
+  h2 { font-size:11.5pt; text-transform:uppercase; letter-spacing:.08em; color:var(--green-dark); margin:6mm 0 2mm; padding-top:2mm; break-after:avoid; }
+  h2 span { color:var(--muted); font-weight:500; letter-spacing:0; text-transform:none; font-size:9pt; margin-left:2mm; }
+  ol { list-style:none; margin:0; padding:0; }
+  li { display:grid; grid-template-columns: 6mm 1fr; gap:2.5mm; padding:2.2mm 0; border-bottom:1px solid var(--line); break-inside:avoid; }
+  li .box { width:4.6mm; height:4.6mm; border:1.5px solid #8a948e; border-radius:1mm; margin-top:.6mm; }
+  li b { display:block; font-weight:600; }
+  li small { display:block; color:var(--muted); font-size:9pt; margin-top:.4mm; }
+  .score { margin-top:8mm; border:1px solid var(--line); border-radius:4px; padding:4mm 5mm; break-inside:avoid; }
+  .score h3 { margin:0 0 2mm; font-size:11.5pt; }
+  .score table { width:100%; border-collapse:collapse; font-size:9.5pt; }
+  .score td { padding:1.6mm 0; vertical-align:top; border-top:1px solid var(--line); }
+  .score td:first-child { width:28mm; font-weight:700; color:var(--green-dark); white-space:nowrap; }
+  .cta { margin-top:6mm; background:var(--ink); color:#fff; border-radius:4px; padding:5mm 6mm; display:flex; justify-content:space-between; gap:6mm; align-items:center; break-inside:avoid; }
+  .cta b { display:block; font-size:12pt; margin-bottom:1mm; }
+  .cta p { margin:0; color:#b9c2bc; font-size:9.5pt; }
+  .cta .contact { text-align:right; font-size:9.5pt; line-height:1.6; white-space:nowrap; }
+  .cta .contact strong { color:var(--green); font-size:11pt; }
+  footer { margin-top:6mm; color:var(--muted); font-size:8pt; display:flex; justify-content:space-between; }
+</style>
+</head>
+<body>
+<header>
+  <img src="../brand/logos/underwings-lockup-dark.png" alt="Underwings Cybersecurity Solutions">
+  <div class="tag">Free resource · 2026 edition</div>
+</header>
+
+<h1>Security Assessment Checklist</h1>
+<p class="lede">Thirty controls that stop most real-world breaches. Tick what you already have in place, be honest about what is only "planned", and use the score at the end to decide what to fix first.</p>
+<div class="how"><strong>How to use it:</strong> work through it with the person who runs your IT. One tick = the control is in place, working, and someone would notice if it stopped. Anything else is a blank.</div>
+
+<h2>1. Identity &amp; access <span>5 items</span></h2>
+<ol>
+  <li><span class="box"></span><div><b>Multi-factor authentication on every email and admin account</b><small>Stolen passwords are the number one way in. MFA on Microsoft 365 or Google Workspace, VPN, and all admin consoles.</small></div></li>
+  <li><span class="box"></span><div><b>No shared or generic logins</b><small>One person, one account. Shared accounts cannot be traced, disabled or audited when someone leaves.</small></div></li>
+  <li><span class="box"></span><div><b>Leavers are disabled the same day</b><small>A written joiner/mover/leaver step for IT, with HR telling IT before the person's last day.</small></div></li>
+  <li><span class="box"></span><div><b>Admin rights only for the people who need them</b><small>Day-to-day work happens on standard accounts. Separate admin accounts for the few who administer systems.</small></div></li>
+  <li><span class="box"></span><div><b>A password manager and a minimum length of 14 characters</b><small>Long unique passwords per system, generated and stored, instead of one password reused everywhere.</small></div></li>
+</ol>
+
+<h2>2. Endpoints <span>4 items</span></h2>
+<ol>
+  <li><span class="box"></span><div><b>Every laptop and server is patched within 14 days</b><small>Operating system and browser updates applied automatically; critical patches within days, not months.</small></div></li>
+  <li><span class="box"></span><div><b>Endpoint protection with detection and response (EDR) on all devices</b><small>Modern EDR, centrally managed, with alerts that a named person actually reviews.</small></div></li>
+  <li><span class="box"></span><div><b>Laptops and phones are encrypted</b><small>BitLocker, FileVault and device encryption on, so a lost device is an inconvenience rather than a breach.</small></div></li>
+  <li><span class="box"></span><div><b>You know every device that touches company data</b><small>An up-to-date asset list, including personal phones with company email, and the ability to wipe them remotely.</small></div></li>
+</ol>
+
+<h2>3. Email &amp; people <span>4 items</span></h2>
+<ol>
+  <li><span class="box"></span><div><b>SPF, DKIM and DMARC are published and DMARC is enforcing</b><small>Stops criminals sending mail as your domain to your customers and suppliers.</small></div></li>
+  <li><span class="box"></span><div><b>Inbound mail is filtered for phishing and malicious attachments</b><small>Links rewritten and scanned, executable attachments blocked, external-sender banners shown.</small></div></li>
+  <li><span class="box"></span><div><b>Staff receive security awareness training at least twice a year</b><small>Short, practical sessions with simulated phishing, and a no-blame way to report a suspicious message.</small></div></li>
+  <li><span class="box"></span><div><b>Payment changes are verified by phone before money moves</b><small>A call to a known number for any new bank details or "urgent" transfer request, no exceptions for the CEO.</small></div></li>
+</ol>
+
+<h2>4. Network &amp; perimeter <span>4 items</span></h2>
+<ol>
+  <li><span class="box"></span><div><b>Nothing is exposed to the internet that does not need to be</b><small>No remote desktop, database or admin panels open to the world; an external scan in the last 12 months proves it.</small></div></li>
+  <li><span class="box"></span><div><b>Remote access only through VPN or zero-trust access with MFA</b><small>And the VPN appliance itself is patched, since these are heavily targeted.</small></div></li>
+  <li><span class="box"></span><div><b>Guest and IoT Wi-Fi are separated from the corporate network</b><small>Visitors, printers, cameras and smart TVs cannot reach file servers or staff laptops.</small></div></li>
+  <li><span class="box"></span><div><b>Firewall rules and admin passwords were changed from the defaults and are reviewed yearly</b><small>Vendor defaults are public knowledge. Someone owns the rule set and can explain every open port.</small></div></li>
+</ol>
+
+<h2>5. Cloud &amp; SaaS <span>4 items</span></h2>
+<ol>
+  <li><span class="box"></span><div><b>Microsoft 365 or Google Workspace security defaults are reviewed and hardened</b><small>Legacy authentication off, conditional access on, mailbox forwarding to external addresses blocked.</small></div></li>
+  <li><span class="box"></span><div><b>Cloud storage sharing is restricted and reviewed</b><small>No "anyone with the link" sharing on company folders; external shares expire.</small></div></li>
+  <li><span class="box"></span><div><b>Cloud infrastructure (Azure, AWS, GCP) has MFA on the root account and no public storage buckets</b><small>Billing alerts are on, so a hijacked account is noticed within a day.</small></div></li>
+  <li><span class="box"></span><div><b>You have a list of every SaaS tool that holds company data</b><small>Including the ones a department signed up for with a credit card, and who owns each account.</small></div></li>
+</ol>
+
+<h2>6. Data &amp; backup <span>4 items</span></h2>
+<ol>
+  <li><span class="box"></span><div><b>Backups run daily, one copy is offline or immutable, and a restore was tested this quarter</b><small>Ransomware deletes reachable backups first. A backup you have never restored is a hope, not a control.</small></div></li>
+  <li><span class="box"></span><div><b>You know where personal data lives and why you hold it</b><small>A simple data map, which the UAE Personal Data Protection Law expects you to be able to produce.</small></div></li>
+  <li><span class="box"></span><div><b>Sensitive files are restricted to the teams that need them</b><small>HR, finance and legal folders are not readable by everyone in the company.</small></div></li>
+  <li><span class="box"></span><div><b>Old devices and drives are wiped or destroyed before disposal</b><small>With a record of what was disposed of and when.</small></div></li>
+</ol>
+
+<h2>7. Detection &amp; response <span>5 items</span></h2>
+<ol>
+  <li><span class="box"></span><div><b>Logs from email, identity, firewall and endpoints are kept for at least 90 days</b><small>Without logs, an investigation cannot tell you what was taken.</small></div></li>
+  <li><span class="box"></span><div><b>Someone is alerted when something suspicious happens, including at night</b><small>Impossible-travel logins, mass file changes, new admin accounts, disabled security tools.</small></div></li>
+  <li><span class="box"></span><div><b>A one-page incident response plan exists and has a phone tree</b><small>Who decides, who calls the bank, who calls customers, who calls the regulator, and where the plan lives if email is down.</small></div></li>
+  <li><span class="box"></span><div><b>You have run a tabletop exercise in the last 12 months</b><small>Ninety minutes with leadership walking through a ransomware or business-email-compromise scenario.</small></div></li>
+  <li><span class="box"></span><div><b>An independent penetration test or security assessment was done in the last 12 months</b><small>Findings tracked to closure, not filed. Your own team cannot mark its own homework.</small></div></li>
+</ol>
+
+<div class="score">
+  <h3>Score yourself</h3>
+  <table>
+    <tr><td>0–10 ticks</td><td>Exposed. A single phishing email or a lost laptop could stop the business. Start with items 1, 6, 7, 9 and 23 this month.</td></tr>
+    <tr><td>11–20 ticks</td><td>Typical for a UAE SME. The basics are there but there are gaps an attacker will find before you do. Prioritise identity, backup and detection.</td></tr>
+    <tr><td>21–30 ticks</td><td>Mature. Your next step is proving it: an independent assessment, and a framework such as ISO 27001 or the UAE IA standard if customers or regulators ask.</td></tr>
+  </table>
+</div>
+
+<div class="cta">
+  <div><b>Not sure how to close the gaps?</b><p>Underwings offers a free security assessment for UAE organisations: a short call, a review of your answers to this checklist, and a written list of what to fix first. No obligation.</p></div>
+  <div class="contact"><strong>+971 54 707 8203</strong><br>contact@underwings.org<br>underwings.org</div>
+</div>
+
+<footer><span>© 2026 Underwings Cybersecurity Solutions · Abu Dhabi, UAE</span><span>This checklist is general guidance and not a substitute for an assessment of your environment.</span></footer>
+</body>
+</html>

@@ -6,6 +6,7 @@ import { parseAttribution } from '../../lib/attribution';
 import { buildNewsletterLead } from '../../lib/zoho-leads';
 import { syncLead } from '../../lib/lead-sync';
 import { zoho } from '../../lib/zoho';
+import { resourceFor, type Resource } from '../../lib/resources';
 
 export const prerender = false;
 
@@ -28,7 +29,7 @@ const smtpTransport = nodemailer.createTransport({
   tls: { rejectUnauthorized: false },
 });
 
-function buildWelcomeHTML(email: string): string {
+function buildWelcomeHTML(email: string, resource: Resource | null = null): string {
   const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   const year = new Date().getFullYear();
 
@@ -56,8 +57,18 @@ function buildWelcomeHTML(email: string): string {
     <!-- Greeting -->
     <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:20px 32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:center">
       <h1 style="color:#fff;font-size:26px;font-weight:700;margin:0 0 8px">Welcome, ${name}!</h1>
-      <p style="color:#888;font-size:14px;margin:0 0 24px">You've joined the Underwings cybersecurity mailing list.</p>
+      <p style="color:#888;font-size:14px;margin:0 0 24px">${resource ? 'Your download is ready — and you are on the Underwings security mailing list.' : "You've joined the Underwings cybersecurity mailing list."}</p>
     </td></tr></table>
+
+    ${resource ? `<!-- Free resource download -->
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:0 32px 8px">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#0d1f12;border:1px solid rgba(36,215,88,.2);border-radius:12px;padding:20px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+        <p style="margin:0 0 6px;color:#24d758;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Your free download</p>
+        <p style="margin:0 0 4px;color:#fff;font-size:16px;font-weight:600">${resource.title}</p>
+        <p style="margin:0 0 14px;color:#888;font-size:13px">${resource.blurb}</p>
+        <a href="${resource.url}" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none">Download the PDF</a>
+      </td></tr></table>
+    </td></tr></table>` : ''}
 
     <!-- Body -->
     <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:0 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#d4d4d4;font-size:15px;line-height:1.7">
@@ -125,14 +136,14 @@ function buildWelcomeHTML(email: string): string {
 </body></html>`;
 }
 
-async function sendWelcomeEmail(email: string): Promise<void> {
+async function sendWelcomeEmail(email: string, resource: Resource | null = null): Promise<void> {
   try {
     await smtpTransport.sendMail({
       from: 'Underwings <newsletter@underwings.org>',
       replyTo: 'contact@underwings.org',
       to: email,
-      subject: 'Welcome to Underwings — You\'re In!',
-      html: buildWelcomeHTML(email),
+      subject: resource ? `Your ${resource.title} — Underwings` : 'Welcome to Underwings — You\'re In!',
+      html: buildWelcomeHTML(email, resource),
     });
   } catch (e) {
     console.error('Welcome email error:', e);
@@ -140,7 +151,7 @@ async function sendWelcomeEmail(email: string): Promise<void> {
 }
 
 /** Tell the team about the signup — same recipients as the contact form. */
-async function notifyTeamOfSignup(email: string, source: string): Promise<void> {
+async function notifyTeamOfSignup(email: string, source: string, resource: Resource | null = null): Promise<void> {
   const time = dubaiTime();
   const html = `<!doctype html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:24px;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
@@ -156,7 +167,7 @@ async function notifyTeamOfSignup(email: string, source: string): Promise<void> 
 </table>
 </body></html>`;
   await notifyTeam({
-    subject: `New newsletter signup: ${email}`,
+    subject: resource ? `New resource download: ${resource.title} — ${email}` : `New newsletter signup: ${email}`,
     html,
     text: `New newsletter signup — ${time}\nEmail: ${email}\nSource: ${source}\n\nAdmin console: https://underwings.org/admin/`,
     replyTo: email,
@@ -202,6 +213,7 @@ export const POST: APIRoute = async ({ request }) => {
     const cleanEmail = email.toLowerCase().trim();
     const source = lead_magnet ? `lead_magnet:${lead_magnet}` : 'newsletter';
     const attribution = parseAttribution(body.attribution);
+    const resource = resourceFor(typeof lead_magnet === 'string' ? lead_magnet : null);
 
     // Friendly name derived from the local-part of the email
     const friendlyName = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -214,8 +226,8 @@ export const POST: APIRoute = async ({ request }) => {
             { onConflict: 'email' }
           ).select('id').single()
         : Promise.resolve({ data: null, error: { message: 'No Supabase client' } }),
-      sendWelcomeEmail(cleanEmail),
-      notifyTeamOfSignup(cleanEmail, source),
+      sendWelcomeEmail(cleanEmail, resource),
+      notifyTeamOfSignup(cleanEmail, source, resource),
     ]);
 
     if (supabase && supabaseResult.error) {

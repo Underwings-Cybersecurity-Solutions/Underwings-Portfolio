@@ -122,6 +122,22 @@ check_post "Newsletter API — invalid email" "$BASE/api/newsletter" '{"email":"
 check_post "Newsletter API — invalid CAPTCHA token rejected" "$BASE/api/newsletter" '{"email":"smoke-test@example.com","cf-turnstile-response":"invalid-token"}' 403 "CAPTCHA"
 
 echo ""
+echo "Zoho CRM lead sync:"
+check_post "Zoho resync — rejects a missing token" "$BASE/api/admin/zoho-resync" '{}' 401 "Unauthorized"
+check_post "Contact API — junk attribution still hits CAPTCHA gate" "$BASE/api/contact" '{"fields":[],"attribution":"junk","cf-turnstile-response":"invalid-token"}' 403 "CAPTCHA"
+
+echo ""
+echo "Free resources:"
+pdf_ct=$(curl -sI "$BASE/resources/underwings-security-assessment-checklist.pdf" | tr -d '\r' | grep -i '^content-type:' | awk '{print tolower($2)}')
+if [[ "$pdf_ct" == application/pdf* ]]; then
+  echo "  PASS  Security Assessment Checklist PDF served as application/pdf"
+  PASS=$((PASS + 1))
+else
+  echo "  FAIL  Security Assessment Checklist PDF — content-type '$pdf_ct'"
+  FAIL=$((FAIL + 1))
+fi
+
+echo ""
 echo "Security Headers:"
 headers=$(curl -sI "$BASE/")
 for header in "X-Frame-Options" "X-Content-Type-Options" "Referrer-Policy"; do
