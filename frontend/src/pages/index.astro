@@ -2103,7 +2103,8 @@ const schemas = [
             { name: 'what_can_we_help_with_', value: form.querySelector('#ctf-service').value },
             { name: 'message', value: form.querySelector('#ctf-message').value }
           ],
-          'cf-turnstile-response': turnstileToken
+          'cf-turnstile-response': turnstileToken,
+          attribution: (window.uwAttribution ? window.uwAttribution() : {})
         };
 
         fetch('/api/contact', {

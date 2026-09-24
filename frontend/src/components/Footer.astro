@@ -722,7 +722,7 @@ const year = new Date().getFullYear();
     fetch('/api/newsletter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
+      body: JSON.stringify({ email: email, attribution: (window.uwAttribution ? window.uwAttribution() : {}) })
     })
     .then(function(res) {
       if (res.ok) {

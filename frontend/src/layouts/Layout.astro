@@ -199,6 +199,30 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
     gtag('config', 'G-YZG3QCH600', { 'send_page_view': uwConsent === 'accepted' });
   </script>
   <script is:inline nonce={nonce} async src="https://www.googletagmanager.com/gtag/js?id=G-YZG3QCH600"></script>
+  <!-- First-touch attribution for CRM leads: no personal data, first visit wins, 90 days. -->
+  <script is:inline nonce={nonce}>
+  (function(){
+    try {
+      var NAME='uw_attr';
+      function read(){ var m=document.cookie.match(new RegExp('(?:^|; )'+NAME+'=([^;]*)')); if(!m) return null; try{ return JSON.parse(decodeURIComponent(m[1])); }catch(e){ return null; } }
+      var cur=read();
+      if(!cur){
+        var q=new URLSearchParams(location.search), a={};
+        ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].forEach(function(k){ var v=q.get(k); if(v) a[k]=v.slice(0,200); });
+        a.landing_page=(location.pathname+location.search).slice(0,200);
+        if(document.referrer && document.referrer.indexOf(location.origin)!==0) a.referrer=document.referrer.slice(0,200);
+        document.cookie=NAME+'='+encodeURIComponent(JSON.stringify(a))+'; Max-Age=7776000; Path=/; SameSite=Lax; Secure';
+        cur=a;
+      }
+      window.uwAttribution=function(){
+        var a=Object.assign({}, read()||cur||{});
+        a.conversion_page=location.pathname.slice(0,200);
+        var ga=document.cookie.match(/(?:^|; )_ga=GA\d\.\d\.([^;]+)/); if(ga) a.ga_client_id=ga[1].slice(0,100);
+        return a;
+      };
+    } catch(e) { window.uwAttribution=function(){ return { conversion_page: location.pathname }; }; }
+  })();
+  </script>
 
   <!-- Structured Data -->
   {schemaArray.map(s => (
@@ -1475,7 +1499,7 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
         fetch('/api/newsletter', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, lead_magnet: leadType })
+          body: JSON.stringify({ email: email, lead_magnet: leadType, attribution: (window.uwAttribution ? window.uwAttribution() : {}) })
         })
         .then(function(res) {
           if (res.ok) {
@@ -1656,7 +1680,7 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
       fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, lead_magnet: 'Security Assessment Checklist' })
+        body: JSON.stringify({ email: email, lead_magnet: 'Security Assessment Checklist', attribution: (window.uwAttribution ? window.uwAttribution() : {}) })
       })
       .then(function(res) {
         if (res.ok) {

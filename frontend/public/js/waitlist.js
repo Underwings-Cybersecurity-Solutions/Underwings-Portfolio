@@ -39,6 +39,7 @@
             email: email,
             source_page: sourcePage,
             year: year,
+            attribution: (window.uwAttribution ? window.uwAttribution() : {}),
           }),
         });
 
