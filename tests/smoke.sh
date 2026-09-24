@@ -137,6 +137,10 @@ fi
 check_post "Contact API — junk attribution still hits CAPTCHA gate" "$BASE/api/contact" '{"fields":[],"attribution":"junk","cf-turnstile-response":"invalid-token"}' 403 "CAPTCHA"
 
 echo ""
+check "Privacy policy — current version live" "$BASE/privacy-policy" 200 "Last updated: 24 September 2026"
+check "Privacy policy — names LinkedIn lead forms" "$BASE/privacy-policy" 200 "LinkedIn Lead Gen Forms"
+
+echo ""
 echo "Free resources:"
 pdf_ct=$(curl -sI "$BASE/resources/underwings-security-assessment-checklist.pdf" | tr -d '\r' | grep -i '^content-type:' | awk '{print tolower($2)}')
 if [[ "$pdf_ct" == application/pdf* ]]; then
