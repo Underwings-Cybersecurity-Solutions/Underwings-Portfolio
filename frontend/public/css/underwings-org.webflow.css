@@ -237,13 +237,19 @@ strong {
 }
 
 .noise {
-  background-image: url('../images/noise.webp');
+  /* Film-grain overlay. Was a 251 KB 1024px WebP that Lighthouse measured as
+     the Largest Contentful Paint on every page (audit PERF-0, 2026-09-24);
+     now a ~400-byte SVG turbulence tile rendered by the browser. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' seed='7'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0.55 0.55 0 -0.16'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   background-position: 0 0;
-  background-size: 1024px;
+  background-size: 256px;
   width: 140vw;
   height: 140vh;
   position: fixed;
   animation: noiseAnimation 0.2s steps(2) infinite;
+}
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .noise { animation: none; }
 }
 
 @keyframes noiseAnimation {

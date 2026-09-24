@@ -198,7 +198,26 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
     // fires the page_view once the visitor accepts.
     gtag('config', 'G-YZG3QCH600', { 'send_page_view': uwConsent === 'accepted' });
   </script>
-  <script is:inline nonce={nonce} async src="https://www.googletagmanager.com/gtag/js?id=G-YZG3QCH600"></script>
+  <!-- gtag.js (172 KB) is fetched only once analytics consent exists, and then
+       only after the page has loaded — it used to load for every visitor before
+       first paint (audit PERF-0 / TRK). Consent Mode queues nothing we need
+       before that: declined visitors get no Google script at all, which is what
+       the privacy policy says. -->
+  <script is:inline nonce={nonce}>
+    (function () {
+      var loaded = false;
+      window.uwLoadGtag = function () {
+        if (loaded) return; loaded = true;
+        var s = document.createElement('script'); s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-YZG3QCH600';
+        document.head.appendChild(s);
+      };
+      if (uwConsent === 'accepted') {
+        var go = function () { ('requestIdleCallback' in window) ? requestIdleCallback(window.uwLoadGtag, { timeout: 3000 }) : setTimeout(window.uwLoadGtag, 1500); };
+        if (document.readyState === 'complete') go(); else window.addEventListener('load', go, { once: true });
+      }
+    })();
+  </script>
   <!-- First-touch attribution for CRM leads: no personal data, first visit wins, 90 days. -->
   <script is:inline nonce={nonce}>
   (function(){
@@ -239,15 +258,23 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
   <link rel="preconnect" href="https://cdn.prod.website-files.com" crossorigin>
 
   <!-- Font Preloads -->
-  <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-400.woff2" crossorigin>
+  <!-- Preload the weights that are actually on screen at first paint: body, nav
+       and buttons are Geist Mono 500, the H1 is Geist 300, subheads Geist 600.
+       The previous list (400 / 600 / mono-400) missed the two that caused a
+       0.35 layout shift when they swapped in ~600 ms later (audit PERF-0b). -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-mono-500.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-300.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-600.woff2" crossorigin>
-  <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-mono-400.woff2" crossorigin>
-  <link rel="preload" as="script" href="/js/webflow.js">
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-400.woff2" crossorigin>
 
   <!-- Styles -->
-  <link href="/css/normalize.css" rel="stylesheet" type="text/css">
-  <link href="/css/webflow.css" rel="stylesheet" type="text/css">
-  <link href="/css/underwings-org.webflow.css" rel="stylesheet" type="text/css">
+  <!-- Webflow's w-mod-js / w-mod-touch classes, inlined and run before any
+       stylesheet so the nav never re-lays out after first paint (was an extra
+       blocking request in <head> and a CLS source — audit PERF-0b). -->
+  <script is:inline nonce={nonce}>!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script>
+  <link href="/css/normalize.css?v=20260924" rel="stylesheet" type="text/css">
+  <link href="/css/webflow.css?v=20260924" rel="stylesheet" type="text/css">
+  <link href="/css/underwings-org.webflow.css?v=20260924" rel="stylesheet" type="text/css">
 
   <style is:global>
     /* Smooth Scroll */
@@ -929,7 +956,6 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
     @font-face { font-family: 'Droid Sans'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/droid-sans-400.woff2') format('woff2'); }
     @font-face { font-family: 'Droid Sans'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/droid-sans-700.woff2') format('woff2'); }
   </style>
-  <script is:inline nonce={nonce} src="/js/wf-init.js"></script>
   <link rel="icon" href="/favicon.ico?v=3" sizes="32x32">
   <link rel="icon" href="/favicon-32x32.png?v=3" type="image/png" sizes="32x32">
   <link rel="icon" href="/favicon-16x16.png?v=3" type="image/png" sizes="16x16">
@@ -1429,6 +1455,7 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
     document.getElementById('uw-cookie-accept').addEventListener('click', function() {
       localStorage.setItem('uw-cookie-consent', 'accepted');
       document.getElementById('uw-cookie-banner').style.display = 'none';
+      if (window.uwLoadGtag) window.uwLoadGtag();
       // Actually grant consent — Consent Mode v2 then releases the queued hits.
       if (typeof gtag === 'function') {
         gtag('consent', 'update', { 'analytics_storage': 'granted' });
