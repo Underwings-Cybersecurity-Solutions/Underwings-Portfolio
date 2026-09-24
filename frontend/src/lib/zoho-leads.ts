@@ -27,6 +27,35 @@ const SITE = 'https://underwings.org';
 const LIMITS = { first: 40, last: 80, company: 200, phone: 30, description: 32000, text: 200 };
 
 export type WebsiteForm = 'Contact' | 'Waitlist' | 'Newsletter' | 'Resource Download';
+
+/**
+ * insert: the full record for a NEW Lead.
+ * update: the subset that may be written onto an EXISTING Lead — only values the
+ *   visitor actually typed on this form plus "what they did now" markers. Never
+ *   Lead_Status, Owner, Lead_Source, Email_Opt_Out, Description, first-touch UTM
+ *   fields, placeholder Company ("Unknown") or a Last_Name derived from the email,
+ *   because those would overwrite sales-entered data (review finding, 2026-09-24).
+ * tags: applied with add_tags on update (Tag on PUT would replace the list).
+ */
+export interface LeadPayload { insert: Record<string, unknown>; update: Record<string, unknown>; tags: string[] }
+
+const UPDATE_ALLOWED = new Set<string>([
+  'First_Name', 'Last_Name', 'Company', 'Phone',
+  FIELD.websiteForm, FIELD.websiteRecordId, FIELD.conversionPage,
+  FIELD.serviceInterest, FIELD.resourceDownloaded, FIELD.waitlistYear,
+]);
+
+function finish(insert: Record<string, unknown>, opts: { nameProvided: boolean }): LeadPayload {
+  const update: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(insert)) {
+    if (!UPDATE_ALLOWED.has(k) || v === undefined || v === null) continue;
+    if ((k === 'First_Name' || k === 'Last_Name') && !opts.nameProvided) continue;
+    if (k === 'Company' && v === 'Unknown') continue;
+    update[k] = v;
+  }
+  const tags = ((insert.Tag as { name: string }[]) || []).map((t) => t.name);
+  return { insert, update, tags };
+}
 export interface ContactInput { name?: string | null; email: string; phone?: string | null; company?: string | null; service?: string | null; message?: string | null; recordId: string; attribution: Attribution }
 export interface WaitlistInput { name?: string | null; email: string; company?: string | null; serviceSlug: string; year?: string | null; sourcePage?: string | null; recordId: string; attribution: Attribution }
 export interface NewsletterInput { email: string; source: string; recordId: string; attribution: Attribution }
@@ -49,9 +78,20 @@ function nameFromEmail(email: string): string {
   return cut(local.replace(/[._+-]+/g, ' ').trim().replace(/\b\w/g, (c) => c.toUpperCase()) || 'Unknown', LIMITS.last);
 }
 
+/** Absolute, well-formed, ≤255 chars (Zoho "website" field) — or undefined so the FIELD is dropped, never the lead. */
 function absolute(p: string | undefined): string | undefined {
   if (!p) return undefined;
-  return p.startsWith('/') ? SITE + p : p;
+  const candidate = p.startsWith('/') ? SITE + p : p;
+  if (candidate.length > 255) return undefined;
+  try {
+    const u = new URL(candidate);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return undefined;
+    // `new URL` tolerates raw spaces and bad %-escapes in some positions; be stricter.
+    if (/\s/.test(candidate) || /%(?![0-9a-fA-F]{2})/.test(candidate)) return undefined;
+    return candidate;
+  } catch {
+    return undefined;
+  }
 }
 
 function attributionFields(a: Attribution): Record<string, unknown> {
@@ -61,9 +101,9 @@ function attributionFields(a: Attribution): Record<string, unknown> {
   if (a.utm_campaign) out[FIELD.utmCampaign] = cut(a.utm_campaign, LIMITS.text);
   if (a.utm_term) out[FIELD.utmTerm] = cut(a.utm_term, LIMITS.text);
   if (a.utm_content) out[FIELD.utmContent] = cut(a.utm_content, LIMITS.text);
-  if (a.landing_page) out[FIELD.landingPage] = absolute(a.landing_page);
-  if (a.conversion_page) out[FIELD.conversionPage] = absolute(a.conversion_page);
-  if (a.referrer) out[FIELD.referrer] = a.referrer;
+  const landing = absolute(a.landing_page); if (landing) out[FIELD.landingPage] = landing;
+  const conversion = absolute(a.conversion_page); if (conversion) out[FIELD.conversionPage] = conversion;
+  const referrer = absolute(a.referrer); if (referrer) out[FIELD.referrer] = referrer;
   if (a.ga_client_id) out[FIELD.gaClientId] = cut(a.ga_client_id, 100);
   return out;
 }
@@ -74,7 +114,7 @@ function base(form: WebsiteForm, tag: string, email: string, recordId: string, o
     Lead_Source: 'Website',
     Lead_Status: 'Not Contacted',
     Email_Opt_Out: false,
-    Owner: { id: ownerId },
+    ...(ownerId ? { Owner: { id: ownerId } } : {}),
     Tag: [{ name: 'website' }, { name: tag }],
     [FIELD.websiteForm]: form,
     [FIELD.websiteRecordId]: cut(recordId, 64),
@@ -82,16 +122,16 @@ function base(form: WebsiteForm, tag: string, email: string, recordId: string, o
   };
 }
 
-export function buildContactLead(i: ContactInput, ownerId: string): Record<string, unknown> {
+export function buildContactLead(i: ContactInput, ownerId: string): LeadPayload {
   const lead = { ...base('Contact', 'contact-form', i.email, i.recordId, ownerId, i.attribution), ...splitName(i.name) };
   lead.Company = cut(str(i.company) || 'Unknown', LIMITS.company);
   const phone = str(i.phone); if (phone) lead.Phone = cut(phone, LIMITS.phone);
   const service = str(i.service); if (service) lead[FIELD.serviceInterest] = cut(service, LIMITS.text);
   const message = str(i.message); if (message) lead.Description = cut(message, LIMITS.description);
-  return lead;
+  return finish(lead, { nameProvided: !!str(i.name) });
 }
 
-export function buildWaitlistLead(i: WaitlistInput, ownerId: string): Record<string, unknown> {
+export function buildWaitlistLead(i: WaitlistInput, ownerId: string): LeadPayload {
   const lead = base('Waitlist', 'waitlist', i.email, i.recordId, ownerId, i.attribution);
   Object.assign(lead, str(i.name) ? splitName(i.name) : { Last_Name: nameFromEmail(normaliseEmail(i.email)) });
   lead.Company = cut(str(i.company) || 'Unknown', LIMITS.company);
@@ -100,10 +140,10 @@ export function buildWaitlistLead(i: WaitlistInput, ownerId: string): Record<str
   const page = str(i.sourcePage);
   if (page && !lead[FIELD.conversionPage]) lead[FIELD.conversionPage] = absolute(page);
   lead.Description = `Joined the waitlist for ${i.serviceSlug}` + (year ? ` (${year})` : '') + (page ? ` from ${page}` : '');
-  return lead;
+  return finish(lead, { nameProvided: !!str(i.name) });
 }
 
-export function buildNewsletterLead(i: NewsletterInput, ownerId: string): Record<string, unknown> {
+export function buildNewsletterLead(i: NewsletterInput, ownerId: string): LeadPayload {
   // source is 'newsletter' or 'lead_magnet:<resource name>' (set by api/newsletter.ts)
   const magnet = i.source.startsWith('lead_magnet:') ? i.source.slice('lead_magnet:'.length).trim() : null;
   const lead = magnet
@@ -119,7 +159,7 @@ export function buildNewsletterLead(i: NewsletterInput, ownerId: string): Record
   } else {
     lead.Description = 'Newsletter signup from the website';
   }
-  return lead;
+  return finish(lead, { nameProvided: false });
 }
 
 export function repeatNote(form: WebsiteForm, details: string, when: Date = new Date()): string {

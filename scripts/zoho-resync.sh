@@ -7,15 +7,19 @@ set -u
 cd "$(dirname "$0")/.."
 ENV_FILE=.env
 env_val() { grep -E "^$1=" "$ENV_FILE" 2>/dev/null | cut -d= -f2- | tr -d '"'; }
+STATE=backups/.zoho-resync-fails
 TOKEN=$(env_val ZOHO_RESYNC_TOKEN)
-[ -n "$TOKEN" ] || { echo "$(date -u +%FT%TZ) ZOHO_RESYNC_TOKEN missing in $ENV_FILE"; exit 2; }
-
-OUT=$(docker exec underwings-frontend wget -qO- --header="X-Resync-Token: $TOKEN" --post-data='' http://127.0.0.1:4321/api/admin/zoho-resync 2>&1)
-RC=$?
+if [ -z "$TOKEN" ]; then
+  OUT="ZOHO_RESYNC_TOKEN missing in $ENV_FILE"; RC=2
+else
+  # Token travels in an env var (not argv) so it is not visible in `ps` on the host.
+  OUT=$(docker exec -e RT="$TOKEN" underwings-frontend sh -c 'wget -qO- --header="X-Resync-Token: $RT" --post-data="" http://127.0.0.1:4321/api/admin/zoho-resync' 2>&1)
+  RC=$?
+fi
 echo "$(date -u +%FT%TZ) rc=$RC $OUT"
 
-STATE=backups/.zoho-resync-fails
-if [ "$RC" -ne 0 ] || [[ "$OUT" == *'"failed":'[1-9]* ]]; then
+# The route always answers 200 with {"ok":bool,"failed":N,...}; anything else is a transport failure.
+if [ "$RC" -ne 0 ] || [[ "$OUT" != *'"ok":true'* ]]; then
   n=$(( $(cat "$STATE" 2>/dev/null || echo 0) + 1 )); echo "$n" > "$STATE"
   if [ "$n" -ge 3 ]; then
     to=$(env_val ALERT_EMAIL); from=$(env_val ALERT_FROM_EMAIL); host=$(env_val ALERT_SMTP_HOST); port=$(env_val ALERT_SMTP_PORT); user=$(env_val ALERT_SMTP_USER); pass=$(env_val ALERT_SMTP_PASS)

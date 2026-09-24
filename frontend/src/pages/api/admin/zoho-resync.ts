@@ -6,9 +6,9 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { zoho } from '../../../lib/zoho';
-import { syncLead, type LeadTable } from '../../../lib/lead-sync';
+import { syncLead, GIVE_UP_ATTEMPTS, type LeadTable } from '../../../lib/lead-sync';
 import { parseAttribution } from '../../../lib/attribution';
-import { buildContactLead, buildWaitlistLead, buildNewsletterLead, type WebsiteForm } from '../../../lib/zoho-leads';
+import { buildContactLead, buildWaitlistLead, buildNewsletterLead, type WebsiteForm, type LeadPayload } from '../../../lib/zoho-leads';
 
 export const prerender = false;
 
@@ -36,20 +36,28 @@ export const POST: APIRoute = async ({ request }) => {
   const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   const out = { scanned: 0, synced: 0, failed: 0, failures: [] as { table: string; id: string; error: string }[] };
 
-  const run = async (table: LeadTable, form: WebsiteForm, toLead: (r: any) => Record<string, unknown>) => {
-    const { data, error } = await supabase.from(table).select('*').is('zoho_lead_id', null).limit(LIMIT);
-    if (error) { out.failures.push({ table, id: '-', error: error.message }); return; }
+  const run = async (table: LeadTable, toLead: (r: any) => { form: WebsiteForm; payload: LeadPayload }) => {
+    let q = supabase.from(table).select('*').is('zoho_lead_id', null).lt('zoho_attempts', GIVE_UP_ATTEMPTS).order('id', { ascending: true }).limit(LIMIT);
+    // Never re-create an opted-out subscriber as a fresh marketing lead (review finding #2).
+    if (table === 'subscribers') q = q.eq('subscribed', true);
+    const { data, error } = await q;
+    if (error) { out.failed++; out.failures.push({ table, id: '-', error: `select failed: ${error.message}` }); return; }
     for (const r of data || []) {
       out.scanned++;
-      const res = await syncLead({ supabase, table, recordId: String(r.id), form, lead: toLead(r), repeatDetails: `Back-filled by resync on ${new Date().toISOString()}` });
+      const { form, payload } = toLead(r);
+      const res = await syncLead({ supabase, table, recordId: String(r.id), form, payload, attempts: Number(r.zoho_attempts || 0), repeatDetails: `Back-filled by the nightly resync on ${new Date().toISOString()} (original submission ${r.created_at || r.captured_at || 'unknown'})` });
       if (res.ok) out.synced++; else { out.failed++; out.failures.push({ table, id: String(r.id), error: res.error }); }
     }
   };
 
-  await run('form_submissions', 'Contact', (r) => buildContactLead({ name: r.name, email: r.email, phone: r.phone, company: r.company, service: r.service_interest, message: r.message, recordId: String(r.id), attribution: parseAttribution(r.metadata?.attribution) }, zoho.ownerId));
-  await run('waitlist_signups', 'Waitlist', (r) => buildWaitlistLead({ name: r.name, company: r.company, email: r.email, serviceSlug: r.service_slug, year: r.service_year, sourcePage: r.source_page, recordId: String(r.id), attribution: parseAttribution(r.attribution) }, zoho.ownerId));
-  await run('subscribers', 'Newsletter', (r) => buildNewsletterLead({ email: r.email, source: r.subscription_source || 'newsletter', recordId: String(r.id), attribution: parseAttribution(r.attribution) }, zoho.ownerId));
+  await run('form_submissions', (r) => ({ form: 'Contact', payload: buildContactLead({ name: r.name, email: r.email, phone: r.phone, company: r.company, service: r.service_interest, message: r.message, recordId: String(r.id), attribution: parseAttribution(r.metadata?.attribution) }, zoho.ownerId) }));
+  await run('waitlist_signups', (r) => ({ form: 'Waitlist', payload: buildWaitlistLead({ name: r.name, company: r.company, email: r.email, serviceSlug: r.service_slug, year: r.service_year, sourcePage: r.source_page, recordId: String(r.id), attribution: parseAttribution(r.attribution) }, zoho.ownerId) }));
+  await run('subscribers', (r) => {
+    const source = r.subscription_source || 'newsletter';
+    return { form: source.startsWith('lead_magnet:') ? 'Resource Download' : 'Newsletter', payload: buildNewsletterLead({ email: r.email, source, recordId: String(r.id), attribution: parseAttribution(r.attribution) }, zoho.ownerId) };
+  });
 
   console.log(`[zoho] resync: scanned=${out.scanned} synced=${out.synced} failed=${out.failed}`);
-  return json(out, out.failed ? 207 : 200);
+  // Always 200 with a body: BusyBox wget (the cron caller) discards the body on any non-2xx.
+  return json({ ok: out.failed === 0, ...out }, 200);
 };

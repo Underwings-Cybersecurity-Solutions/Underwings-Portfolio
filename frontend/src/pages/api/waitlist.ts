@@ -174,12 +174,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     replyTo: email,
   });
 
-  // Zoho CRM: best-effort, after the row is safe in Supabase. Never affects the response.
+  // Zoho CRM: best-effort and NOT awaited — the visitor's response never waits on Zoho
+      // (review finding #3: three 8 s calls could push past nginx's 30 s proxy timeout).
   if (row?.id) {
     const recordId = String(row.id);
-    await syncLead({
+    void syncLead({
       supabase, table: 'waitlist_signups', recordId, form: 'Waitlist',
-      lead: buildWaitlistLead({ name, company, email, serviceSlug, year: serviceYear, sourcePage, recordId, attribution }, zoho.ownerId),
+      payload: buildWaitlistLead({ name, company, email, serviceSlug, year: serviceYear, sourcePage, recordId, attribution }, zoho.ownerId),
       repeatDetails: `Waitlist: ${label}${sourcePage ? `\nPage: ${sourcePage}` : ''}`,
     });
   }

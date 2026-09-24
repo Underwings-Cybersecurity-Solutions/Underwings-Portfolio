@@ -286,12 +286,13 @@ export const POST: APIRoute = async ({ request }) => {
         });
       }
 
-      // Zoho CRM: best-effort, after the row is safe in Supabase. Never affects the response.
+      // Zoho CRM: best-effort and NOT awaited — the visitor's response never waits on Zoho
+      // (review finding #3: three 8 s calls could push past nginx's 30 s proxy timeout).
       const recordId = String(supabaseResult.data?.id ?? '');
       if (recordId) {
-        await syncLead({
+        void syncLead({
           supabase, table: 'form_submissions', recordId, form: 'Contact',
-          lead: buildContactLead({ name, email, phone, company, service, message, recordId, attribution }, zoho.ownerId),
+          payload: buildContactLead({ name, email, phone, company, service, message, recordId, attribution }, zoho.ownerId),
           repeatDetails: [service ? `Service: ${service}` : null, company ? `Company: ${company}` : null, phone ? `Phone: ${phone}` : null, message ? `Message:\n${message}` : null].filter(Boolean).join('\n'),
         });
       }
