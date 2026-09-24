@@ -2,6 +2,10 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import { notifyTeam as sendTeamNotification, dubaiTime } from '../../lib/team-notify';
+import { parseAttribution } from '../../lib/attribution';
+import { buildContactLead } from '../../lib/zoho-leads';
+import { syncLead } from '../../lib/lead-sync';
+import { zoho } from '../../lib/zoho';
 
 export const prerender = false;
 
@@ -245,12 +249,16 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    const email = fields.email;
-    const name = fields.firstname || fields.name || null;
+    const email = typeof fields.email === 'string' ? fields.email.trim() : '';
+    const name = fields.fullname || fields['0-2/name'] || [fields.firstname, fields.lastname].filter(Boolean).join(' ') || null;
     const phone = fields.phone || null;
     const company = fields.company || null;
-    const message = fields.what_can_we_help_with_ || fields.message || null;
-    const service = fields.service_interest || null;
+    // The form sends the service select as `what_can_we_help_with_` and the free
+    // text as `message`. (Before 2026-09-24 these were swapped on the server and
+    // the visitor's message was lost whenever a service was chosen.)
+    const service = fields.what_can_we_help_with_ || fields.service_interest || fields.service || null;
+    const message = fields.message || null;
+    const attribution = parseAttribution(body.attribution);
 
     // Save to Supabase, auto-reply and team notification in parallel
     if (supabase && email) {
@@ -264,7 +272,8 @@ export const POST: APIRoute = async ({ request }) => {
           message,
           service_interest: service,
           status: 'new',
-        }),
+          metadata: Object.keys(attribution).length ? { attribution } : null,
+        }).select('id').single(),
         sendAutoReply(email, name || 'there', company || undefined, service || undefined, message || undefined),
         notifyTeam(name || 'Unknown', email, phone || undefined, company || undefined, service || undefined, message || undefined),
       ]);
@@ -274,6 +283,16 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'Submission failed' }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Zoho CRM: best-effort, after the row is safe in Supabase. Never affects the response.
+      const recordId = String(supabaseResult.data?.id ?? '');
+      if (recordId) {
+        await syncLead({
+          supabase, table: 'form_submissions', recordId, form: 'Contact',
+          lead: buildContactLead({ name, email, phone, company, service, message, recordId, attribution }, zoho.ownerId),
+          repeatDetails: [service ? `Service: ${service}` : null, company ? `Company: ${company}` : null, phone ? `Phone: ${phone}` : null, message ? `Message:\n${message}` : null].filter(Boolean).join('\n'),
         });
       }
 
