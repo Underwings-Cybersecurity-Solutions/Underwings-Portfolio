@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
+import { escapeHtml as esc } from '../../lib/escape';
 import { notifyTeam, dubaiTime } from '../../lib/team-notify';
 import { parseAttribution } from '../../lib/attribution';
 import { buildNewsletterLead } from '../../lib/zoho-leads';
@@ -56,7 +57,7 @@ function buildWelcomeHTML(email: string, resource: Resource | null = null): stri
 
     <!-- Greeting -->
     <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:20px 32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:center">
-      <h1 style="color:#fff;font-size:26px;font-weight:700;margin:0 0 8px">Welcome, ${name}!</h1>
+      <h1 style="color:#fff;font-size:26px;font-weight:700;margin:0 0 8px">Welcome, ${esc(name)}!</h1>
       <p style="color:#888;font-size:14px;margin:0 0 24px">${resource ? 'Your download is ready — and you are on the Underwings security mailing list.' : "You've joined the Underwings cybersecurity mailing list."}</p>
     </td></tr></table>
 
@@ -160,8 +161,8 @@ async function notifyTeamOfSignup(email: string, source: string, resource: Resou
   <tr><td style="padding:24px 28px">
     <span style="display:inline-block;background:#0d1f12;border:1px solid rgba(36,215,88,.2);border-radius:16px;padding:4px 12px;color:#24d758;font-size:11px;font-weight:700;letter-spacing:.05em">NEW NEWSLETTER SIGNUP</span>
     <span style="float:right;color:#555;font-size:12px">${time}</span>
-    <h2 style="color:#fff;font-size:20px;font-weight:700;margin:16px 0 4px">${email}</h2>
-    <p style="color:#888;font-size:13px;margin:0 0 16px">Source: <span style="color:#ccc">${source}</span></p>
+    <h2 style="color:#fff;font-size:20px;font-weight:700;margin:16px 0 4px">${esc(email)}</h2>
+    <p style="color:#888;font-size:13px;margin:0 0 16px">Source: <span style="color:#ccc">${esc(source)}</span></p>
     <a href="https://underwings.org/admin/" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">Open admin console</a>
   </td></tr>
 </table>
@@ -245,7 +246,7 @@ export const POST: APIRoute = async ({ request }) => {
       void syncLead({
         supabase, table: 'subscribers', recordId, form: source.startsWith('lead_magnet:') ? 'Resource Download' : 'Newsletter',
         payload: buildNewsletterLead({ email: cleanEmail, source, recordId, attribution }, zoho.ownerId),
-        repeatDetails: `Source: ${source}`,
+        repeatDetails: `Source: ${esc(source)}`,
       });
     }
 

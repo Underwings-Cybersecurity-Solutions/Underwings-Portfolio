@@ -55,13 +55,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (contentType.includes('text/html')) {
     const csp = [
       `default-src 'self'`,
-      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://d3e54v103j8qbb.cloudfront.net https://cdn.prod.website-files.com https://js.usemessages.com https://assets.calendly.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com`,
-      `style-src 'self' 'unsafe-inline' https://assets.calendly.com https://fonts.googleapis.com`,
-      `img-src 'self' data: blob: https://cdn.brandfetch.io https://www.offsec.com https://assets.calendly.com https://www.google-analytics.com https://www.googletagmanager.com`,
-      `font-src 'self' data: https://assets.calendly.com https://fonts.gstatic.com`,
+      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://d3e54v103j8qbb.cloudfront.net https://cdn.prod.website-files.com https://js.usemessages.com https://challenges.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com`,
+      `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+      `img-src 'self' data: blob: https://cdn.brandfetch.io https://www.offsec.com https://www.google-analytics.com https://www.googletagmanager.com`,
+      `font-src 'self' data: https://fonts.gstatic.com`,
       `media-src 'self' blob:`,
-      `connect-src 'self' https://calendly.com https://api.anthropic.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com`,
-      `frame-src 'self' https://calendly.com https://challenges.cloudflare.com`,
+      `connect-src 'self' https://api.anthropic.com https://challenges.cloudflare.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com`,
+      `frame-src 'self' https://crm.zoho.com https://challenges.cloudflare.com`,
       `frame-ancestors 'self'`,
     ].join('; ');
 

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
+import { escapeHtml as esc } from '../../lib/escape';
 import { notifyTeam as sendTeamNotification, dubaiTime } from '../../lib/team-notify';
 import { parseAttribution } from '../../lib/attribution';
 import { buildContactLead } from '../../lib/zoho-leads';
@@ -33,16 +34,16 @@ function buildContactReplyHTML(name: string, company?: string, service?: string,
   const serviceBlock = serviceFull
     ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0"><tr><td style="background:#0d1f12;border-left:3px solid #24d758;border-radius:8px;padding:16px 20px">
         <p style="margin:0 0 4px;color:#24d758;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Service Interest</p>
-        <p style="margin:0;color:#fff;font-size:15px;font-weight:600">${serviceFull}</p>
+        <p style="margin:0;color:#fff;font-size:15px;font-weight:600">${esc(serviceFull)}</p>
       </td></tr></table>`
     : '';
 
-  const companyLine = company ? `<p style="color:#666;font-size:13px;margin:0 0 20px">Company: <span style="color:#999">${company}</span></p>` : '';
+  const companyLine = company ? `<p style="color:#666;font-size:13px;margin:0 0 20px">Company: <span style="color:#999">${esc(company)}</span></p>` : '';
 
   const messageBlock = message
     ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0"><tr><td style="background:#0a0a0a;border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:16px 20px">
         <p style="margin:0 0 6px;color:#555;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">Your Message</p>
-        <p style="margin:0;color:#999;font-size:14px;line-height:1.6;font-style:italic">"${message}"</p>
+        <p style="margin:0;color:#999;font-size:14px;line-height:1.6;font-style:italic">"${esc(message)}"</p>
       </td></tr></table>`
     : '';
 
@@ -62,7 +63,7 @@ function buildContactReplyHTML(name: string, company?: string, service?: string,
 
     <!-- Greeting -->
     <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:32px 32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-      <h1 style="color:#fff;font-size:24px;font-weight:700;margin:0 0 6px">Hi ${firstName},</h1>
+      <h1 style="color:#fff;font-size:24px;font-weight:700;margin:0 0 6px">Hi ${esc(firstName)},</h1>
       <p style="color:#888;font-size:14px;margin:0 0 8px">Thank you for reaching out to Underwings.</p>
       ${companyLine}
     </td></tr></table>
@@ -93,7 +94,8 @@ function buildContactReplyHTML(name: string, company?: string, service?: string,
 
       <!-- CTA -->
       <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:0 0 8px">
-        <a href="https://underwings.org/services" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:14px;padding:14px 32px;border-radius:10px;text-decoration:none">Explore Our Services</a>
+        <a href="https://underwings.org/book" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:14px;padding:14px 32px;border-radius:10px;text-decoration:none">Book a 30-minute call</a>
+        <p style="margin:14px 0 0"><a href="https://underwings.org/services" style="color:#24d758;font-size:13px;text-decoration:underline">or explore our services</a></p>
       </td></tr></table>
 
       <p style="color:#555;font-size:13px;text-align:center;margin:16px 0 0">You can reply directly to this email — it reaches our team instantly.</p>
@@ -150,23 +152,23 @@ async function notifyTeam(name: string, email: string, phone?: string, company?:
         <td align="right"><span style="color:#555;font-size:12px">${time}</span></td>
       </tr></table>
       <h2 style="color:#fff;font-size:20px;font-weight:700;margin:16px 0 4px">${name || 'Unknown'}</h2>
-      <p style="color:#24d758;font-size:14px;margin:0">${email}</p>
+      <p style="color:#24d758;font-size:14px;margin:0">${esc(email)}</p>
     </td></tr></table>
 
     <!-- Details -->
     <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:0 28px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0;background:#0a0a0a;border-radius:10px;overflow:hidden">
-        ${company ? `<tr><td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Company</span><br><span style="color:#fff;font-size:14px">${company}</span></td></tr>` : ''}
-        ${phone ? `<tr><td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Phone</span><br><span style="color:#fff;font-size:14px">${phone}</span></td></tr>` : ''}
-        ${service ? `<tr><td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Service Interest</span><br><span style="color:#24d758;font-size:14px;font-weight:600">${service}</span></td></tr>` : ''}
-        ${message ? `<tr><td style="padding:12px 16px"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Message</span><br><span style="color:#ccc;font-size:14px;line-height:1.6">${message}</span></td></tr>` : ''}
+        ${company ? `<tr><td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Company</span><br><span style="color:#fff;font-size:14px">${esc(company)}</span></td></tr>` : ''}
+        ${phone ? `<tr><td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Phone</span><br><span style="color:#fff;font-size:14px">${esc(phone)}</span></td></tr>` : ''}
+        ${service ? `<tr><td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Service Interest</span><br><span style="color:#24d758;font-size:14px;font-weight:600">${esc(service)}</span></td></tr>` : ''}
+        ${message ? `<tr><td style="padding:12px 16px"><span style="color:#666;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Message</span><br><span style="color:#ccc;font-size:14px;line-height:1.6">${esc(message)}</span></td></tr>` : ''}
       </table>
 
       <!-- CTA -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0"><tr>
         <td><a href="https://underwings.org/admin/" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">Open admin console</a></td>
-        <td align="right"><a href="mailto:${email}" style="display:inline-block;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);color:#fff!important;font-weight:600;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">Reply to Lead</a></td>
+        <td align="right"><a href="mailto:${esc(email)}" style="display:inline-block;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);color:#fff!important;font-weight:600;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">Reply to Lead</a></td>
       </tr></table>
 
     </td></tr></table>
@@ -187,11 +189,11 @@ async function notifyTeam(name: string, email: string, phone?: string, company?:
       text: [
         `New website lead — ${time}`,
         `Name: ${name || 'Unknown'}`,
-        `Email: ${email}`,
-        phone ? `Phone: ${phone}` : null,
-        company ? `Company: ${company}` : null,
-        service ? `Service interest: ${service}` : null,
-        message ? `Message:\n${message}` : null,
+        `Email: ${esc(email)}`,
+        phone ? `Phone: ${esc(phone)}` : null,
+        company ? `Company: ${esc(company)}` : null,
+        service ? `Service interest: ${esc(service)}` : null,
+        message ? `Message:\n${esc(message)}` : null,
         '',
         'Admin console: https://underwings.org/admin/',
       ].filter(Boolean).join('\n'),
@@ -293,7 +295,7 @@ export const POST: APIRoute = async ({ request }) => {
         void syncLead({
           supabase, table: 'form_submissions', recordId, form: 'Contact',
           payload: buildContactLead({ name, email, phone, company, service, message, recordId, attribution }, zoho.ownerId),
-          repeatDetails: [service ? `Service: ${service}` : null, company ? `Company: ${company}` : null, phone ? `Phone: ${phone}` : null, message ? `Message:\n${message}` : null].filter(Boolean).join('\n'),
+          repeatDetails: [service ? `Service: ${esc(service)}` : null, company ? `Company: ${esc(company)}` : null, phone ? `Phone: ${esc(phone)}` : null, message ? `Message:\n${esc(message)}` : null].filter(Boolean).join('\n'),
         });
       }
 

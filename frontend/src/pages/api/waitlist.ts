@@ -8,6 +8,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { escapeHtml as esc } from '../../lib/escape';
 import { notifyTeam, dubaiTime } from '../../lib/team-notify';
 import { parseAttribution } from '../../lib/attribution';
 import { buildWaitlistLead } from '../../lib/zoho-leads';
@@ -165,11 +166,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   }
 
   // Fire-and-forget team notification — same recipients as the contact form.
-  const label = `${serviceSlug}${serviceYear ? ' (' + serviceYear + ')' : ''}`;
+  const label = `${esc(serviceSlug)}${serviceYear ? ' (' + serviceYear + ')' : ''}`;
   const time = dubaiTime();
   notifyTeam({
     subject: `New waitlist signup: ${label} — ${email}`,
-    html: `<p><strong>New waitlist signup</strong> — ${time}</p><p>Email: ${email}<br>Service: ${label}${name ? '<br>Name: ' + name : ''}${company ? '<br>Company: ' + company : ''}${sourcePage ? '<br>Source page: ' + sourcePage : ''}</p><p><a href="https://underwings.org/admin/">Open the admin console</a></p>`,
+    html: `<p><strong>New waitlist signup</strong> — ${time}</p><p>Email: ${esc(email)}<br>Service: ${esc(label)}${name ? '<br>Name: ' + esc(name) : ''}${company ? '<br>Company: ' + esc(company) : ''}${sourcePage ? '<br>Source page: ' + esc(sourcePage) : ''}</p><p><a href="https://underwings.org/admin/">Open the admin console</a></p>`,
     text: `New waitlist signup — ${time}\nEmail: ${email}\nService: ${label}${name ? '\nName: ' + name : ''}${company ? '\nCompany: ' + company : ''}${sourcePage ? '\nSource page: ' + sourcePage : ''}\n\nAdmin console: https://underwings.org/admin/`,
     replyTo: email,
   });
@@ -181,7 +182,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     void syncLead({
       supabase, table: 'waitlist_signups', recordId, form: 'Waitlist',
       payload: buildWaitlistLead({ name, company, email, serviceSlug, year: serviceYear, sourcePage, recordId, attribution }, zoho.ownerId),
-      repeatDetails: `Waitlist: ${label}${sourcePage ? `\nPage: ${sourcePage}` : ''}`,
+      repeatDetails: `Waitlist: ${esc(label)}${sourcePage ? `\nPage: ${esc(sourcePage)}` : ''}`,
     });
   }
 

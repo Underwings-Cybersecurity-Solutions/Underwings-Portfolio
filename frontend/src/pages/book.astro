@@ -1,0 +1,117 @@
+---
+// ===========================================
+// BOOK A CALL — /book
+// Branded wrapper around Zoho CRM's calendar booking page, so every meeting a
+// visitor books lands on their Lead in the CRM. Replaces the Calendly popup
+// (removed 2026-09-24). The Zoho page is embedded; its slots come from Manoj's
+// calendar. Zoho redirects here with ?booked=1 after a successful booking.
+// ===========================================
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = false;
+
+const ZOHO_BOOKING_URL = 'https://crm.zoho.com/bookings/30minutesecurityconsultation?rid=2389ccd42b58b936068960bc4f30cd1e30c729e62b8b60c67c2e5f163645d9c7feb9a52f3dde16266b4dfeeac36770f7gid74960b962f0a4e3cc6ecbf726e13991549790df6ccca7ad2687d60ee68ff846c';
+const booked = Astro.url.searchParams.get('booked') === '1';
+---
+
+<Layout
+  title="Book a 30-Minute Security Call | Underwings"
+  description="Pick a time for a free 30-minute call with Underwings about penetration testing, ISO 27001, ADHICS, PDPL or cloud security. Live availability, no obligation."
+  keywords="book a call, cybersecurity consultation UAE, penetration testing consultation, ISO 27001 consultant Abu Dhabi"
+  wfPage="book-page"
+>
+  <Header currentPage="" />
+
+  <main id="main" class="main">
+    <section class="section bk-section">
+      <div class="container">
+        <div class="bk-grid">
+          <div class="bk-intro">
+            <p class="bk-eyebrow">Free · 30 minutes · No obligation</p>
+            <h1 class="bk-title">Book a security consultation</h1>
+            <p class="bk-lede">Pick a time that suits you. You'll speak with Manoj Prabhakaran, Underwings' founder and lead consultant, about your penetration testing, compliance or cloud security needs.</p>
+
+            <ul class="bk-list">
+              <li><span class="bk-num">1</span><div><strong>Tell us what's going on.</strong><span>An upcoming audit, a customer questionnaire, a tender that asks for a pentest, or a gut feeling something is exposed.</span></div></li>
+              <li><span class="bk-num">2</span><div><strong>Get a straight answer.</strong><span>What you actually need, what you don't, roughly how long it takes and what it involves.</span></div></li>
+              <li><span class="bk-num">3</span><div><strong>Leave with next steps.</strong><span>A written summary the same day. If we're not the right fit, we'll say so.</span></div></li>
+            </ul>
+
+            <div class="bk-meta">
+              <p><strong>Prefer to talk now?</strong> Call <a href="tel:+971547078203">+971 54 707 8203</a> or email <a href="mailto:contact@underwings.org">contact@underwings.org</a>.</p>
+              <p class="bk-tz">Times are shown in your local time zone. We're in Abu Dhabi (GMT+4), Sunday to Thursday.</p>
+            </div>
+          </div>
+
+          <div class="bk-panel">
+            {booked ? (
+              <div class="bk-booked" role="status">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="24" r="22" stroke="#24d758" stroke-width="2"/><path d="M15 24l6 6 12-12" stroke="#24d758" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <h2>You're booked</h2>
+                <p>The calendar invite and a confirmation email are on their way to your inbox. If you need to change the time, use the link in that email.</p>
+                <p><a href="/services" class="bk-link">See what we can prepare for you before the call &rarr;</a></p>
+              </div>
+            ) : (
+              <>
+                <div class="bk-panel-head">
+                  <span class="bk-dot" aria-hidden="true"></span>
+                  <span>Live availability</span>
+                </div>
+                <iframe
+                  id="bk-frame"
+                  class="bk-frame"
+                  src={ZOHO_BOOKING_URL}
+                  title="Choose a date and time for your 30-minute security consultation"
+                  loading="eager"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allow="clipboard-write"
+                ></iframe>
+                <p class="bk-fallback">Calendar not loading? <a href={ZOHO_BOOKING_URL} target="_blank" rel="noopener">Open the booking page in a new tab</a>.</p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .bk-section { padding-top: clamp(2rem, 6vw, 5rem); padding-bottom: clamp(3rem, 8vw, 6rem); }
+  .bk-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: start; }
+  .bk-eyebrow { color: #24d758; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 1rem; }
+  .bk-title { font-size: clamp(2rem, 4.2vw, 3rem); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 1rem; color: #fff; text-wrap: balance; }
+  .bk-lede { color: #a8b0aa; font-size: 1.05rem; line-height: 1.6; margin: 0 0 2rem; max-width: 46ch; }
+  .bk-list { list-style: none; margin: 0 0 2rem; padding: 0; display: grid; gap: 1.1rem; }
+  .bk-list li { display: grid; grid-template-columns: 2rem 1fr; gap: 0.9rem; align-items: start; }
+  .bk-list strong { display: block; color: #fff; font-weight: 600; margin-bottom: 0.15rem; }
+  .bk-list span:not(.bk-num) { color: #8d968f; font-size: 0.95rem; line-height: 1.55; }
+  .bk-num { width: 2rem; height: 2rem; border-radius: 50%; background: rgba(36,215,88,0.12); border: 1px solid rgba(36,215,88,0.35); color: #24d758; font-weight: 700; font-size: 0.85rem; display: grid; place-items: center; }
+  .bk-meta { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.25rem; color: #a8b0aa; font-size: 0.95rem; }
+  .bk-meta p { margin: 0 0 0.5rem; }
+  .bk-meta a { color: #24d758; text-decoration: none; }
+  .bk-meta a:hover, .bk-meta a:focus-visible { text-decoration: underline; }
+  .bk-tz { color: #6f7872; font-size: 0.85rem; }
+  .bk-panel { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06); }
+  .bk-panel-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1rem; background: #0d1f12; color: #9be7b3; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+  .bk-dot { width: 8px; height: 8px; border-radius: 50%; background: #24d758; box-shadow: 0 0 0 4px rgba(36,215,88,0.2); }
+  .bk-frame { display: block; width: 100%; height: 1040px; border: 0; background: #fff; }
+  .bk-fallback { margin: 0; padding: 0.7rem 1rem; background: #f4f6f4; color: #4b544e; font-size: 0.85rem; text-align: center; }
+  .bk-fallback a { color: #0c5a2d; }
+  .bk-booked { padding: 3rem 2rem; text-align: center; color: #1b241e; }
+  .bk-booked h2 { margin: 1rem 0 0.5rem; font-size: 1.6rem; }
+  .bk-booked p { color: #4b544e; max-width: 40ch; margin: 0.5rem auto; line-height: 1.55; }
+  .bk-link { color: #0c5a2d; font-weight: 600; }
+  @media (max-width: 900px) {
+    .bk-grid { grid-template-columns: 1fr; }
+    .bk-frame { height: 960px; }
+  }
+  @media (max-width: 480px) {
+    .bk-frame { height: 900px; }
+    .bk-panel { border-radius: 12px; }
+  }
+</style>

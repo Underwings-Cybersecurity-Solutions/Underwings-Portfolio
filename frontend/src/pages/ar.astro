@@ -96,11 +96,8 @@ const schema = {
   <!-- Structured Data -->
   <script type="application/ld+json" set:html={JSON.stringify(schema)}></script>
 
-  <!-- Calendly -->
-  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
 
   <!-- DNS Prefetch -->
-  <link rel="dns-prefetch" href="//assets.calendly.com">
   <link rel="dns-prefetch" href="//d3e54v103j8qbb.cloudfront.net">
   <link rel="preconnect" href="https://d3e54v103j8qbb.cloudfront.net" crossorigin>
 
@@ -422,12 +419,12 @@ const schema = {
       text-align: center;
     }
     .ar-footer p {
-      color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.62);
       font-size: 0.85rem;
       margin: 0 0 0.5rem;
     }
     .ar-footer a {
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.72);
       font-size: 0.85rem;
       text-decoration: none;
       transition: color 0.2s;
@@ -659,7 +656,7 @@ const schema = {
         </a>
       </div>
 
-      <button data-calendly-open class="ar-btn-primary" style="font-size: 1.1rem; padding: 1.1rem 2.5rem;">
+      <button data-book-call class="ar-btn-primary" style="font-size: 1.1rem; padding: 1.1rem 2.5rem;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         احجز مكالمة الآن
       </button>
@@ -674,16 +671,12 @@ const schema = {
     </div>
   </footer>
 
-  <!-- ========== Calendly ========== -->
-  <script is:inline nonce={Astro.locals.nonce || ""} src="https://assets.calendly.com/assets/external/widget.js"></script>
   <script is:inline nonce={Astro.locals.nonce || ""}>
   document.addEventListener('click', function(e) {
-    var trigger = e.target.closest('[data-calendly-open]');
+    var trigger = e.target.closest('[data-book-call]');
     if (!trigger) return;
     e.preventDefault();
-    if (typeof Calendly !== 'undefined') {
-      Calendly.initPopupWidget({ url: 'https://calendly.com/manoj-underwings/30min' });
-    }
+    window.location.href = '/book';
   });
   </script>
 

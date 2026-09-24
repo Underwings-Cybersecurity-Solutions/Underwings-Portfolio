@@ -232,35 +232,7 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
   <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="Underwings Blog" href="/rss.xml">
 
-  <!-- Calendly stylesheet — loaded non-blocking.
-       The widget is never above the fold, so a render-blocking third-party
-       stylesheet in <head> delayed first paint on all pages for nothing.
-       media="print" makes the browser fetch it at low priority without
-       blocking paint; the nonced script below promotes it to media="all"
-       once it lands. An inline onload= attribute cannot do the swap here —
-       the CSP sets script-src without 'unsafe-inline', so inline event
-       handlers are blocked. -->
-  <link
-    id="uw-calendly-css"
-    href="https://assets.calendly.com/assets/external/widget.css"
-    rel="stylesheet"
-    media="print"
-  >
-  <script is:inline nonce={nonce}>
-    (function() {
-      var l = document.getElementById('uw-calendly-css');
-      if (!l) return;
-      var apply = function() { l.media = 'all'; };
-      if (l.sheet) apply(); else l.addEventListener('load', apply, { once: true });
-    })();
-  </script>
-  <noscript>
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-  </noscript>
-
   <!-- DNS Prefetch -->
-  <link rel="dns-prefetch" href="//assets.calendly.com">
-  <link rel="preconnect" href="https://assets.calendly.com" crossorigin>
   <link rel="dns-prefetch" href="//d3e54v103j8qbb.cloudfront.net">
   <link rel="dns-prefetch" href="//cdn.prod.website-files.com">
   <link rel="preconnect" href="https://d3e54v103j8qbb.cloudfront.net" crossorigin>
@@ -294,7 +266,7 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
       max-width: 100%;
     }
 
-    /* Button reset for .button-hidden overlay (allows <button> to replace <a href="#"> for Calendly triggers) */
+    /* Button reset for .button-hidden overlay (allows <button> to replace <a href="#"> for Book-a-Call triggers) */
     button.button-hidden {
       background: none;
       border: none;
@@ -983,15 +955,14 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
   <script is:inline nonce={nonce} src="https://cdn.prod.website-files.com/gsap/3.14.2/gsap.min.js" type="text/javascript" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous" defer></script>
   <script is:inline nonce={nonce} src="https://cdn.prod.website-files.com/gsap/3.14.2/ScrambleTextPlugin.min.js" type="text/javascript" integrity="sha384-WLYL9YzLSUMXVSCeTvIeNU1RjveFpJK9drY7FtmMDfLeYdVjyx2/JoVDt/ujHexr" crossorigin="anonymous" defer></script>
   <script is:inline nonce={nonce} src="/js/scramble-init.js" defer></script>
-  <script is:inline nonce={nonce} src="https://assets.calendly.com/assets/external/widget.js"></script>
   <script is:inline nonce={nonce}>
+  // "Book a Call" buttons: the booking page lives on our own domain (/book) and
+  // embeds Zoho CRM's calendar, so every meeting lands on the Lead in the CRM.
   document.addEventListener('click', function(e) {
-    var trigger = e.target.closest('[data-calendly-open]');
+    var trigger = e.target.closest('[data-book-call]');
     if (!trigger) return;
     e.preventDefault();
-    if (typeof Calendly !== 'undefined') {
-      Calendly.initPopupWidget({ url: 'https://calendly.com/manoj-underwings/30min' });
-    }
+    window.location.href = '/book';
   });
   </script>
 
@@ -1725,11 +1696,11 @@ const schemaArray = schemaToRender === null ? [] : Array.isArray(schemaToRender)
 
     // ── Click paths ────────────────────────────────────────────────
     document.addEventListener('click', function(e) {
-      var el = e.target && e.target.closest ? e.target.closest('a, button, [data-calendly-open]') : null;
+      var el = e.target && e.target.closest ? e.target.closest('a, button, [data-book-call]') : null;
       if (!el) return;
 
-      if (el.hasAttribute('data-calendly-open')) {
-        track('book_call_click', { method: 'calendly', label: (el.textContent || '').trim().slice(0, 60) });
+      if (el.hasAttribute('data-book-call')) {
+        track('book_call_click', { method: 'zoho', label: (el.textContent || '').trim().slice(0, 60) });
         return;
       }
 

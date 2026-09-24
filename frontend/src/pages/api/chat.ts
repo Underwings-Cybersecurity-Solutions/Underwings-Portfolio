@@ -63,7 +63,7 @@ Fintech & Banking, Healthcare, SaaS & Technology, E-commerce & Retail, Governmen
 - Phone: +971 547078203
 - Location: UAE
 - Contact form on our website at /#contact
-- Book a call via Calendly (available on our website)
+- Book a 30-minute call at /book (times shown live from our calendar)
 
 ## Your Behavior
 - Be friendly, concise, and helpful
