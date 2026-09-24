@@ -160,7 +160,7 @@ services:
       # SMTP for welcome / contact emails (auth fix — full email username required by Stalwart)
       - SMTP_HOST=stalwart
       - SMTP_USER=newsletter@underwings.org
-      - SMTP_PASS=Newsletter@1415!
+      - SMTP_PASS=${NEWSLETTER_SMTP_PASS}
       # Team notifications for every website form (contact / newsletter / waitlist).
       # Go out through the Brevo relay, NOT stalwart: Stalwart still owns
       # underwings.org as a local domain, so it files @underwings.org mail into
