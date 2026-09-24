@@ -123,7 +123,17 @@ check_post "Newsletter API — invalid CAPTCHA token rejected" "$BASE/api/newsle
 
 echo ""
 echo "Zoho CRM lead sync:"
-check_post "Zoho resync — rejects a missing token" "$BASE/api/admin/zoho-resync" '{}' 401 "Unauthorized"
+# nginx denies /api/admin/ to the public internet (403) before Astro sees it; the
+# route's own token check (401) is only reachable from inside the container, which is
+# how scripts/zoho-resync.sh calls it. Either answer means "not runnable by a stranger".
+resync_code=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: application/json" -d '{}' "$BASE/api/admin/zoho-resync")
+if [ "$resync_code" = "403" ] || [ "$resync_code" = "401" ]; then
+  echo "  PASS  Zoho resync — not callable without a token (got $resync_code)"
+  PASS=$((PASS + 1))
+else
+  echo "  FAIL  Zoho resync — expected 401/403 without a token, got $resync_code"
+  FAIL=$((FAIL + 1))
+fi
 check_post "Contact API — junk attribution still hits CAPTCHA gate" "$BASE/api/contact" '{"fields":[],"attribution":"junk","cf-turnstile-response":"invalid-token"}' 403 "CAPTCHA"
 
 echo ""
