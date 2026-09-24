@@ -738,3 +738,5 @@ These need explicit user input before the relevant phase ships:
 ---
 
 End of master plan v2.
+
+> **2026-09-24:** `scripts/pdpl-retention.sh`, `scripts/pdpl-dsar-erase.sh` and `scripts/monday-reconciliation.sh` were deleted. They targeted the Krayin MariaDB removed on 2026-06-25 and carried its password in a public repository. Retention and erasure now apply to Supabase and Zoho CRM (see docs/runbooks/zoho-crm-website.md).
