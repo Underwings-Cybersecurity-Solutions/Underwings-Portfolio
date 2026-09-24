@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-import { notifyCrmInbound } from '../../lib/crm-inbound';
 import { notifyTeam, dubaiTime } from '../../lib/team-notify';
 
 export const prerender = false;
@@ -173,14 +172,14 @@ async function notifyTeamOfSignup(email: string, source: string): Promise<void> 
     <span style="float:right;color:#555;font-size:12px">${time}</span>
     <h2 style="color:#fff;font-size:20px;font-weight:700;margin:16px 0 4px">${email}</h2>
     <p style="color:#888;font-size:13px;margin:0 0 16px">Source: <span style="color:#ccc">${source}</span></p>
-    <a href="https://crm.underwings.org/admin" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">View in CRM</a>
+    <a href="https://underwings.org/admin/" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">Open admin console</a>
   </td></tr>
 </table>
 </body></html>`;
   await notifyTeam({
     subject: `New newsletter signup: ${email}`,
     html,
-    text: `New newsletter signup — ${time}\nEmail: ${email}\nSource: ${source}\n\nView in CRM: https://crm.underwings.org/admin`,
+    text: `New newsletter signup — ${time}\nEmail: ${email}\nSource: ${source}\n\nAdmin console: https://underwings.org/admin/`,
     replyTo: email,
   });
 }
@@ -227,7 +226,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Friendly name derived from the local-part of the email
     const friendlyName = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-    // Save to Supabase + push to Keila + send welcome email + push lead to Krayin via n8n
+    // Save to Supabase + push to Keila + send welcome email + notify the team
     const [supabaseResult] = await Promise.all([
       supabase
         ? supabase.from('subscribers').upsert(
@@ -238,17 +237,6 @@ export const POST: APIRoute = async ({ request }) => {
       pushToKeila(cleanEmail, source),
       sendWelcomeEmail(cleanEmail),
       notifyTeamOfSignup(cleanEmail, source),
-      notifyCrmInbound({
-        source: 'newsletter',
-        person: {
-          name: friendlyName,
-          email: cleanEmail,
-        },
-        title: `Newsletter signup — ${cleanEmail}`,
-        activity_note: lead_magnet
-          ? `Newsletter signup via lead magnet: ${lead_magnet}`
-          : 'Newsletter signup (no lead magnet)',
-      }),
     ]);
 
     if (supabase && supabaseResult.error) {

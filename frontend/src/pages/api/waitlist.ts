@@ -8,7 +8,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
-import { notifyCrmInbound } from '../../lib/crm-inbound';
 import { notifyTeam, dubaiTime } from '../../lib/team-notify';
 
 export const prerender = false;
@@ -157,30 +156,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json({ error: 'Signup failed' }, 500);
   }
 
-  // Fire-and-forget: push lead into Krayin via n8n. Never blocks signup response.
-  notifyCrmInbound({
-    source: 'waitlist',
-    person: {
-      name: name || email.split('@')[0],
-      email,
-      company: company || undefined,
-    },
-    title: `Waitlist — ${serviceSlug}${serviceYear ? ' (' + serviceYear + ')' : ''}`,
-    description: [
-      `Service: ${serviceSlug}`,
-      serviceYear ? `Year: ${serviceYear}` : null,
-      sourcePage ? `Source page: ${sourcePage}` : null,
-    ].filter(Boolean).join('\n'),
-    activity_note: `Joined waitlist for ${serviceSlug}${serviceYear ? ' (' + serviceYear + ')' : ''}`,
-  });
-
   // Fire-and-forget team notification — same recipients as the contact form.
   const label = `${serviceSlug}${serviceYear ? ' (' + serviceYear + ')' : ''}`;
   const time = dubaiTime();
   notifyTeam({
     subject: `New waitlist signup: ${label} — ${email}`,
-    html: `<p><strong>New waitlist signup</strong> — ${time}</p><p>Email: ${email}<br>Service: ${label}${name ? '<br>Name: ' + name : ''}${company ? '<br>Company: ' + company : ''}${sourcePage ? '<br>Source page: ' + sourcePage : ''}</p><p><a href="https://crm.underwings.org/admin">View in CRM</a></p>`,
-    text: `New waitlist signup — ${time}\nEmail: ${email}\nService: ${label}${name ? '\nName: ' + name : ''}${company ? '\nCompany: ' + company : ''}${sourcePage ? '\nSource page: ' + sourcePage : ''}\n\nView in CRM: https://crm.underwings.org/admin`,
+    html: `<p><strong>New waitlist signup</strong> — ${time}</p><p>Email: ${email}<br>Service: ${label}${name ? '<br>Name: ' + name : ''}${company ? '<br>Company: ' + company : ''}${sourcePage ? '<br>Source page: ' + sourcePage : ''}</p><p><a href="https://underwings.org/admin/">Open the admin console</a></p>`,
+    text: `New waitlist signup — ${time}\nEmail: ${email}\nService: ${label}${name ? '\nName: ' + name : ''}${company ? '\nCompany: ' + company : ''}${sourcePage ? '\nSource page: ' + sourcePage : ''}\n\nAdmin console: https://underwings.org/admin/`,
     replyTo: email,
   });
 

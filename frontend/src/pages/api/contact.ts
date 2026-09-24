@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
-import { notifyCrmInbound } from '../../lib/crm-inbound';
 import { notifyTeam as sendTeamNotification, dubaiTime } from '../../lib/team-notify';
 
 export const prerender = false;
@@ -162,7 +161,7 @@ async function notifyTeam(name: string, email: string, phone?: string, company?:
 
       <!-- CTA -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0"><tr>
-        <td><a href="https://crm.underwings.org/admin" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">View in CRM</a></td>
+        <td><a href="https://underwings.org/admin/" style="display:inline-block;background:#24d758;color:#051a0c!important;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">Open admin console</a></td>
         <td align="right"><a href="mailto:${email}" style="display:inline-block;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);color:#fff!important;font-weight:600;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none">Reply to Lead</a></td>
       </tr></table>
 
@@ -170,7 +169,7 @@ async function notifyTeam(name: string, email: string, phone?: string, company?:
   </td></tr>
 
   <tr><td style="padding:16px 28px;text-align:center;font-family:-apple-system,sans-serif">
-    <p style="margin:0;color:#333;font-size:11px">Underwings CRM &middot; <a href="https://crm.underwings.org/admin" style="color:#555;text-decoration:none">crm.underwings.org</a></p>
+    <p style="margin:0;color:#333;font-size:11px">Underwings admin &middot; <a href="https://underwings.org/admin/" style="color:#555;text-decoration:none">underwings.org/admin</a></p>
   </td></tr>
 
 </table>
@@ -190,7 +189,7 @@ async function notifyTeam(name: string, email: string, phone?: string, company?:
         service ? `Service interest: ${service}` : null,
         message ? `Message:\n${message}` : null,
         '',
-        'View in CRM: https://crm.underwings.org/admin',
+        'Admin console: https://underwings.org/admin/',
       ].filter(Boolean).join('\n'),
       replyTo: email,
     });
@@ -219,32 +218,6 @@ async function verifyTurnstile(token: string): Promise<boolean> {
   });
   const data = await res.json();
   return data.success === true;
-}
-
-async function pushToKrayinCRM(data: {
-  email: string;
-  name?: string;
-  phone?: string;
-  company?: string;
-  message?: string;
-  service?: string;
-}): Promise<void> {
-  await notifyCrmInbound({
-    source: 'contact_form',
-    person: {
-      name: data.name || 'Unknown',
-      email: data.email,
-      phone: data.phone || undefined,
-      company: data.company || undefined,
-    },
-    title: data.service
-      ? `Contact form — ${data.service} (${data.name || 'Unknown'})`
-      : `Contact form — ${data.name || 'Unknown'}`,
-    description: data.message || '',
-    activity_note: data.service
-      ? `Submitted via website contact form. Service interest: ${data.service}.`
-      : 'Submitted via website contact form.',
-  });
 }
 
 
@@ -279,7 +252,7 @@ export const POST: APIRoute = async ({ request }) => {
     const message = fields.what_can_we_help_with_ || fields.message || null;
     const service = fields.service_interest || null;
 
-    // Save to Supabase + push to Krayin CRM in parallel
+    // Save to Supabase, auto-reply and team notification in parallel
     if (supabase && email) {
       const [supabaseResult] = await Promise.all([
         supabase.from('form_submissions').insert({
@@ -292,7 +265,6 @@ export const POST: APIRoute = async ({ request }) => {
           service_interest: service,
           status: 'new',
         }),
-        pushToKrayinCRM({ email, name: name || undefined, phone: phone || undefined, company: company || undefined, message: message || undefined, service: service || undefined }),
         sendAutoReply(email, name || 'there', company || undefined, service || undefined, message || undefined),
         notifyTeam(name || 'Unknown', email, phone || undefined, company || undefined, service || undefined, message || undefined),
       ]);

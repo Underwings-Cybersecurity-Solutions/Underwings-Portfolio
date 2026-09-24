@@ -176,24 +176,6 @@ check_url "Uptime Kuma"   "https://status.underwings.org"        "302"
 # renders the header, the footer and the wordmark.
 check_url_body "Academy"  "https://academy.mycosmicstar.com/"    "View course"
 
-# ── CRM (crm.underwings.org) ────────────────
-# 1. the SPA container is actually serving (not just any 200 from try_files)
-check_url_body "CRM app"   "https://crm.underwings.org/healthz" "underwings-crm ok"
-# 2. the SPA shell still ships its entry script
-check_url_body "CRM shell" "https://crm.underwings.org/"        "crm-pipeline-strip"
-# 3. the whole data plane — nginx -> kong -> postgrest -> postgres — answers,
-#    AND RLS still denies anon. An empty array is the correct, secure answer;
-#    rows here would mean the CRM's customer data had become world-readable.
-ANON_KEY_VAL=$(grep -E '^ANON_KEY=' /home/deployer/underwings/.env 2>/dev/null | cut -d= -f2-)
-if [ -n "${ANON_KEY_VAL}" ]; then
-  CRM_ANON=$(curl -s --max-time 10 -H "apikey: ${ANON_KEY_VAL}" \
-    "https://crm.underwings.org/rest/v1/crm_deals?select=id&limit=1" 2>/dev/null)
-  if [ "${CRM_ANON}" != "[]" ]; then
-    FAILURES="${FAILURES}FAIL: CRM data plane — expected '[]' from anon read, got: ${CRM_ANON}\n"
-  fi
-else
-  FAILURES="${FAILURES}WARN: CRM data plane — ANON_KEY not readable from .env, check skipped\n"
-fi
 
 # ── Core containers ─────────────────────────
 # underwings-webmail is NOT here: Roundcube was decommissioned 2026-09-03 (compose
@@ -202,7 +184,6 @@ fi
 # noise that hides real problems.
 for c in underwings-nginx underwings-frontend underwings-admin \
          underwings-db underwings-kong underwings-auth underwings-rest \
-         underwings-crm \
          underwings-mail; do
   check_container "$c"
 done

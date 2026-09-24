@@ -157,8 +157,6 @@ services:
       - PUBLIC_TURNSTILE_SITE_KEY=${TURNSTILE_SITE_KEY}
       - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
-      # Brevo delivery webhook auth (/api/brevo-events → crm_email_event RPC)
-      - BREVO_WEBHOOK_TOKEN=${BREVO_WEBHOOK_TOKEN}
       # SMTP for welcome / contact emails (auth fix — full email username required by Stalwart)
       - SMTP_HOST=stalwart
       - SMTP_USER=newsletter@underwings.org
@@ -185,17 +183,6 @@ services:
     container_name: underwings-admin
     environment:
       - SUPABASE_URL=${ADMIN_SUPABASE_URL:-http://localhost:8080}
-      - SUPABASE_ANON_KEY=${ANON_KEY}
-    restart: always
-    networks:
-      - underwings-network
-
-  # standalone CRM app at crm.underwings.org (same-origin Supabase via nginx→kong)
-  crm:
-    build: ./crm
-    container_name: underwings-crm
-    environment:
-      - SUPABASE_URL=https://crm.underwings.org
       - SUPABASE_ANON_KEY=${ANON_KEY}
     restart: always
     networks:
@@ -419,50 +406,6 @@ services:
       meta:
         condition: service_started
     restart: always
-    networks:
-      - underwings-network
-
-  # ---- leadgen: continuous multi-source AI lead generator → crm_prospects ----
-  # Zero-dep Node service. Loops every config.intervalMinutes (default 24h):
-  # gather (Overpass/Wikidata/News [+Firecrawl/Places/Hunter if keys]) → Claude
-  # score vs the Underwings ICP → website + contact harvest → upsert into
-  # crm_prospects, where the CRM LeadGen view picks them up. Between cycles it
-  # polls crm_leadgen_settings.run_requested_at so the CRM's "Run now" works.
-  # Writes as service_role: it owns every enrichment column, while migration
-  # 011 restricts browser sessions to status/notes. v2 2026-08-02 (was Sheets).
-  leadgen:
-    image: node:20-alpine
-    container_name: underwings-leadgen
-    restart: unless-stopped
-    working_dir: /app
-    command: node run.js --loop
-    user: "1000:1000"
-    environment:
-      - ANTHROPIC_API_KEY=${LEADGEN_ANTHROPIC_API_KEY:-${ANTHROPIC_API_KEY}}
-      - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY:-}
-      - FIRECRAWL_API_KEY=${LEADGEN_FIRECRAWL_API_KEY:-${FIRECRAWL_API_KEY:-}}
-      - APOLLO_API_KEY=${LEADGEN_APOLLO_API_KEY:-}
-      - KUMA_PUSH_URL=${KUMA_PUSH_URL:-}
-      - SUPABASE_URL=http://kong:8000
-      - SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}
-    volumes:
-      - ./leadgen:/app
-    networks:
-      - underwings-network
-
-  # ---- leadgen-test: one-shot test runner (docker compose run --rm leadgen-test) ----
-  # The host has no node, and the tests must never see real API keys.
-  leadgen-test:
-    image: node:20-alpine
-    container_name: underwings-leadgen-test
-    profiles: ["tools"]
-    working_dir: /app
-    command: node --test test/
-    user: "1000:1000"
-    environment:
-      - NODE_ENV=test
-    volumes:
-      - ./leadgen:/app
     networks:
       - underwings-network
 
