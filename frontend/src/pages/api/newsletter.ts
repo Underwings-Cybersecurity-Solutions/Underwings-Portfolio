@@ -2,6 +2,10 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import { notifyTeam, dubaiTime } from '../../lib/team-notify';
+import { parseAttribution } from '../../lib/attribution';
+import { buildNewsletterLead } from '../../lib/zoho-leads';
+import { syncLead } from '../../lib/lead-sync';
+import { zoho } from '../../lib/zoho';
 
 export const prerender = false;
 
@@ -135,31 +139,6 @@ async function sendWelcomeEmail(email: string): Promise<void> {
   }
 }
 
-// Newsletter integration — add subscriber to the Frappe "Underwings Newsletter"
-// Email Group via the crm-bridge (aliased `krayin`). Replaces the old Keila push.
-const NEWSLETTER_URL = import.meta.env.NEWSLETTER_WEBHOOK_URL || process.env.NEWSLETTER_WEBHOOK_URL || 'http://krayin/webhook-newsletter';
-const NEWSLETTER_TOKEN = import.meta.env.KRAYIN_WEBHOOK_TOKEN || process.env.KRAYIN_WEBHOOK_TOKEN;
-
-async function pushToKeila(email: string, source: string): Promise<void> {
-  if (!NEWSLETTER_TOKEN) return;
-  try {
-    const res = await fetch(NEWSLETTER_URL, {
-      method: 'POST',
-      headers: {
-        'X-Webhook-Token': NEWSLETTER_TOKEN,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, source }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      console.error('Newsletter push non-OK:', res.status, text);
-    }
-  } catch (e) {
-    console.error('Newsletter push error:', e);
-  }
-}
-
 /** Tell the team about the signup — same recipients as the contact form. */
 async function notifyTeamOfSignup(email: string, source: string): Promise<void> {
   const time = dubaiTime();
@@ -222,19 +201,19 @@ export const POST: APIRoute = async ({ request }) => {
 
     const cleanEmail = email.toLowerCase().trim();
     const source = lead_magnet ? `lead_magnet:${lead_magnet}` : 'newsletter';
+    const attribution = parseAttribution(body.attribution);
 
     // Friendly name derived from the local-part of the email
     const friendlyName = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-    // Save to Supabase + push to Keila + send welcome email + notify the team
+    // Save to Supabase + send welcome email + notify the team
     const [supabaseResult] = await Promise.all([
       supabase
         ? supabase.from('subscribers').upsert(
-            { email: cleanEmail, subscription_source: source, subscribed: true },
+            { email: cleanEmail, subscription_source: source, subscribed: true, ...(Object.keys(attribution).length ? { attribution } : {}) },
             { onConflict: 'email' }
-          )
-        : Promise.resolve({ error: { message: 'No Supabase client' } }),
-      pushToKeila(cleanEmail, source),
+          ).select('id').single()
+        : Promise.resolve({ data: null, error: { message: 'No Supabase client' } }),
       sendWelcomeEmail(cleanEmail),
       notifyTeamOfSignup(cleanEmail, source),
     ]);
@@ -244,6 +223,16 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Subscription failed' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Zoho CRM: best-effort, after the row is safe in Supabase. Never affects the response.
+    const recordId = String((supabaseResult as any)?.data?.id ?? '');
+    if (recordId) {
+      await syncLead({
+        supabase, table: 'subscribers', recordId, form: source.startsWith('lead_magnet:') ? 'Resource Download' : 'Newsletter',
+        lead: buildNewsletterLead({ email: cleanEmail, source, recordId, attribution }, zoho.ownerId),
+        repeatDetails: `Source: ${source}`,
       });
     }
 

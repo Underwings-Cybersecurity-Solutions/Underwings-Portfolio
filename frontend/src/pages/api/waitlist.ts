@@ -9,6 +9,10 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 import { notifyTeam, dubaiTime } from '../../lib/team-notify';
+import { parseAttribution } from '../../lib/attribution';
+import { buildWaitlistLead } from '../../lib/zoho-leads';
+import { syncLead } from '../../lib/lead-sync';
+import { zoho } from '../../lib/zoho';
 
 export const prerender = false;
 
@@ -104,6 +108,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const sourcePage  = sanitize(body.source_page, MAX_STRING_LEN);
   const name        = sanitize(body.name, MAX_STRING_LEN);
   const company     = sanitize(body.company, MAX_STRING_LEN);
+  const attribution = parseAttribution(body.attribution);
 
   if (!serviceSlug || !VALID_SERVICE_SLUGS.has(serviceSlug)) {
     return json({ error: 'Unknown service' }, 400);
@@ -134,7 +139,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
   const userAgent = sanitize(request.headers.get('user-agent'), MAX_UA_LEN);
 
-  const { error } = await supabase
+  const { data: row, error } = await supabase
     .from('waitlist_signups')
     .insert({
       service_slug:  serviceSlug,
@@ -145,7 +150,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       source_page:   sourcePage,
       user_agent:    userAgent,
       ip_hash:       ipHash,
-    });
+      attribution:   Object.keys(attribution).length ? attribution : null,
+    })
+    .select('id')
+    .single();
 
   if (error) {
     // 23505 = unique_violation (already on waitlist for this service) → still a success from UX perspective
@@ -165,6 +173,16 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     text: `New waitlist signup — ${time}\nEmail: ${email}\nService: ${label}${name ? '\nName: ' + name : ''}${company ? '\nCompany: ' + company : ''}${sourcePage ? '\nSource page: ' + sourcePage : ''}\n\nAdmin console: https://underwings.org/admin/`,
     replyTo: email,
   });
+
+  // Zoho CRM: best-effort, after the row is safe in Supabase. Never affects the response.
+  if (row?.id) {
+    const recordId = String(row.id);
+    await syncLead({
+      supabase, table: 'waitlist_signups', recordId, form: 'Waitlist',
+      lead: buildWaitlistLead({ name, company, email, serviceSlug, year: serviceYear, sourcePage, recordId, attribution }, zoho.ownerId),
+      repeatDetails: `Waitlist: ${label}${sourcePage ? `\nPage: ${sourcePage}` : ''}`,
+    });
+  }
 
   return json({ ok: true, already_registered: false }, 200);
 };
