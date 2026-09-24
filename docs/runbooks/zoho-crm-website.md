@@ -25,3 +25,74 @@ Standard fields used: `Lead_Source` = `Website` (value added by the owner), `Lea
 Assignment rules cannot be created through the MCP; the website sets `Owner` explicitly. When a
 second sales user joins, create a Leads assignment rule in Setup → Automation → Assignment and
 route by `Website_Form`.
+
+## How it works
+
+```
+browser ──POST /api/contact|waitlist|newsletter──▶ Astro route (frontend container)
+   │ (sends `attribution` from the first-party uw_attr cookie)   ├─ Supabase insert      (unchanged)
+   │                                                            ├─ team mail via Brevo  (unchanged; now also contact@)
+   │                                                            ├─ visitor auto-reply   (unchanged; carries the PDF for downloads)
+   │                                                            └─ lib/lead-sync.ts → lib/zoho.ts → POST /crm/v7/Leads/upsert (key: Email)
+   └─ nightly cron 03:15 Dubai: scripts/zoho-resync.sh → POST /api/admin/zoho-resync (rows with zoho_lead_id NULL)
+```
+
+Mapping lives in `frontend/src/lib/zoho-leads.ts` (pure, unit-tested). A repeat submission from the
+same email updates the one Lead and appends a dated Note instead of creating a duplicate.
+Newsletter and resource-download leads get `Lead_Status = Contact in Future`; contact-form leads
+`Not Contacted`. The visitor's response never depends on Zoho: failures are logged and retried nightly.
+
+## Environment variables (gitignored `.env`, passed to `frontend` by compose)
+
+`ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN` (Self Client created 2026-09-24, scope
+`ZohoCRM.modules.ALL,ZohoCRM.settings.READ,ZohoCRM.coql.READ`), `ZOHO_ACCOUNTS_URL`, `ZOHO_API_URL`,
+`ZOHO_OWNER_ID`, `ZOHO_RESYNC_TOKEN` (shared secret for the resync route),
+`FORM_NOTIFY_TO=admin@,manoj@,contact@underwings.org`.
+Without the first three the routes work as before and log one warning at boot.
+
+## Rotate the refresh token
+
+1. `https://api-console.zoho.com` → the Self Client → Generate Code → same scope, 10 minutes.
+2. `curl -s -X POST https://accounts.zoho.com/oauth/v2/token -d grant_type=authorization_code -d client_id=… -d client_secret=… -d code=…`
+3. Replace `ZOHO_REFRESH_TOKEN` in `.env`, then `docker compose up -d frontend` (env only, no rebuild).
+4. Check `docker logs underwings-frontend | grep '\[zoho\]'` after the next submission, or run
+   `scripts/zoho-resync.sh` and expect `"failed":0`.
+
+## Reading failures
+
+- Per submission: `docker logs underwings-frontend | grep '\[zoho\]'` → `→ <id> (insert|update)` or `FAILED: <zoho error>`.
+- Per row: `zoho_error` / `zoho_lead_id` / `zoho_synced_at` on `form_submissions`, `waitlist_signups`, `subscribers`.
+- Nightly: `backups/zoho-resync.log`; an alert mail goes to ALERT_EMAIL only after 3 consecutive failing nights.
+- Zoho returns HTTP 200 with a per-record error for bad data (e.g. a removed picklist value); the
+  client treats that as a failure and logs Zoho's `details` verbatim.
+
+## Testing
+
+Unit: `docker run --rm -v "$PWD/frontend:/app" -w /app node:24-alpine node --test 'src/lib/*.test.mjs'`.
+Live: post to `/api/contact` with a `smoke+<n>@underwings.org` marker, confirm the Lead via the Zoho
+MCP (`searchRecords` by email), then delete the Lead and the Supabase row. `tests/smoke.sh` covers
+the resync auth gate, attribution hardening and the checklist PDF.
+
+## Free resources
+
+`frontend/src/lib/resources.ts` lists every promised download. The Security Assessment Checklist
+source is `frontend/public/resources/underwings-security-assessment-checklist.html`; re-render after
+edits with headless Chrome (`--print-to-pdf`, see the plan, Task 14). The exit-popup passes
+`lead_magnet: 'Security Assessment Checklist'`, which selects the resource by title.
+
+## Owner follow-ons (not automatable through the MCP)
+
+1. **Time zone and company name** — Setup → General → Company Settings: `Asia/Dubai`; fix "Cybersecuirty".
+2. **Zoho-side lead-update emails to contact@** — Setup → Automation → Workflow Rules → Leads → on
+   Create or Edit → Email Notification → contact@underwings.org. (Website submissions already mail contact@.)
+3. **Meeting scheduling in the CRM** — Setup → General → Calendar Booking: create a 30-minute page,
+   then replace the Calendly URL in `frontend/src/layouts/Layout.astro` (`Calendly.initPopupWidget`),
+   drop the Calendly script/CSS and CSP hosts in `frontend/src/middleware.ts`, add the link to the
+   contact auto-reply and success panel. Booked meetings then attach to the Lead.
+4. **Newsletter sending** — Setup → Marketplace → Zoho → Zoho Campaigns; sync by the `newsletter`
+   and `resource-download` tags. Subscribers currently receive only the welcome mail.
+5. **Zoho SalesIQ visitor tracking (optional)** — Setup → Channels → Chat; paste the widget code and
+   it is loaded behind the analytics consent with its hosts added to the CSP.
+6. **Assignment rule** when a second sales user joins (see top of this file).
+7. **Trial ends 2026-10-08** — pick a paid plan before then; on lapse the site keeps working and
+   leads queue in Supabase until the resync catches up.
