@@ -171,6 +171,16 @@ services:
       - NOTIFY_SMTP_PORT=${NOTIFY_SMTP_PORT}
       - NOTIFY_SMTP_USER=${NOTIFY_SMTP_USER}
       - NOTIFY_SMTP_PASS=${NOTIFY_SMTP_PASS}
+      # Zoho CRM lead sync (Self Client refresh token; values live in the gitignored .env).
+      # See docs/runbooks/zoho-crm-website.md. Without ZOHO_CLIENT_ID/SECRET/REFRESH_TOKEN
+      # the routes still work and log one warning; leads simply do not reach Zoho.
+      - ZOHO_CLIENT_ID=${ZOHO_CLIENT_ID}
+      - ZOHO_CLIENT_SECRET=${ZOHO_CLIENT_SECRET}
+      - ZOHO_REFRESH_TOKEN=${ZOHO_REFRESH_TOKEN}
+      - ZOHO_ACCOUNTS_URL=${ZOHO_ACCOUNTS_URL:-https://accounts.zoho.com}
+      - ZOHO_API_URL=${ZOHO_API_URL:-https://www.zohoapis.com}
+      - ZOHO_OWNER_ID=${ZOHO_OWNER_ID:-7626271000000625001}
+      - ZOHO_RESYNC_TOKEN=${ZOHO_RESYNC_TOKEN}
     restart: always
     networks:
       - underwings-network
