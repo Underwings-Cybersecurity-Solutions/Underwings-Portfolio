@@ -37,8 +37,13 @@ browser ──POST /api/contact|waitlist|newsletter──▶ Astro route (fronte
    └─ nightly cron 03:15 Dubai: scripts/zoho-resync.sh → POST /api/admin/zoho-resync (rows with zoho_lead_id NULL)
 ```
 
-Mapping lives in `frontend/src/lib/zoho-leads.ts` (pure, unit-tested). A repeat submission from the
-same email updates the one Lead and appends a dated Note instead of creating a duplicate.
+Mapping lives in `frontend/src/lib/zoho-leads.ts` (pure, unit-tested). Each mapper returns an
+`insert` record (new Lead) and an `update` subset (existing Lead). The website looks the email up
+with COQL first; a known email gets ONLY the update subset (fields the visitor typed on this form,
+the latest `Website_Form`/`Conversion_Page`/`Website_Record_ID`), the form's tags appended, and a
+dated Note. `Lead_Status`, `Owner`, `Lead_Source`, `Email_Opt_Out`, `Description`, first-touch
+UTM fields, placeholder company and email-derived names are never written onto an existing Lead,
+so sales-entered data survives repeat visits (review finding, 2026-09-24).
 Newsletter and resource-download leads get `Lead_Status = Contact in Future`; contact-form leads
 `Not Contacted`. The visitor's response never depends on Zoho: failures are logged and retried nightly.
 
@@ -55,6 +60,8 @@ Without the first three the routes work as before and log one warning at boot.
 1. `https://api-console.zoho.com` → the Self Client → Generate Code → same scope, 10 minutes.
 2. `curl -s -X POST https://accounts.zoho.com/oauth/v2/token -d grant_type=authorization_code -d client_id=… -d client_secret=… -d code=…`
 3. Replace `ZOHO_REFRESH_TOKEN` in `.env`, then `docker compose up -d frontend` (env only, no rebuild).
+   Rollback of the whole integration: remove the `ZOHO_*` lines from `.env`, `docker compose up -d
+   frontend`, and delete the `zoho-resync.sh` line from `crontab -e` (otherwise it alerts after 3 nights).
 4. Check `docker logs underwings-frontend | grep '\[zoho\]'` after the next submission, or run
    `scripts/zoho-resync.sh` and expect `"failed":0`.
 
@@ -62,7 +69,10 @@ Without the first three the routes work as before and log one warning at boot.
 
 - Per submission: `docker logs underwings-frontend | grep '\[zoho\]'` → `→ <id> (insert|update)` or `FAILED: <zoho error>`.
 - Per row: `zoho_error` / `zoho_lead_id` / `zoho_synced_at` on `form_submissions`, `waitlist_signups`, `subscribers`.
-- Nightly: `backups/zoho-resync.log`; an alert mail goes to ALERT_EMAIL only after 3 consecutive failing nights.
+- Nightly: `backups/zoho-resync.log` — one JSON line per run (`"ok":true` = nothing failed); an
+  alert mail goes to ALERT_EMAIL only after 3 consecutive failing nights. A row is retried at most
+  5 nights (`zoho_attempts`); an invalid email is marked permanent (99) on first sight. To retry a
+  given-up row after fixing the cause: `update <table> set zoho_attempts = 0 where id = …`.
 - Zoho returns HTTP 200 with a per-record error for bad data (e.g. a removed picklist value); the
   client treats that as a failure and logs Zoho's `details` verbatim.
 
