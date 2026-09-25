@@ -128,3 +128,11 @@ that mirrored something or failed are written).
 **Insight Tag (owner):** Campaign Manager → Analyze → Insight Tag → copy the Partner ID and send it;
 it is loaded behind the analytics consent and conversions are defined for contact submit, `/book`
 and resource download.
+
+**Page-form CSV drop folder (added 2026-09-25):** for the Lead Gen Form on the LinkedIn *Page*
+(not reachable by LeadChain), download the leads CSV from the Page (Analytics → Leads) and copy it
+to `inbox/linkedin/` on the server (e.g. `scp file.csv deployer@143.244.135.89:underwings/inbox/linkedin/`).
+`scripts/linkedin-csv-watch.sh` (cron, every 5 min) imports it into Zoho with
+`frontend/scripts/linkedin-csv-import.mjs` (Lead Source LinkedIn, tag `linkedin`, existing emails are
+patched not duplicated, a Note records the repeat), moves the file to `done/` or `failed/`, and the
+15-minute mirror then creates the Supabase row and the team email. Log: `backups/linkedin-csv.log`.
