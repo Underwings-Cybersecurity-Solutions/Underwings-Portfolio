@@ -124,3 +124,12 @@ test('addNote posts to Notes with the parent lead', async () => {
   assert.deepEqual(sent.data[0].Parent_Id, { module: { api_name: 'Leads' }, id: '111' });
   assert.equal(sent.data[0].Note_Title, 'Repeat');
 });
+
+test('coql returns rows, [] on 204, and ok:false on errors', async () => {
+  const f = fakeFetch([TOKEN, { body: { data: [{ id: '1', Email: 'a@b.co' }], info: { count: 1 } } }, { status: 204 }, { status: 400, body: { code: 'SYNTAX_ERROR' } }]);
+  const z = createZohoClient({ env: ENV, fetch: f });
+  assert.deepEqual(await z.coql('select id from Leads'), { ok: true, rows: [{ id: '1', Email: 'a@b.co' }] });
+  assert.deepEqual(await z.coql('select id from Leads'), { ok: true, rows: [] });
+  const r = await z.coql('bad'); assert.equal(r.ok, false); assert.match(r.error, /SYNTAX_ERROR/);
+  assert.equal(f.calls[1].url, 'https://api.test/crm/v7/coql');
+});

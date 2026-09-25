@@ -106,3 +106,25 @@ edits with headless Chrome (`--print-to-pdf`, see the plan, Task 14). The exit-p
 6. **Assignment rule** when a second sales user joins (see top of this file).
 7. **Trial ends 2026-10-08** — pick a paid plan before then; on lapse the site keeps working and
    leads queue in Supabase until the resync catches up.
+
+## LinkedIn ad leads (added 2026-09-25)
+
+**Into Zoho (owner, one-time):** Zoho CRM → Setup → Marketplace → All → search "LinkedIn Lead Gen
+Forms" → Install → Authorise with the LinkedIn account that administers the Underwings Page and
+the Campaign Manager ad account (needs the *Lead Gen Forms Manager* role) → select the ad account
+and forms → map fields: First name → First_Name, Last name → Last_Name, Work email → Email,
+Company → Company, Job title → Designation, Phone → Phone, Campaign name → UTM_Campaign, and set
+Lead Source to a value containing "LinkedIn" (add the picklist value `LinkedIn` first, as was
+done for `Website`). Assign to Manoj. New form fills then appear as Leads within minutes.
+
+**Onto our side (automatic):** `scripts/linkedin-sync.sh` runs every 15 minutes (cron) and calls
+`/api/admin/linkedin-sync` inside the container. It pulls Leads created in the last 3 days via
+COQL, keeps those whose Lead Source contains "linkedin" or that carry the `linkedin` tag, and for
+each one not yet in Supabase: inserts a `form_submissions` row (`form_type = linkedin_ad`, with
+`zoho_lead_id` set so the nightly resync leaves it alone), emails the team ("New LinkedIn ad
+lead"), and adds the `linkedin` tag. Idempotent; log at `backups/linkedin-sync.log` (only runs
+that mirrored something or failed are written).
+
+**Insight Tag (owner):** Campaign Manager → Analyze → Insight Tag → copy the Partner ID and send it;
+it is loaded behind the analytics consent and conversions are defined for contact submit, `/book`
+and resource download.
