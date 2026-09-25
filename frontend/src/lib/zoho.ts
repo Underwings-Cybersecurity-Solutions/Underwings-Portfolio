@@ -99,6 +99,17 @@ export function createZohoClient(opts: { env?: ZohoEnv; fetch?: typeof fetch; no
       } catch (e) { return fail(e); }
     },
 
+    /** GET a records endpoint (e.g. /crm/v7/Leads?fields=...); 204 means no rows. */
+    async get(path: string): Promise<{ ok: true; rows: any[] } | Fail> {
+      if (!enabled) return NOT_CONFIGURED;
+      try {
+        const { status, json } = await api_('GET', path);
+        if (status === 204) return { ok: true, rows: [] };
+        if (status < 200 || status >= 300) throw new Error(`zoho GET ${path.split('?')[0]} failed: HTTP ${status} ${JSON.stringify(json).slice(0, 300)}`);
+        return { ok: true, rows: Array.isArray(json?.data) ? json.data : [] };
+      } catch (e) { return fail(e); }
+    },
+
     /** Run a COQL select; 204 means no rows. */
     async coql(select_query: string): Promise<{ ok: true; rows: any[] } | Fail> {
       if (!enabled) return NOT_CONFIGURED;

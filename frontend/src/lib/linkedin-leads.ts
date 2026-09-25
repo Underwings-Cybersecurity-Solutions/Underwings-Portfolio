@@ -10,7 +10,7 @@ export interface ZohoLeadRow {
   UTM_Campaign?: string | null; Description?: string | null; Tag?: { name: string }[] | null;
 }
 
-export const LINKEDIN_FIELDS = 'id, First_Name, Last_Name, Email, Phone, Company, Designation, Lead_Source, Created_Time, UTM_Campaign, Description';
+export const LINKEDIN_FIELDS = 'First_Name,Last_Name,Email,Phone,Company,Designation,Lead_Source,Created_Time,UTM_Campaign,Description,Tag';
 
 export function isLinkedInLead(l: ZohoLeadRow): boolean {
   const src = String(l.Lead_Source || '').toLowerCase();
@@ -18,8 +18,14 @@ export function isLinkedInLead(l: ZohoLeadRow): boolean {
   return (l.Tag || []).some((t) => String(t?.name || '').toLowerCase() === 'linkedin');
 }
 
-export function recentLeadsQuery(sinceIso: string): string {
-  return `select ${LINKEDIN_FIELDS} from Leads where Created_Time >= '${sinceIso}' order by Created_Time desc limit 200`;
+/** Records list (not COQL: COQL cannot return Tag). Newest first, one page of 200. */
+export function recentLeadsPath(): string {
+  return `/crm/v7/Leads?fields=${LINKEDIN_FIELDS}&sort_by=Created_Time&sort_order=desc&per_page=200`;
+}
+
+export function isRecent(l: ZohoLeadRow, sinceIso: string): boolean {
+  const t = Date.parse(String(l.Created_Time || ''));
+  return Number.isFinite(t) && t >= Date.parse(sinceIso);
 }
 
 const s = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null);

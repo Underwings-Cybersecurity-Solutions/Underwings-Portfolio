@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isLinkedInLead, leadToSubmission, recentLeadsQuery } from './linkedin-leads.ts';
+import { isLinkedInLead, leadToSubmission, recentLeadsPath, isRecent } from './linkedin-leads.ts';
 
 const lead = { id: '7626271000000800001', First_Name: 'Sara', Last_Name: 'Al Marri', Email: 'Sara@Gulfco.ae', Phone: '+971 50 111 2222', Company: 'Gulf Co', Designation: 'IT Manager', Lead_Source: 'LinkedIn Lead Gen Forms', Created_Time: '2026-09-25T08:15:00+04:00', UTM_Campaign: 'Q4 VAPT UAE', Description: 'Interested in a pentest', Tag: [{ name: 'linkedin' }] };
 
@@ -37,7 +37,13 @@ test('leadToSubmission copes with missing name, email and company', () => {
   assert.equal(row.message, null);
 });
 
-test('recentLeadsQuery asks Zoho for the fields the mirror needs, newest first, bounded by a date', () => {
-  const q = recentLeadsQuery('2026-09-22T00:00:00+00:00');
-  assert.match(q, /^select id, First_Name, Last_Name, Email, Phone, Company, Designation, Lead_Source, Created_Time, UTM_Campaign, Description from Leads where Created_Time >= '2026-09-22T00:00:00\+00:00' order by Created_Time desc limit 200$/);
+test('recentLeadsPath lists the newest leads with the fields the mirror needs, including Tag', () => {
+  const path = recentLeadsPath();
+  assert.equal(path, '/crm/v7/Leads?fields=First_Name,Last_Name,Email,Phone,Company,Designation,Lead_Source,Created_Time,UTM_Campaign,Description,Tag&sort_by=Created_Time&sort_order=desc&per_page=200');
+});
+
+test('isRecent keeps leads created after the cutoff', () => {
+  assert.equal(isRecent({ id: '1', Created_Time: '2026-09-25T08:15:00+04:00' }, '2026-09-22T00:00:00Z'), true);
+  assert.equal(isRecent({ id: '1', Created_Time: '2026-09-01T08:15:00+04:00' }, '2026-09-22T00:00:00Z'), false);
+  assert.equal(isRecent({ id: '1' }, '2026-09-22T00:00:00Z'), false);
 });

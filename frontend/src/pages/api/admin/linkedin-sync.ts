@@ -9,7 +9,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { zoho } from '../../../lib/zoho';
-import { isLinkedInLead, leadToSubmission, recentLeadsQuery, type ZohoLeadRow } from '../../../lib/linkedin-leads';
+import { isLinkedInLead, leadToSubmission, recentLeadsPath, isRecent, type ZohoLeadRow } from '../../../lib/linkedin-leads';
 import { notifyTeam, dubaiTime } from '../../../lib/team-notify';
 import { escapeHtml as esc } from '../../../lib/escape';
 
@@ -69,12 +69,13 @@ export const POST: APIRoute = async ({ request }) => {
   if (!url || !key) return json({ ok: false, error: 'supabase not configured' });
   const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
-  const since = new Date(Date.now() - LOOKBACK_DAYS * 86400_000).toISOString().replace(/\.\d{3}Z$/, '+00:00');
-  const q = await zoho.coql(recentLeadsQuery(since));
-  if (!q.ok) { console.error('[linkedin-sync] coql failed:', q.error); return json({ ok: false, error: q.error }); }
+  const since = new Date(Date.now() - LOOKBACK_DAYS * 86400_000).toISOString();
+  const q = await zoho.get(recentLeadsPath());
+  if (!q.ok) { console.error('[linkedin-sync] list failed:', q.error); return json({ ok: false, error: q.error }); }
 
-  const candidates = (q.rows as ZohoLeadRow[]).filter(isLinkedInLead);
-  const out = { ok: true, scanned: q.rows.length, linkedin: candidates.length, mirrored: 0, skipped: 0, failed: 0, failures: [] as { id: string; error: string }[] };
+  const recent = (q.rows as ZohoLeadRow[]).filter((l) => isRecent(l, since));
+  const candidates = recent.filter(isLinkedInLead);
+  const out = { ok: true, scanned: recent.length, linkedin: candidates.length, mirrored: 0, skipped: 0, failed: 0, failures: [] as { id: string; error: string }[] };
   if (!candidates.length) return json(out);
 
   const ids = candidates.map((c) => String(c.id));

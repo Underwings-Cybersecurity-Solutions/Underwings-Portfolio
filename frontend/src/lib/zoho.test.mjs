@@ -133,3 +133,11 @@ test('coql returns rows, [] on 204, and ok:false on errors', async () => {
   const r = await z.coql('bad'); assert.equal(r.ok, false); assert.match(r.error, /SYNTAX_ERROR/);
   assert.equal(f.calls[1].url, 'https://api.test/crm/v7/coql');
 });
+
+test('get returns data rows for a records list, [] on 204', async () => {
+  const f = fakeFetch([TOKEN, { body: { data: [{ id: '1', Tag: [{ name: 'linkedin' }] }], info: {} } }, { status: 204 }]);
+  const z = createZohoClient({ env: ENV, fetch: f });
+  assert.deepEqual(await z.get('/crm/v7/Leads?fields=Tag'), { ok: true, rows: [{ id: '1', Tag: [{ name: 'linkedin' }] }] });
+  assert.deepEqual(await z.get('/crm/v7/Leads?fields=Tag'), { ok: true, rows: [] });
+  assert.equal(f.calls[1].init.method, 'GET');
+});
