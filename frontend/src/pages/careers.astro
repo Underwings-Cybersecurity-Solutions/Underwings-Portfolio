@@ -64,9 +64,9 @@ const breadcrumbSchema = {
                   <span>See open roles</span>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
-                <!--email_off--><a href="mailto:careers@underwings.org" class="crs-btn crs-btn-secondary">
-                  <span>Email careers@underwings.org</span>
-                </a><!--/email_off-->
+                <a href="#apply" class="crs-btn crs-btn-secondary">
+                  <span>Apply now</span>
+                </a>
               </div>
             </div>
           </div>
@@ -119,7 +119,7 @@ const breadcrumbSchema = {
 
         {positions.length === 0 ? (
           <div class="crs-empty">
-            <p>No openings published yet. Send your CV to <!--email_off--><a href="mailto:careers@underwings.org">careers@underwings.org</a><!--/email_off--> and we'll keep you in mind as roles open.</p>
+            <p>No openings published yet. <a href="#apply">Send us an open application</a> and we'll keep you in mind as roles open.</p>
           </div>
         ) : (
           <div class="crs-roles">
@@ -141,10 +141,10 @@ const breadcrumbSchema = {
                     {p.requirements.map((r) => (<li>{r}</li>))}
                   </ul>
                 )}
-                <!--email_off--><a href={`mailto:careers@underwings.org?subject=${encodeURIComponent('Interest: ' + p.title)}`} class="crs-role-apply">
+                <a href="#apply" data-apply-role={p.title} class="crs-role-apply">
                   {p.status === 'active' ? 'Apply' : 'Express interest'}
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </a><!--/email_off-->
+                </a>
               </article>
             ))}
           </div>
@@ -174,7 +174,7 @@ const breadcrumbSchema = {
     </section>
 
     <!-- ───────── HOW TO APPLY ───────── -->
-    <section class="section bg-color-grey-gradient">
+    <section id="apply" class="section bg-color-grey-gradient">
       <div data-wf--noise--variant="absolute" class="noise-wrapper w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab">
         <div class="noise w-variant-4c0280f5-2522-b840-9cb4-de0542cf64ab"></div>
       </div>
@@ -182,7 +182,7 @@ const breadcrumbSchema = {
         <div class="vertical-heading-top" style="text-align:center;">
           <div class="label" style="margin: 0 auto;"><div class="text-small color-grey">How to apply</div></div>
           <h2 class="heading heading-center">Three steps. <span class="text-gradient-clip bg-color-green-gradient">No theatre.</span></h2>
-          <p class="crs-section-sub" style="margin-left:auto;margin-right:auto;">Email <!--email_off--><a href="mailto:careers@underwings.org" class="crs-link">careers@underwings.org</a><!--/email_off--> with your CV and a short note (3–5 sentences) about which role you want and why. We reply within one working day, even if it's a no.</p>
+          <p class="crs-section-sub" style="margin-left:auto;margin-right:auto;">Send your CV and a short note (3–5 sentences) about which role you want and why, using the form below or by email to <!--email_off--><a href="mailto:careers@underwings.org" class="crs-link">careers@underwings.org</a><!--/email_off-->. We reply within one working day, even if it's a no.</p>
 
           <ol class="crs-steps">
             <li><strong>Apply</strong><span>CV + short note</span></li>
@@ -190,14 +190,73 @@ const breadcrumbSchema = {
             <li><strong>Craft check</strong><span>A relevant exercise or technical conversation — never unpaid client work</span></li>
           </ol>
 
-          <div class="crs-apply-cta">
-            <!--email_off--><a href="mailto:careers@underwings.org" class="crs-btn crs-btn-primary">
-              <span>Email careers@underwings.org</span>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </a><!--/email_off-->
-            <a href="https://www.linkedin.com/company/underwings-cybersecurity" target="_blank" rel="noopener noreferrer nofollow" class="crs-btn crs-btn-secondary">
-              <span>or message us on LinkedIn</span>
-            </a>
+          <div class="crs-form-wrap">
+            <form id="career-form" class="crs-form" novalidate enctype="multipart/form-data">
+              <div class="crs-form-grid">
+                <div class="crs-field">
+                  <label for="cf-name">Full name <span aria-hidden="true">*</span></label>
+                  <input id="cf-name" name="name" type="text" autocomplete="name" maxlength="120" required>
+                  <p class="crs-err" data-err="name"></p>
+                </div>
+                <div class="crs-field">
+                  <label for="cf-email">Email <span aria-hidden="true">*</span></label>
+                  <input id="cf-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+                  <p class="crs-err" data-err="email"></p>
+                </div>
+                <div class="crs-field">
+                  <label for="cf-phone">Phone <span class="crs-opt">(optional)</span></label>
+                  <input id="cf-phone" name="phone" type="tel" autocomplete="tel" maxlength="40">
+                </div>
+                <div class="crs-field">
+                  <label for="cf-role">Role</label>
+                  <select id="cf-role" name="role">
+                    {[...activePositions, ...futurePositions].map((p) => (<option value={p.title}>{p.title}</option>))}
+                    <option value="Open application">Open application</option>
+                  </select>
+                </div>
+                <div class="crs-field crs-field-full">
+                  <label for="cf-link">LinkedIn or portfolio URL</label>
+                  <input id="cf-link" name="link" type="url" inputmode="url" placeholder="https://linkedin.com/in/…" maxlength="300">
+                </div>
+                <div class="crs-field crs-field-full">
+                  <label for="cf-cv">CV <span class="crs-opt">(PDF, DOC or DOCX, max 5 MB)</span></label>
+                  <input id="cf-cv" name="cv" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                  <p class="crs-hint">Attach a CV, add a LinkedIn / portfolio link, or both.</p>
+                  <p class="crs-err" data-err="cv"></p>
+                </div>
+                <div class="crs-field crs-field-full">
+                  <label for="cf-note">Short note</label>
+                  <textarea id="cf-note" name="note" rows="5" maxlength="3000" placeholder="Which role, why you, and one piece of work you're proud of."></textarea>
+                </div>
+              </div>
+
+              <div class="crs-hp" aria-hidden="true">
+                <label for="cf-website">Website</label>
+                <input id="cf-website" name="website" type="text" tabindex="-1" autocomplete="off">
+              </div>
+
+              <label class="crs-consent">
+                <input type="checkbox" name="consent" required>
+                <span>I agree that Underwings may store and process my application for recruitment purposes, per the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" class="crs-link">privacy policy</a>.</span>
+              </label>
+              <p class="crs-err" data-err="consent"></p>
+
+              <div class="crs-form-actions">
+                <button type="submit" class="crs-btn crs-btn-primary" id="cf-submit">
+                  <span class="crs-submit-label">Submit application</span>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <a href="https://www.linkedin.com/company/underwings-cybersecurity" target="_blank" rel="noopener noreferrer nofollow" class="crs-btn crs-btn-secondary">
+                  <span>or message us on LinkedIn</span>
+                </a>
+              </div>
+              <p class="crs-form-status" role="status" aria-live="polite"></p>
+            </form>
+
+            <div class="crs-form-done" hidden>
+              <h3>Application received.</h3>
+              <p>Thanks. We've sent a confirmation to your inbox and will reply within one working day.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -206,6 +265,97 @@ const breadcrumbSchema = {
   </main>
 
   <Footer />
+
+  <script is:inline nonce={Astro.locals.nonce || ""}>
+    (function () {
+      var form = document.getElementById('career-form');
+      if (!form) return;
+      var roleSelect = document.getElementById('cf-role');
+      var submitBtn = document.getElementById('cf-submit');
+      var label = submitBtn.querySelector('.crs-submit-label');
+      var status = form.querySelector('.crs-form-status');
+      var done = document.querySelector('.crs-form-done');
+      var MAX_CV = 5 * 1024 * 1024;
+
+      // "Apply" on a role card pre-selects that role in the form.
+      document.querySelectorAll('[data-apply-role]').forEach(function (a) {
+        a.addEventListener('click', function () {
+          var role = a.getAttribute('data-apply-role');
+          for (var i = 0; i < roleSelect.options.length; i++) {
+            if (roleSelect.options[i].value === role) { roleSelect.selectedIndex = i; break; }
+          }
+          setTimeout(function () { document.getElementById('cf-name').focus({ preventScroll: true }); }, 400);
+        });
+      });
+
+      function setErr(field, msg) {
+        var el = form.querySelector('[data-err="' + field + '"]');
+        if (el) el.textContent = msg || '';
+        var input = form.querySelector('[name="' + field + '"]');
+        if (input) input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      }
+      function clearErrs() {
+        form.querySelectorAll('[data-err]').forEach(function (el) { setErr(el.getAttribute('data-err'), ''); });
+        status.textContent = '';
+        status.classList.remove('is-error');
+      }
+
+      function validate() {
+        var ok = true;
+        var name = form.elements.namedItem("name").value.trim();
+        var email = form.elements.namedItem("email").value.trim();
+        var cv = form.elements.namedItem("cv").files[0];
+        var link = form.elements.namedItem("link").value.trim();
+        if (name.length < 2) { setErr('name', 'Please enter your full name.'); ok = false; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr('email', 'Please enter a valid email address.'); ok = false; }
+        if (cv) {
+          var ext = (cv.name.split('.').pop() || '').toLowerCase();
+          if (['pdf', 'doc', 'docx'].indexOf(ext) === -1) { setErr('cv', 'CV must be a PDF, DOC or DOCX file.'); ok = false; }
+          else if (cv.size > MAX_CV) { setErr('cv', 'CV must be 5 MB or smaller.'); ok = false; }
+        } else if (!link) {
+          setErr('cv', 'Please attach your CV or add a LinkedIn / portfolio link.'); ok = false;
+        }
+        if (!form.elements.namedItem("consent").checked) { setErr('consent', 'Please confirm we may process your application.'); ok = false; }
+        return ok;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        clearErrs();
+        if (!validate()) {
+          var first = form.querySelector('[aria-invalid="true"]');
+          if (first) first.focus();
+          return;
+        }
+        submitBtn.disabled = true;
+        label.textContent = 'Submitting…';
+
+        fetch('/api/careers', { method: 'POST', body: new FormData(form) })
+          .then(function (res) {
+            return res.json().catch(function () { return {}; }).then(function (body) {
+              if (res.ok) {
+                form.hidden = true;
+                done.hidden = false;
+                done.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+              }
+              if (body.fields) Object.keys(body.fields).forEach(function (k) { setErr(k, body.fields[k]); });
+              throw new Error(body.error || 'Submission failed');
+            });
+          })
+          .catch(function (err) {
+            status.classList.add('is-error');
+            status.textContent = (err && err.message && err.message !== 'Failed to fetch')
+              ? err.message
+              : 'Something went wrong. Please try again or email careers@underwings.org.';
+          })
+          .finally(function () {
+            submitBtn.disabled = false;
+            label.textContent = 'Submit application';
+          });
+      });
+    })();
+  </script>
 </Layout>
 
 <style is:inline>
@@ -353,5 +503,57 @@ const breadcrumbSchema = {
   .crs-steps span { color: rgba(255,255,255,0.55); font-size: 0.82rem; line-height: 1.55; }
   @media (max-width: 720px) { .crs-steps { grid-template-columns: 1fr; } }
 
-  .crs-apply-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+  /* ───────── Application form ───────── */
+  .crs-form-wrap {
+    max-width: 760px; margin: 0 auto; text-align: left;
+    padding: 1.8rem; border-radius: 14px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+  }
+  .crs-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.1rem; }
+  .crs-field { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+  .crs-field-full { grid-column: 1 / -1; }
+  .crs-field label { font-family: 'Geist', sans-serif; font-size: 0.85rem; font-weight: 600; color: #fff; letter-spacing: 0; }
+  .crs-field label span[aria-hidden] { color: #24d758; }
+  .crs-opt { color: rgba(255,255,255,0.45); font-weight: 400; }
+  .crs-field input, .crs-field select, .crs-field textarea {
+    width: 100%; box-sizing: border-box;
+    padding: 0.75rem 0.9rem; border-radius: 9px;
+    background: rgba(0,0,0,0.35); color: #fff;
+    border: 1px solid rgba(255,255,255,0.12);
+    font: inherit; font-size: 0.92rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .crs-field select option { background: #111; color: #fff; }
+  .crs-field textarea { resize: vertical; min-height: 120px; }
+  .crs-field input[type="file"] { padding: 0.6rem; cursor: pointer; color: rgba(255,255,255,0.7); }
+  .crs-field input[type="file"]::file-selector-button {
+    margin-right: 0.8rem; padding: 0.45rem 0.9rem; border-radius: 7px; border: 0;
+    background: rgba(36,215,88,0.14); color: #24d758; font-weight: 600; cursor: pointer;
+  }
+  .crs-field input:focus, .crs-field select:focus, .crs-field textarea:focus {
+    outline: none; border-color: rgba(36,215,88,0.6); box-shadow: 0 0 0 3px rgba(36,215,88,0.15);
+  }
+  .crs-field [aria-invalid="true"] { border-color: #f87171; }
+  .crs-hint { margin: 0; font-size: 0.78rem; color: rgba(255,255,255,0.45); }
+  .crs-err { margin: 0; min-height: 0; font-size: 0.8rem; color: #f87171; }
+  .crs-err:empty { display: none; }
+  .crs-hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .crs-consent {
+    display: flex; gap: 0.6rem; align-items: flex-start; margin-top: 1.2rem;
+    font-size: 0.85rem; color: rgba(255,255,255,0.65); line-height: 1.55; cursor: pointer;
+  }
+  .crs-consent input { margin-top: 0.2rem; accent-color: #24d758; width: 16px; height: 16px; flex-shrink: 0; }
+  .crs-form-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 1.3rem; }
+  .crs-form-actions button { cursor: pointer; font-family: 'Geist', sans-serif; }
+  .crs-form-actions button:disabled { opacity: 0.6; cursor: wait; transform: none; }
+  .crs-form-status { margin: 0.9rem 0 0; font-size: 0.88rem; color: rgba(255,255,255,0.7); }
+  .crs-form-status:empty { display: none; }
+  .crs-form-status.is-error { color: #f87171; }
+  .crs-form-done { text-align: center; padding: 1.5rem 0.5rem; }
+  .crs-form-done h3 { font-family: 'Geist', sans-serif; color: #24d758; font-size: 1.3rem; margin: 0 0 0.5rem; }
+  .crs-form-done p { margin: 0; color: rgba(255,255,255,0.7); }
+  @media (max-width: 640px) {
+    .crs-form-wrap { padding: 1.2rem; }
+    .crs-form-grid { grid-template-columns: 1fr; }
+  }
 </style>

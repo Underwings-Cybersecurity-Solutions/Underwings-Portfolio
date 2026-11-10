@@ -57,7 +57,7 @@ ON CONFLICT (slug) DO NOTHING;
 -- ===========================================
 CREATE TABLE IF NOT EXISTS public.form_submissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    form_type TEXT NOT NULL CHECK (form_type IN ('contact', 'quote', 'newsletter', 'consultation')),
+    form_type TEXT NOT NULL CHECK (form_type IN ('contact', 'quote', 'newsletter', 'consultation', 'linkedin_ad', 'career')),
     name TEXT,
     email TEXT NOT NULL,
     phone TEXT,
